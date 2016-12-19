@@ -625,7 +625,7 @@ double Spectrum::DeformationCorrection(double W) {
   a = R*sqrt(3./(bOverA*bOverA+2.));
   b = bOverA*a;
 
-  cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
+  //cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
 
   double V0s = 3.*alpha*Zd/2./R;
   double V0d = 0.;
@@ -640,23 +640,26 @@ double Spectrum::DeformationCorrection(double W) {
   double etaD = 1./6.*(pow(W0-W, 2.)+pow(W+fBetaType*V0d, 2.)-1.);
   double DC0 = (1-etaD*3./5.*R*R)/(1-etaS*3./5.*R*R);
 
-  cout << "DC0 " << DC0 << endl;
+  //cout << "DC0 " << DC0 << endl;
 
-  int steps = 1E4;
+  int steps = 1E2;
   double grid[steps];
   double integrand[steps];
 
   double prefact = 4./3.*M_PI*pow(R, 2.*(1-gamma));
 
   for(int i = 0; i < steps; i++) {
-    grid[i] = a + i/(double)steps*(b-a);
-    integrand[i] = pow(grid[i], 3.)*abs(utilities::GetDerivDeformedChargeDist(grid[i], a, b))*L0Correction(W, grid[i])*pow(grid[i], 2.*(gamma-1));
+    grid[i] = a + (i+1.)/(double)steps*(b-a);
+    integrand[i] = pow(grid[i], 3.)*Zd*abs(utilities::GetDerivDeformedChargeDist(grid[i], a, b))*L0Correction(W, grid[i])*pow(grid[i], 2.*(gamma-1));
+    cout << grid[i] <<  "\t" << integrand[i] << endl;
   }
 
   double newL0 = prefact*utilities::Trapezoid(grid, integrand, steps);
 
-  cout << "newL0 " << newL0 << endl;
+  //cout << "newL0 " << newL0 << endl;
   double DFS = newL0/L0Correction(W, R);
+
+  DC0 = 1.;
 
   return DC0*DFS;
 }

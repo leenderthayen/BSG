@@ -81,7 +81,7 @@ inline double RadialHO(int n, int l, double nu, double r) {
 }
 
 inline double CalcBoverA(double beta) {
-  double C = 5./3.*sqrt(5.*M_PI)*beta*(1.+0.16*beta);
+  double C = 5./3.*sqrt(5./M_PI)*beta*(1.+0.16*beta);
   return sqrt((1+C)/(1-C/2.));
 }
 
