@@ -107,7 +107,7 @@ class Spectrum {
    *
    *
    */
-  double L0Correction(double W);
+  double L0Correction(double W, double r);
 
   double UCorrection(double W);
 

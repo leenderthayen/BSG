@@ -26,7 +26,7 @@ namespace utilities {
 using namespace std;
 
 //TODO changed 1f5/2 and 1p3/2 to simulate prolate deformation
-int smOccupation[78] = {1, 0, 2,   1, 1, 6,   1, 1, 8,   1, 2, 14,  2, 0, 16,
+static int smOccupation[78] = {1, 0, 2,   1, 1, 6,   1, 1, 8,   1, 2, 14,  2, 0, 16,
                         1, 2, 20,  1, 3, 28,  2, 1, 32,  1, 3, 38,  2, 1, 40,
                         1, 4, 50,  1, 4, 58,  2, 2, 64,  2, 2, 68,  3, 0, 70,
                         1, 5, 82,  1, 5, 92,  2, 3, 100, 2, 3, 106, 3, 1, 110,
@@ -78,6 +78,11 @@ inline double RadialHO(int n, int l, double nu, double r) {
   double gl = gsl_sf_laguerre_n(k, l + 0.5, 2 * nu * r * r);
 
   return N * pow(r, l + 1) * exp(-nu * r * r) * gl;
+}
+
+inline double CalcBoverA(double beta) {
+  double C = 5./3.*sqrt(5.*M_PI)*beta*(1.+0.16*beta);
+  return sqrt((1+C)/(1-C/2.));
 }
 
 struct RadialParams {double nu1, nu2; int n1, l1, n2, l2; };
@@ -210,6 +215,61 @@ inline Double_t ChargeMG_f(Double_t x[], Double_t par[]) {
   f = ChargeMG(x[0], par[0], par[1]);
 
   return f;
+}
+
+inline double DeformedChargeDist(double r, double a, double b) {
+  double rho0 = 3./4./M_PI/a/a/b;
+  double result = 0.;
+  if (r <= a) {
+    result = rho0;
+  }
+  else if (r <= b) {
+    result = rho0*(1-b/r*sqrt((r*r-a*a)/(b*b-a*a)));
+  }
+  return result;
+}
+
+inline double GetDerivDeformedChargeDist(double r, double a, double b) {
+  double rho0 = 3./4./M_PI/a/a/b;
+  double result = 0.;
+  if (r >= a && r <= b) {
+    result = rho0*(b*sqrt((r*r-a*a)/(b*b-a*a))/r/r-b/(b*b-a*a)/sqrt((r*r-a*a)/(b*b-a*a)));
+  }
+  return result;
+}
+
+class Lagrange {
+ public:
+  Lagrange(double*, double*);
+  ~Lagrange(){};
+  double GetValue(double);
+
+ private:
+  double xC[3];
+  double yC[3];
+};
+
+inline double Simpson(double x[], double y[], int size) {
+  double result = 0.;
+  for (int i = 0; i < size - 2; i += 2) {
+    double xN[] = {x[i], x[i + 1], x[i + 2]};
+    double yN[] = {y[i], y[i + 1], y[i + 2]};
+    double h = (xN[2] - xN[0]) / 2.;
+    Lagrange* l = new Lagrange(xN, yN);
+    result += 1. / 3. * h * (y[i] + 4. * l->GetValue(xN[0] + h) + y[i + 2]);
+    if (result != result) result = 0.;
+  }
+  // TODO add result for last values
+  return result;
+}
+
+inline double Trapezoid(double x[], double y[], int size) {
+  double result = 0.;
+  for (int i = 0; i < size - 1; i++) {
+    double h = x[i + 1] - x[i];
+    result += h / 2. * (y[i + 1] + y[i]);
+  }
+  return result;
 }
 
 #define N 1E7
