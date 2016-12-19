@@ -30,7 +30,7 @@ Spectrum::Spectrum() {
   fCICorrection = true;
   fQCDInducedCorrection = false;
   fRelativisticCorrection = true;
-  fDeformationCorrection = false;
+  fDeformationCorrection = true;
   fL0Correction = true;
   fUCorrection = true;
   fQCorrection = true;
@@ -585,8 +585,6 @@ double Spectrum::CICorrection(double W) {
 }
 
 double Spectrum::RelativisticCorrection(double W) {
-  // TODO
-
   double Wb = W +fBetaType*3*alpha*Zd/(2.*R);
   double pb = sqrt(Wb*Wb-1.);
   double H2 = -pow(pb*R, 2.)/6.;
@@ -621,31 +619,71 @@ double Spectrum::RelativisticCorrection(double W) {
 }
 
 double Spectrum::DeformationCorrection(double W) {
-  //TODO
+  double bOverA = utilities::CalcBoverA(deformation);
+  double a, b;
 
-  return 1.;
+  a = R*sqrt(3./(bOverA*bOverA+2.));
+  b = bOverA*a;
+
+  //cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
+
+  double V0s = 3.*alpha*Zd/2./R;
+  double V0d = 0.;
+
+  if (deformation > 0) {
+    V0d = 3.*alpha*Zd/2./a/sqrt(bOverA*bOverA-1.)*log(sqrt(bOverA*bOverA-1)+bOverA);
+  }
+  else if (deformation < 0) {
+    V0d = 3.*alpha*Zd/2./a/sqrt(1.-bOverA*bOverA)*asin(sqrt(1-bOverA*bOverA));
+  }
+  double etaS = 1./6.*(pow(W0-W, 2.)+pow(W+fBetaType*V0s, 2.)-1.);
+  double etaD = 1./6.*(pow(W0-W, 2.)+pow(W+fBetaType*V0d, 2.)-1.);
+  double DC0 = (1-etaD*3./5.*R*R)/(1-etaS*3./5.*R*R);
+
+  //cout << "DC0 " << DC0 << endl;
+
+  int steps = 1E2;
+  double grid[steps];
+  double integrand[steps];
+
+  double prefact = 4./3.*M_PI*pow(R, 2.*(1-gamma));
+
+  for(int i = 0; i < steps; i++) {
+    grid[i] = a + (i+1.)/(double)steps*(b-a);
+    integrand[i] = pow(grid[i], 3.)*Zd*abs(utilities::GetDerivDeformedChargeDist(grid[i], a, b))*L0Correction(W, grid[i])*pow(grid[i], 2.*(gamma-1));
+    cout << grid[i] <<  "\t" << integrand[i] << endl;
+  }
+
+  double newL0 = prefact*utilities::Trapezoid(grid, integrand, steps);
+
+  //cout << "newL0 " << newL0 << endl;
+  double DFS = newL0/L0Correction(W, R);
+
+  DC0 = 1.;
+
+  return DC0*DFS;
 }
 
-double Spectrum::L0Correction(double W) {
+double Spectrum::L0Correction(double W, double r) {
   double sum = 0;
   double common = 0;
   double specific = 0;
   for (int i = 1; i < 7; i++) {
     if (fBetaType == BETA_PLUS)
-      sum += aPos[i] * pow(W * R, i - 1);
+      sum += aPos[i] * pow(W * r, i - 1);
     else
-      sum += aNeg[i] * pow(W * R, i - 1);
+      sum += aNeg[i] * pow(W * r, i - 1);
   }
   common = (1 + 13. / 60. * pow(alpha * Zd, 2) -
-            fBetaType * W * R * alpha * Zd * (41. - 26. * gamma) / 15. /
+            fBetaType * W * r * alpha * Zd * (41. - 26. * gamma) / 15. /
                 (2. * gamma - 1) -
-            fBetaType * alpha * Zd * R * gamma * (17. - 2. * gamma) / 30. / W /
+            fBetaType * alpha * Zd * r * gamma * (17. - 2. * gamma) / 30. / W /
                 (2. * gamma - 1) +
             sum);
   if (fBetaType == BETA_PLUS)
-    specific = aPos[0] * R / W + 0.22 * (R - 0.0164) * pow(alpha * Zd, 4.5);
+    specific = aPos[0] * r / W + 0.22 * (r - 0.0164) * pow(alpha * Zd, 4.5);
   else
-    specific = aNeg[0] * R / W + 0.41 * (R - 0.0164) * pow(alpha * Zd, 4.5);
+    specific = aNeg[0] * r / W + 0.41 * (r - 0.0164) * pow(alpha * Zd, 4.5);
   return (common + specific) * 2 / (1 + gamma);
 }
 
@@ -892,8 +930,8 @@ vector<double> Spectrum::GetSpectrumShape(double Energy) {
   }
 
   if (fL0Correction) {
-    result *= L0Correction(W);
-    neutrinoResult *= L0Correction(Wv);
+    result *= L0Correction(W, R);
+    neutrinoResult *= L0Correction(Wv, R);
   }
 
   if (fUCorrection) {
