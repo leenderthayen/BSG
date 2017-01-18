@@ -39,7 +39,7 @@ class Spectrum {
   std::string exParamFile;
 
   /// recoil correction form factors
-  double fa, fb, fc, fc2, fd, fg, fh, ff, fj2, fj3;
+  double fb, fc1, fd;
 
   double bAc;
 
@@ -47,9 +47,9 @@ class Spectrum {
   // if false then they are NOT applied
   bool fPhaseSpace;              ///< apply the phase space factors?
   bool fFermiFunction;           ///< apply the Fermi function?
-  bool fC0Correction;            ///< apply the C0 corrections?
+  bool fCCorrection;            ///< apply the C0 corrections?
   bool fCICorrection;            ///< apply the CI corrections?
-  bool fQCDInducedCorrection;    ///< apply the QCD induced recoil corrections?
+  //bool fQCDInducedCorrection;    ///< apply the QCD induced recoil corrections?
   bool fRelativisticCorrection;  ///< apply the relativistic corrections?
   bool fL0Correction;            ///< apply the L0 corrections?
   bool fUCorrection;             ///< apply the U correction?
@@ -90,11 +90,11 @@ class Spectrum {
    *
    * Long description.
    */
-  double C0Correction(double W);
+  double CCorrection(double W);
 
   double CICorrection(double W);
 
-  double QCDInducedCorrection(double W);
+  //double QCDInducedCorrection(double W);
 
   double RelativisticCorrection(double W);
 
@@ -215,9 +215,9 @@ class Spectrum {
 
   void SetPhaseSpace(bool ps) { fPhaseSpace = ps; };
   void SetFermiFunction(bool ff) { fFermiFunction = ff; };
-  void SetC0Correction(bool c0c) { fC0Correction = c0c; };
+  void SetCCorrection(bool cc) { fCCorrection = cc; };
   void SetCICorrection(bool cic) { fCICorrection = cic; };
-  void SetQCDInducedCorrection(bool qic) { fQCDInducedCorrection = qic; };
+  //void SetQCDInducedCorrection(bool qic) { fQCDInducedCorrection = qic; };
   void SetRelativisticCorrection(bool rc) { fRelativisticCorrection = fc; };
   void SetDeformationCorrection(bool dc) { fDeformationCorrection = dc; };
   void SetL0Correction(bool l0c) { fL0Correction = l0c; };
@@ -241,7 +241,7 @@ class Spectrum {
    *
    * Parameters are read from file FileName
    */
-  void InitRecoil(char* FileName);
+  //void InitRecoil(char* FileName);
 
   /**
    * Initialize the spectrum generator.

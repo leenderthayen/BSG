@@ -46,16 +46,9 @@ Spectrum::Spectrum() {
 
   exParamFile = "data/ExchangeData.dat";
 
-  fa = 0;
   fb = 0;
-  fc = 0;
-  fc2 = 0;
+  fc1 = 0;
   fd = 0;
-  ff = 0;
-  fg = 0;
-  fh = 0;
-  fj2 = 0;
-  fj3 = 0;
 
   deformation = 0.;
 }
@@ -147,7 +140,7 @@ void Spectrum::ReadFromFile(char *FileName) {
   LoadExchangeParameters();
 }
 
-void Spectrum::InitRecoil(char *FileName) {
+/*void Spectrum::InitRecoil(char *FileName) {
   ifstream ifile(FileName, ifstream::in);
   if (!ifile.is_open()) {
     cerr << "Error opening " << FileName << endl;
@@ -208,7 +201,7 @@ void Spectrum::InitRecoil(char *FileName) {
   printf("fa = %f \t fb = %f \t fc = %f\n", fa, fb, fc);
   printf("fd = %f \t ff = %f \t fg = %f\n", fd, ff, fh);
   printf("fh = %f \t fj2 = %f \t fj3 = %f\n", fh, fj2, fj3);
-}
+}*/
 
 void Spectrum::LoadExchangeParameters() {
   ifstream paramStream(exParamFile.c_str());
@@ -422,27 +415,27 @@ double Spectrum::FermiFunction(double W) {
   return result;
 }
 
-double Spectrum::C0Correction(double W) {
+double Spectrum::CCorrection(double W) {
 
   double AC0, AC1, ACm1, AC2;
 
-  AC0 = -233. * pow(alpha * Zd, 2) / 630. - (W0 * W0 - 1) * R * R / 5. +
+  /*AC0 = -233. * pow(alpha * Zd, 2) / 630. - (W0 * W0 - 1) * R * R / 5. +
         fBetaType * 2. * W0 * R * alpha * Zd / 35.;
   AC1 = -fBetaType * 21. * R * alpha * Zd / 35.0 + 4.0 / 9.0 * W0 * R * R;
   ACm1 =
       -2 / 45. * gamma * W0 * R * R - fBetaType / 70. * gamma * alpha * Zd * R;
-  AC2 = -4. / 9. * R * R;
+  AC2 = -4. / 9. * R * R;*/
 
   double VC0, VC1, VCm1, VC2;
 
 
-  VC0 = -233 * pow(alpha * Zd, 2.) / 630. - pow(W0 * R, 2) / 5. -
+  /*VC0 = -233 * pow(alpha * Zd, 2.) / 630. - pow(W0 * R, 2) / 5. -
         fBetaType * 6. / 35. * alpha * Zd * W0 * R +
         9./1225.*pow(alpha*Zd*W0*R, 2.);
   VC1 = -fBetaType * 13. / 35. * alpha * Zd * R + 4. / 15. * W0 * R * R;
   VCm1 = 2. / 15. * gamma * W0 * R * R +
          fBetaType / 70. * gamma * alpha * Zd * R;
-  VC2 = -4. / 15. * R * R;
+  VC2 = -4. / 15. * R * R;*/
 
   double A;
   if (Afit == -1) {
@@ -455,23 +448,63 @@ double Spectrum::C0Correction(double W) {
   double F1222 = 1.219 - 0.0640*(1-exp(-A/1.550));
   double F1211 = -3./70;
 
-  if (fDecayType == FERMI) {
-    return (1-1./3.*pow(alpha*Zd, 2)*F1222-pow(W0*R, 2)/5.-fBetaType*2./9.*alpha*Zd*W0*R*F1111)*(1+2./3.*W*R*(-fBetaType*alpha*Zd*(F1221-1./3.*F1111)+2./5.*W0*R)+2./3.*R/W*gamma*(W0*R/5.-0.5*fBetaType*alpha*Zd*F1211)-4./15.*pow(W*R, 2));
-    return 1 + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
+  VC0 = -pow(W0*R, 2.)/5. - fBetaType * 2./9.*alpha*Zd*W0*R*F1111 - pow(alpha*Zd, 2.)/3.*F1222;
+
+  VC1 = 4./15.*W0*R*R- fBetaType*2./3.*alpha*Zd*R*(F1221-F1111/3.);
+
+  VCm1 = 2./15.*W0*R*R - fBetaType * alpha*Zd*R/3.*F1211;
+
+  VC2 = -4./15.*R*R;
+
+  AC0 = -1./3.*pow(alpha*Zd, 2.)*F1222 - 1./5.*(W0*W0-1)*R*R + fBetaType*2./27.*alpha*Zd*W0*R*F1111+4./9.*R*R;
+
+  AC1 = 4./9.*W0*R*R - fBetaType * 2./3.*alpha*Zd*R*(1./9.*F1111+F1221);
+
+  ACm1 = -2./15.*W0*R*R + fBetaType * alpha*Zd/3.*F1211;
+
+  AC2 = -4./9.*R*R;
+
+  double result = 1.;
+
+  if (fDecayType == FERMI) {    
+    result = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
   } else if (fDecayType == GAMOW_TELLER) {
-    return 1 + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
-  } else if (MixingRatio > 0) {
-    return 1 +
-           1 / (1 + pow(MixingRatio, 2)) *
+    result = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
+  }
+  //TODO
+  /*} else if (MixingRatio > 0) {
+    result = 1. +
+           1. / (1 + pow(MixingRatio, 2)) *
                (VC0 + VC1 * W + VCm1 / W + VC2 * W * W) +
-           1 / (1 + pow(MixingRatio, -2)) * (AC0 + AC1 * W + ACm1 / W + AC2 * W * W);
+           1. / (1 + pow(MixingRatio, -2)) * (AC0 + AC1 * W + ACm1 / W + AC2 * W * W);
+  }*/
+
+  if (fCICorrection) {
+    result *= CICorrection(W);
+  }
+
+  if (fDecayType == GAMOW_TELLER) {
+    //TODO
+    double M = An * (proton_mass_c2 + neutron_mass_c2) / 2. / electron_mass_c2;
+    double x = 0.;
+
+    double NSC0 = -1./45.*R*R*x + 1./3.*W0/M/fc1*(- fBetaType * 2.*fb + fd) + fBetaType*2./5.*alpha*Zd/M/R/fc1*( fBetaType*2.*fb+fd)
+		- fBetaType * 2./35.*alpha*Zd*W0*R*x;
+    
+    double NSC1 = fBetaType * 4./3.*fb/M/fc1 - 2./45.*W0*R*R*x + fBetaType*2./35.*x;
+
+    double NSCm1 = -1./3./M/R/fc1*(fBetaType * 2.*fb + fd) + 2./45.*R*R*x;
+
+    double NSC2 = 2./45.*R*R*x;
+
+    result += NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
   }
 
   cout << "Mixing ratio badly defined. Returning 1." << endl;
-  return 1.;
+  return result;
 }
 
-double Spectrum::QCDInducedCorrection(double W) {
+/*double Spectrum::QCDInducedCorrection(double W) {
   double M = An * (proton_mass_c2 + neutron_mass_c2) / 2. / electron_mass_c2;
   double h1tildec =
       1 - 2 * W0 / 3. / M / fc * (fd + fBetaType * fb) +
@@ -483,7 +516,7 @@ double Spectrum::QCDInducedCorrection(double W) {
   dh1c = 0.;
 
   return h1tildec + dh1c;
-}
+}*/
 
 double Spectrum::CICorrection(double W) {
   double AC0, AC1, AC2, ACm1;

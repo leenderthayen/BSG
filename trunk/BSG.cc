@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
   // parse program options
   char c;
-  while ((c = getopt(argc, argv, "QqdapnhfbwcClRrxmuve:i:o:s:")) != -1) {
+  while ((c = getopt(argc, argv, "QqDapnhfbwcClRrxmuvi:o:s:")) != -1) {
     // cout <<"Parameter " << c << endl;
     switch (c) {
       case 'p':
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
         mySpectrum->SetFermiFunction(false);
         break;
       case 'c':
-        mySpectrum->SetC0Correction(false);
+        mySpectrum->SetCCorrection(false);
         break;
       case 'C':
         mySpectrum->SetCICorrection(false);
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
       case 'R':
         mySpectrum->SetRelativisticCorrection(false);
         break;
-      case 'd':
+      case 'D':
         mySpectrum->SetDeformationCorrection(false);
         break;
       case 'l':
@@ -97,10 +97,6 @@ int main(int argc, char** argv) {
       case 'q':  // quiet mode, don't write initialization information
         verbose = 0;
         break;
-      case 'e':  // we need recoil corrections
-        mySpectrum->SetQCDInducedCorrection(true);
-        mySpectrum->InitRecoil(optarg);
-        break;
       case 's':
         StepSize = atof(optarg);
         cout << "StepSize: " << StepSize << endl;
@@ -116,10 +112,10 @@ int main(int argc, char** argv) {
         cout << "\t -p \t turn off phase space factors" << endl;
         cout << "\t -f \t turn off Fermi function" << endl;
         cout << "\t -l \t turn off L0 corrections" << endl;
-        cout << "\t -c \t turn off C0 corrections" << endl;
+        cout << "\t -c \t turn off C corrections" << endl;
         cout << "\t -C \t turn off CI corrections" << endl;
         cout << "\t -R \t turn off relativistic corrections" << endl;
-        cout << "\t -d \t turn off deformation corrections" << endl;
+        cout << "\t -D \t turn off deformation corrections" << endl;
         cout << "\t -u \t turn off U corrections" << endl;
         cout << "\t -Q \t turn off Q corrections" << endl;
         cout << "\t -r \t turn off radiative corrections" << endl;
@@ -132,8 +128,8 @@ int main(int argc, char** argv) {
              << endl;
         cout << "\t -q \t quiet mode, don't write anything to the screen"
              << endl;
-        cout << "\t -e FILENAME \t enable recoil corrections, read them from "
-                "FILENAME" << endl;
+        /*cout << "\t -e FILENAME \t enable recoil corrections, read them from "
+                "FILENAME" << endl;*/
         cout << "\t -w \t write decay information and other options into "
                 "OUTPUTFILE" << endl;
         cout << "\t -v \t calculate accompanying neutrino spectrum" << endl;
