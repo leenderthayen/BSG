@@ -233,7 +233,7 @@ class Spectrum {
     fAtomicMismatchCorrection = amc;
   };
   void SetCalculateNeutrinoSpectrum(bool vs) { fCalcNeutrinoSpectrum = vs; };
-  void SetWeakMagnetism(double b) { fc = 1.; bAc = b; };
+  void SetWeakMagnetism(double b) { fc1 = 1.; bAc = b; };
 
   /**
    * @brief initialize the recoil corrections

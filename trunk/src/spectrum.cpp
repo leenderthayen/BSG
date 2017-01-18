@@ -53,11 +53,6 @@ Spectrum::Spectrum() {
   deformation = 0.;
 }
 
-Spectrum::Spectrum(char *FileName) {
-  Spectrum();
-  ReadFromFile(FileName);
-}
-
 void Spectrum::ReadFromFile(char *FileName) {
   ifstream ifile(FileName, ifstream::in);
   if (!ifile.is_open()) {
@@ -131,7 +126,7 @@ void Spectrum::ReadFromFile(char *FileName) {
   EndPointEnergy = (W0-1.)*electron_mass_c2;
 
   if (bAc > 0) {
-    fc = 1.;
+    fc1 = 1.;
     fb = An*bAc;
   }
 

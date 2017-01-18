@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   int verbose = 1;
 
   /// default constructor, we will initialize later
-  Spectrum* mySpectrum = new Spectrum;
+  Spectrum* mySpectrum = new Spectrum();
 
   /// step with which the SpectrumShape is generated, in keV
   double StepSize = 0.1;
