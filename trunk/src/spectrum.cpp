@@ -26,9 +26,9 @@ Spectrum::Spectrum() {
   fDecayType = GAMOW_TELLER;
   fPhaseSpace = true;
   fFermiFunction = true;
-  fC0Correction = true;
+  fCCorrection = true;
   fCICorrection = true;
-  fQCDInducedCorrection = false;
+  //fQCDInducedCorrection = false;
   fRelativisticCorrection = true;
   fDeformationCorrection = true;
   fL0Correction = true;
@@ -47,8 +47,11 @@ Spectrum::Spectrum() {
   exParamFile = "data/ExchangeData.dat";
 
   fb = 0;
-  fc1 = 0;
+  fc1 = 1.;
   fd = 0;
+
+  gA = 1.1;
+  gP = 0.;
 
   deformation = 0.;
 }
@@ -361,12 +364,12 @@ void Spectrum::PrintStatus(std::ostream *ofile) {
          << endl;
   *ofile << "\t\t Fermi Function: " << (fFermiFunction ? "true" : "false")
          << endl;
-  *ofile << "\t\t C0 Correction: " << (fC0Correction ? "true" : "false")
+  *ofile << "\t\t C Correction: " << (fCCorrection ? "true" : "false")
          << endl;
   *ofile << "\t\t CI Correction: " << (fCICorrection ? "true" : "false")
          << endl;
-  *ofile << "\t\t QCD Induced Correction: "
-         << (fQCDInducedCorrection ? "true" : "false") << endl;
+  /**ofile << "\t\t QCD Induced Correction: "
+         << (fQCDInducedCorrection ? "true" : "false") << endl;*/
   *ofile << "\t\t Relativistic Correction: "
          << (fRelativisticCorrection ? "true" : "false") << endl;
   *ofile << "\t\t Deformation Correction: "
@@ -451,11 +454,11 @@ double Spectrum::CCorrection(double W) {
 
   VC2 = -4./15.*R*R;
 
-  AC0 = -1./3.*pow(alpha*Zd, 2.)*F1222 - 1./5.*(W0*W0-1)*R*R + fBetaType*2./27.*alpha*Zd*W0*R*F1111+4./9.*R*R;
+  AC0 = -1./3.*pow(alpha*Zd, 2.)*F1222 - 1./5.*(W0*W0-1)*R*R + fBetaType*2./27.*alpha*Zd*W0*R*F1111+11./45.*R*R;
 
   AC1 = 4./9.*W0*R*R - fBetaType * 2./3.*alpha*Zd*R*(1./9.*F1111+F1221);
 
-  ACm1 = -2./15.*W0*R*R + fBetaType * alpha*Zd/3.*F1211;
+  ACm1 = -2./45.*W0*R*R + fBetaType * alpha*Zd/3.*F1211;
 
   AC2 = -4./9.*R*R;
 
@@ -479,23 +482,52 @@ double Spectrum::CCorrection(double W) {
   }
 
   if (fDecayType == GAMOW_TELLER) {
-    //TODO
     double M = An * (proton_mass_c2 + neutron_mass_c2) / 2. / electron_mass_c2;
-    double x = 0.;
+
+    //TODO depends on beta+/- to check from parent or daughter nucleus, not both parent
+    int nN, lN, sN, nZ, lZ, sZ;
+    vector<int> occNumbersN = utilities::GetOccupationNumbers(An - (Zd - fBetaType));
+    nN = occNumbersN[occNumbersN.size() - 1 - 3];
+    lN = occNumbersN[occNumbersN.size() - 1 - 2];
+    sN = occNumbersN[occNumbersN.size() - 1 - 1];
+    vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd-fBetaType);
+    nZ = occNumbersZ[occNumbersZ.size() - 1 - 3];
+    lZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
+    sZ = occNumbersZ[occNumbersZ.size() - 1 - 1];
+
+    //TODO replace <r^2>/R^2 with the HO rms
+    double ratioM121 = 0.;
+    if (lN == lZ) {
+      double nu = utilities::CalcNu(sqrt(3./5.)*R, Zd-fBetaType);
+      double rHO = pow(utilties::GetRMSHO(nN, lN, nu), 2.);
+      if (sN == sZ) {
+        if (sN == 1) {
+          ratioM121 = - lN*sqrt(2)/(2.*lN+3.)*rHO/R/R;
+        }
+        else if (sN == -1) {
+          ratioM121 = - (lN+1.)*sqrt(2)/(2.*lN-1.)*rHO/R/R;
+        }
+      }
+      else {
+        ratioM121 = 1./2./sqrt(2.)*rHO/R/R;
+      }
+    }
+
+    double x = sqrt(2.)/3.*10.*ratioM121-gP/gA*25./3./pow(1837.5*R, 2.);
 
     double NSC0 = -1./45.*R*R*x + 1./3.*W0/M/fc1*(- fBetaType * 2.*fb + fd) + fBetaType*2./5.*alpha*Zd/M/R/fc1*( fBetaType*2.*fb+fd)
 		- fBetaType * 2./35.*alpha*Zd*W0*R*x;
     
-    double NSC1 = fBetaType * 4./3.*fb/M/fc1 - 2./45.*W0*R*R*x + fBetaType*2./35.*x;
+    double NSC1 = fBetaType * 4./3.*fb/M/fc1 - 2./45.*W0*R*R*x + fBetaType*alpha*Zd*R*2./35.*x;
 
-    double NSCm1 = -1./3./M/R/fc1*(fBetaType * 2.*fb + fd) + 2./45.*R*R*x;
+    double NSCm1 = -1./3./M/fc1*(fBetaType * 2.*fb + fd) + 2./45.*W0*R*R*x;
 
     double NSC2 = 2./45.*R*R*x;
 
     result += NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
-  }
+ }
 
-  cout << "Mixing ratio badly defined. Returning 1." << endl;
+  //cout << "Mixing ratio badly defined. Returning 1." << endl;
   return result;
 }
 
@@ -522,11 +554,11 @@ double Spectrum::CICorrection(double W) {
 
   int nN, lN, nZ, lZ;
   vector<int> occNumbersN = utilities::GetOccupationNumbers(An - (Zd - fBetaType));
-  nN = occNumbersN[occNumbersN.size() - 1 - 2];
-  lN = occNumbersN[occNumbersN.size() - 1 - 1];
+  nN = occNumbersN[occNumbersN.size() - 1 - 3];
+  lN = occNumbersN[occNumbersN.size() - 1 - 2];
   vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd-fBetaType);
-  nZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
-  lZ = occNumbersZ[occNumbersZ.size() - 1 - 1];
+  nZ = occNumbersZ[occNumbersZ.size() - 1 - 3];
+  lZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
 
   //cout << "nZ: " << nZ << " lZ: " << lZ << " p: " << occNumbersZ[occNumbersZ.size() - 1] << endl;
 
@@ -537,9 +569,9 @@ double Spectrum::CICorrection(double W) {
 
   double Ap = 1.;
   double sum = 0.;
-  for (int j = 0; j < occNumbersZ.size(); j+=3) {
+  for (int j = 0; j < occNumbersZ.size(); j+=4) {
     if (occNumbersZ[j+1] == 0) {
-      sum+=occNumbersZ[j+2];
+      sum+=occNumbersZ[j+3];
     }
   }
   Ap = (2.*(Zd-fBetaType)/sum-2.)/3.;
@@ -932,20 +964,15 @@ vector<double> Spectrum::GetSpectrumShape(double Energy) {
      neutrinoResult *= FermiFunction(Wv);
   }
 
-  if (fC0Correction) {
-    result *= C0Correction(W);
-    neutrinoResult *= C0Correction(Wv);
+  if (fCCorrection) {
+    result *= CCorrection(W);
+    neutrinoResult *= CCorrection(Wv);
   }
 
-  if (fCICorrection) {
-    result *= CICorrection(W);
-    neutrinoResult *= CICorrection(Wv);
-  }
-
-  if (fQCDInducedCorrection) {
+  /*if (fQCDInducedCorrection) {
     result *= QCDInducedCorrection(W);
     neutrinoResult *= QCDInducedCorrection(Wv);
-  }
+  }*/
 
   if (fRelativisticCorrection) {
     result *= RelativisticCorrection(W);

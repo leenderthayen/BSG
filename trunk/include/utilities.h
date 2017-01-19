@@ -25,12 +25,11 @@ namespace utilities {
 
 using namespace std;
 
-//TODO changed 1f5/2 and 1p3/2 to simulate prolate deformation
-static int smOccupation[78] = {1, 0, 2,   1, 1, 6,   1, 1, 8,   1, 2, 14,  2, 0, 16,
-                        1, 2, 20,  1, 3, 28,  2, 1, 32,  1, 3, 38,  2, 1, 40,
-                        1, 4, 50,  1, 4, 58,  2, 2, 64,  2, 2, 68,  3, 0, 70,
-                        1, 5, 82,  1, 5, 92,  2, 3, 100, 2, 3, 106, 3, 1, 110,
-                        3, 1, 112, 1, 6, 126, 2, 4, 136, 3, 2, 142, 1, 6, 154};
+static int smOccupation[104] = {1, 0, 1, 2, 1, 1, 1, 6,  1, 1, -1, 8, 1, 2, 1, 14,  2, 0, 1, 16,
+                        1, 2, -1, 20, 1, 3, 1, 28, 2, 1, 1, 32, 1, 3, -1, 38, 2, 1, -1, 40,
+                        1, 4, 1, 50, 1, 4, -1, 58, 2, 2, 1, 64, 2, 2, -1, 68, 3, 0, 1, 70,
+                        1, 5, 1, 82,  1, 5, -1, 92,  2, 3, 1, 100, 2, 3, -1, 106, 3, 1, 1, 110,
+                        3, 1, -1, 112, 1, 6, 1, 126, 2, 4, 1, 136, 3, 2, 1, 142, 1, 6, -1, 154};
 
 inline int Factorial(int n) {
   if (n <= 0) {
@@ -52,13 +51,15 @@ inline vector<int> GetOccupationNumbers(int N) {
   vector<int> occNumbers;
   occNumbers.push_back(1);
   occNumbers.push_back(0);
+  occNumbers.push_back(1);
   occNumbers.push_back(min(N, 2));
-  for (int i = 3; i < sizeof(smOccupation) / sizeof(*smOccupation); i += 3) {
+  for (int i = 4; i < sizeof(smOccupation) / sizeof(*smOccupation); i += 4) {
     if (N > smOccupation[i - 1]) {
       occNumbers.push_back(smOccupation[i]);
       occNumbers.push_back(smOccupation[i + 1]);
+      occNumbers.push_back(smOccupation[i + 2]);
       occNumbers.push_back(min(N - smOccupation[i - 1],
-                               smOccupation[i + 2] - smOccupation[i - 1]));
+                               smOccupation[i + 3] - smOccupation[i - 1]));
     }
   }
   return occNumbers;
@@ -159,8 +160,8 @@ inline double CalcNu(double rms, int Z) {
   vector<int> occNumbers = GetOccupationNumbers(Z);
 
   double s = 0.;
-  for (int i = 0; i < occNumbers.size(); i += 3) {
-    s += (4 * occNumbers[i] + 2 * occNumbers[i + 1] - 1) * occNumbers[i+2];
+  for (int i = 0; i < occNumbers.size(); i += 4) {
+    s += (4 * occNumbers[i] + 2 * occNumbers[i + 1] - 1) * occNumbers[i+3];
   }
   return s / Z / 4. / rms / rms;
 }
@@ -170,11 +171,11 @@ inline double CalcChargeIndepNu(double rms, int Z, int N) {
   vector<int> occNumbersN = GetOccupationNumbers(N);
 
   double s = 0.;
-  for (int i = 0; i < occNumbersZ.size(); i += 3) {
-    s += (4 * occNumbersZ[i] + 2 * occNumbersZ[i + 1] - 1) * occNumbersZ[i+2];
+  for (int i = 0; i < occNumbersZ.size(); i += 4) {
+    s += (4 * occNumbersZ[i] + 2 * occNumbersZ[i + 1] - 1) * occNumbersZ[i+3];
   }
-  for (int i = 0; i < occNumbersN.size(); i += 3) {
-    s += (4 * occNumbersN[i] + 2 * occNumbersN[i + 1] - 1) * occNumbersN[i+2];
+  for (int i = 0; i < occNumbersN.size(); i += 4) {
+    s += (4 * occNumbersN[i] + 2 * occNumbersN[i + 1] - 1) * occNumbersN[i+3];
   }
   return s / (Z + N) / 4. / rms / rms;
 }
@@ -185,9 +186,9 @@ inline double ChargeHO(double r, double rms, int Z, bool normalised) {
   double charge = 0.;
 
   vector<int> occNumbers = GetOccupationNumbers(Z);
-  for (int i = 0; i < occNumbers.size(); i += 3) {
+  for (int i = 0; i < occNumbers.size(); i += 4) {
     charge += pow(RadialHO(occNumbers[i], occNumbers[i + 1], nu, r), 2.) *
-              occNumbers[i + 2];
+              occNumbers[i + 3];
   }
   if (normalised) {
     charge /= Z;

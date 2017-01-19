@@ -40,6 +40,7 @@ class Spectrum {
 
   /// recoil correction form factors
   double fb, fc1, fd;
+  double gA, gP;
 
   double bAc;
 
@@ -218,7 +219,7 @@ class Spectrum {
   void SetCCorrection(bool cc) { fCCorrection = cc; };
   void SetCICorrection(bool cic) { fCICorrection = cic; };
   //void SetQCDInducedCorrection(bool qic) { fQCDInducedCorrection = qic; };
-  void SetRelativisticCorrection(bool rc) { fRelativisticCorrection = fc; };
+  void SetRelativisticCorrection(bool rc) { fRelativisticCorrection = rc; };
   void SetDeformationCorrection(bool dc) { fDeformationCorrection = dc; };
   void SetL0Correction(bool l0c) { fL0Correction = l0c; };
   void SetUCorrection(bool uc) { fUCorrection = uc; };

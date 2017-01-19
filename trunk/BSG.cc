@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
   // parse program options
   char c;
-  while ((c = getopt(argc, argv, "QqDapnhfbwcClRrxmuvi:o:s:")) != -1) {
+  while ((c = getopt(argc, argv, "QqDapnhfb:wcClRrxmuvi:o:s:")) != -1) {
     // cout <<"Parameter " << c << endl;
     switch (c) {
       case 'p':
