@@ -499,7 +499,7 @@ double Spectrum::CCorrection(double W) {
     double ratioM121 = 0.;
     if (lN == lZ) {
       double nu = utilities::CalcNu(sqrt(3./5.)*R, Zd-fBetaType);
-      double rHO = pow(utilties::GetRMSHO(nN, lN, nu), 2.);
+      double rHO = pow(utilities::GetRMSHO(nN, lN, nu), 2.);
       if (sN == sZ) {
         if (sN == 1) {
           ratioM121 = - lN*sqrt(2)/(2.*lN+3.)*rHO/R/R;
