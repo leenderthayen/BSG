@@ -52,6 +52,7 @@ Spectrum::Spectrum() {
 
   gA = 1.1;
   gP = 0.;
+  gM = 4.706;
 
   deformation = 0.;
 }
@@ -128,8 +129,13 @@ void Spectrum::ReadFromFile(char *FileName) {
   W0 = W0 - (W0*W0-1)/2./An/1837.4;
   EndPointEnergy = (W0-1.)*electron_mass_c2;
 
-  if (bAc > 0) {
+  if (bAc != 0) {
     fc1 = 1.;
+    fb = An*bAc;
+  } else {
+    fc1 = 1.;
+    bAc = utilities::CalculateWeakMagnetism(gA, gM, R, Zd, An, deformation, fBetaType);
+    cout << "Received weak magnetism " << bAc << endl;
     fb = An*bAc;
   }
 
@@ -497,7 +503,9 @@ double Spectrum::CCorrection(double W) {
 
     //TODO replace <r^2>/R^2 with the HO rms
     double ratioM121 = 0.;
-    if (lN == lZ) {
+    double nu = utilities::CalcNu(sqrt(3./5.)*R, Zd-fBetaType);
+    double rHO = pow(utilities::GetRMSHO(nN, lN, nu), 2.);
+    /*if (lN == lZ) {
       double nu = utilities::CalcNu(sqrt(3./5.)*R, Zd-fBetaType);
       double rHO = pow(utilities::GetRMSHO(nN, lN, nu), 2.);
       if (sN == sZ) {
@@ -511,9 +519,15 @@ double Spectrum::CCorrection(double W) {
       else {
         ratioM121 = 1./2./sqrt(2.)*rHO/R/R;
       }
-    }
+    }*/
 
-    ratioM121 = utilities::CalculateDeformedSPMatrixElement()
+    struct utilities::NuclearState nsi = utilities::CalculateDeformedState(Zd-fBetaType, An, deformation);
+    struct utilities::NuclearState nsf = utilities::CalculateDeformedState(Zd, An, deformation);
+
+    ratioM121 = utilities::CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 2, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)/
+		utilities::CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R);
+
+    ratioM121 *= rHO/R/R;
 
     double x = sqrt(2.)/3.*10.*ratioM121-gP/gA*25./3./pow(1837.5*R, 2.);
 

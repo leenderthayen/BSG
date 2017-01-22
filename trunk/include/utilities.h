@@ -66,72 +66,171 @@ inline vector<int> GetOccupationNumbers(int N) {
   return occNumbers;
 }
 
-inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, int s, int li, int lf, int si, int sf, double R) {
-  auto gL = [](auto k) { return (k > 0) ? k : abs(k)-1; };
-  auto GKLs = [](auto kf, auto ki) { return sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*
-		(2*(lf+sf/2.)+1)*(2*(li+si/2.)+1))*pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.)
-		*gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1)*
-		gsl_sf_coupling_9j(2*K, 2*s, 2*L, 2*lf+sf, 1, gL(kf), 2*li+si, 1, gL(ki)); };
-  auto kL = [](auto l, auto s) { return (s == 1) ? (-(l+1)) : l; };
-  auto sign = [](auto x) { return (s == 0) ? 0 : (x/abs(x)); };
+inline int gL(int k) {
+  return (k > 0) ? k : abs(k)-1;
+}
 
+inline int kL(int l, int s) {
+  return (s == 1) ? -(l+1) : l;
+}
+
+inline double sign(double x) {
+  return (x == 0) ? 0 : x/abs(x);
+}
+
+inline double getGKLs(int kf, int ki, double Ji, int K, int L, int s, int li, int lf, int si, int sf) {
+  //cout << "Calc GKLs " << kf << " " << ki << endl;
+  double first = sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*(2*(lf+sf/2.)+1)*(2*(li+si/2.)+1));
+  //double second = pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.);
+  double second = 1.;
+  double third = gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1);
+  double fourth = gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1);
+
+  //cout << first << " " << second << " " << third << " " << fourth << endl;
+
+  return first*second*third*fourth;
+  /*return sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*
+                (2*(lf+sf/2.)+1)*(2*(li+si/2.)+1))*pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.)
+                *gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1)*
+                gsl_sf_coupling_9j(2*K, 2*s, 2*L, 2*lf+sf, 1, gL(kf), 2*li+si, 1, gL(ki));*/
+}
+
+inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, int s, int li, int lf, int si, int sf, double R) {
+  //cout << "Calculating SP ME " << K << " " << L << " " << s << " state: " << li << " " << si << " " << lf << " " << sf << endl;
+  double Mn = (proton_mass_c2+neutron_mass_c2)/2./electron_mass_c2;
   double result = sqrt(2/(2*Ji+1));
   if (V) {
     if (s == 0) {
-      result *= GKLs(kL(lf, sf), kL(li, si));
+      result *= getGKLs(kL(lf, sf), kL(li, si), Ji, K, L, s, li, lf, si, sf);
     }
     else if (s == 1) {
-      result *= sign(kL(li, si))* GKLs(kL(lf, sf), -kL(li, si));
+      if (li == lf) {
+        if (si == sf) {
+          if (si == 1) {
+            result *= -(li+1)*sqrt(6.*(li+1)*(2.*li+3)/(2.*li+1.))/(2.*Mn*R);
+          }
+          else {
+            result *= -li*sqrt(6.*li*(2*li-1.)/(2.*li+1.))/(2.*Mn*R);
+          }
+        }
+        else {
+          result *= sf*sqrt(3.*li*(li+1.)/2./(2.*li+1))/(Mn*R);
+        }
+      }
+      else {
+        result = 0.;
+      }
+      /*result *= 1./((proton_mass_c2+neutron_mass_c2)/electron_mass_c2*R)*(sign(kL(li, si))*getGKLs(kL(lf, sf), -kL(li, si), Ji, K, L, s, li, lf, si, sf)
+                + sign(kL(lf, sf))*getGKLs(-kL(lf, sf), kL(li, si), Ji, K, L, s, li, lf, si, sf));
+      result *= 3./4.;*/
     }
   }
+  else {
+    //result *= getGKLs(kL(lf, sf), kL(li, si), Ji, K, L, s, li, lf, si, sf);
+    if (li == lf) {
+      if (L == 0) {
+        if (si == sf) {
+          if (si == 1) {
+            result *= sqrt((li+1.)*(2.*li+3.)/(2.*li+1));
+          }
+          else {
+            result *= -sqrt(li*(2.*li-1.)/(2.*li+1.));
+          }
+        }
+        else {
+          result *= si*2.*sqrt(li*(li+1.)/(2.*li+1.));
+        }
+      }
+      else if (L == 2) {
+        if (si == sf) {
+          if (si == 1) {
+            result *= -li*sqrt(2.*(li+1.)/(2.*li+1)/(2.*li+3.));
+          }
+          else {
+            result *= (li+1.)*sqrt(li/(2.*li+1)/(2.*li-1.));
+          }
+        }
+        else {
+          result *= si*sqrt(li*(li+1.)/2./(2.*li+1.));
+        }
+      }
+    }
+    else {
+      result = 0.;
+    }
+  }
+  //cout << "Result: " << result << endl;
+  return result;
 }
 
 //Here dO stands for double Omega
 //s is +-1 depending of whether it is j=l+-1/2
 struct WFComp {double C; int l, s, dO; };
 
-inline double CalculateDeformedSPMatrixElement(vector<WFComp> states, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
-  auto delta = [](auto x, y) { return (x == y) ? 1 : 0; };
+inline int delta(double x, double y) {
+  return (x == y) ? 1 : 0;
+}
 
+inline double CalculateDeformedSPMatrixElement(vector<WFComp> initStates, vector<WFComp> finalStates, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
   double result = 0.;
 
-  for (vector<WFComp>::iterator it = states.begin(); it != states.end(); ++it) {
-    for(vector<WFComp>::iterator it2 = states.begin(); it2 != states.end(); ++it2) {
-      result += (*it).C*(*it2).C*(pow(-1, Jf-Kf+(*it).l+(*it).s/2.-(*it).dO/2.)*
-	gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, -2*Kf, (*it).dO-(*it2).dO, 2*Ki)*
-	gsl_sf_coupling_3j(2*(*it).l+(*it).s, 2*K, 2*(*it2).l+(*it2).s, -(*it).dO, (*it).dO-(*it2).dO, (*it2).dO)
-	+ gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, 2*Kf, -(*it).dO-(*it2).dO, 2*Ki)*
-	gsl_sf_coupling_3j(2*(*it).l+(*it).s, 2*K, 2*(*it2).l+(*it2).s, (*it).dO, -(*it).dO-(*it2).dO, (*it2).dO))*
-	GetSingleParticleMatrixElement(V, Ji, K, L, s, (*it2).l, (*it).l, (*it2).s, (*it).s);
+  //cout << "Calculating deformed SP ME " << K << " " << L << " " << s << endl;
+
+  for (vector<WFComp>::iterator fIt = finalStates.begin(); fIt != finalStates.end(); ++fIt) {
+    for(vector<WFComp>::iterator inIt = initStates.begin(); inIt != initStates.end(); ++inIt) {
+      result += (*fIt).C*(*inIt).C*(pow(-1, Jf-Kf+(*fIt).l+(*fIt).s/2.-(*fIt).dO/2.)*
+	gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, -2*Kf, (*fIt).dO-(*inIt).dO, 2*Ki)*
+	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, -(*fIt).dO, (*fIt).dO-(*inIt).dO, (*inIt).dO)
+	+ gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, 2*Kf, -(*fIt).dO-(*inIt).dO, 2*Ki)*
+	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, (*fIt).dO, -(*fIt).dO-(*inIt).dO, (*inIt).dO))*
+	GetSingleParticleMatrixElement(V, Ji, K, L, s, (*inIt).l, (*fIt).l, (*inIt).s, (*fIt).s, R);
     }
   }
 
   result *= sqrt((2*Ji+1)*(2*Jf+1)/(1.+delta(Kf, 0.))/(1.+delta(Ki, 0.)));
 
+  //cout << "Result: " << result << endl;
+
   return result;
-}
-
-inline double CalculateWeakMagnetism(double gA, double gM, double R, int Z, int A, double beta, int betaType) {
-  struct NuclearState nsf = CalculateDeformedState(Z, A, beta);
-  struct NuclearState nsi = CalculateDeformedState(Z+betaType, A, beta);
-
-  return sqrt(2./3.)*(proton_mass_c2+neutron_mass_c2)/2./e_mass_c2*R/gA*CalculateDeformedSPMatrixElement(states, true, 1, 1, 1, nsi.O, nsf.O, msi.K, nsf.K, R)/
-	CalculateDeformedSPMatrixElement(states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)+gM/gA;
 }
 
 struct NuclearState { double O, K; int parity; vector<WFComp> states; };
 
 inline NuclearState CalculateDeformedState(int Z, int A, double beta) {
-  vector<WFComp> states;
   double O;
   double K;
   double parity;
 
   //TODO
 
-  struct NuclearState nuclearState = {O, K, parity, states};  
+  //special case for 19Ne
+  /*struct WFComp s12 = {0.528947, 0, 1, 1};
+  struct WFComp d32 = {-0.297834, 2, -1, 1};
+  struct WFComp d52 = {0.794676, 2, 1, 1};
+  
+  vector<WFComp> states = {s12, d32, d52};*/
+
+  //special case for 33Cl
+  struct WFComp d32 = {0.913656, 2, -1, 3};
+  struct WFComp d52 = {-0.406489, 2, 1, 3};
+
+  vector<WFComp> states = {d32, d52};
+
+  O = 3./2.;
+  K = 3./2.;
+  parity = 1;
+
+  struct NuclearState nuclearState = {O, K, parity, states};
 
   return nuclearState;
+}
+
+inline double CalculateWeakMagnetism(double gA, double gM, double R, int Z, int A, double beta, int betaType) {
+  struct NuclearState nsf = CalculateDeformedState(Z, A, beta);
+  struct NuclearState nsi = CalculateDeformedState(Z+betaType, A, beta);
+
+  return -sqrt(2./3.)*(proton_mass_c2+neutron_mass_c2)/2./electron_mass_c2*R/gA*CalculateDeformedSPMatrixElement(nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)/
+	CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)+gM/gA;
 }
 
 inline double GetRMSHO(int n, int l, double nu) {

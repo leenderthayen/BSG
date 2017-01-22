@@ -40,7 +40,7 @@ class Spectrum {
 
   /// recoil correction form factors
   double fb, fc1, fd;
-  double gA, gP;
+  double gA, gP, gM;
 
   double bAc;
 
