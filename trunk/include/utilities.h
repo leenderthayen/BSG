@@ -66,7 +66,7 @@ inline vector<int> GetOccupationNumbers(int N) {
   return occNumbers;
 }
 
-inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, int s, int li, int lf, int si, int sf) {
+inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, int s, int li, int lf, int si, int sf, double R) {
   auto gL = [](auto k) { return (k > 0) ? k : abs(k)-1; };
   auto GKLs = [](auto kf, auto ki) { return sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*
 		(2*(lf+sf/2.)+1)*(2*(li+si/2.)+1))*pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.)
@@ -87,9 +87,10 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, in
 }
 
 //Here dO stands for double Omega
+//s is +-1 depending of whether it is j=l+-1/2
 struct WFComp {double C; int l, s, dO; };
 
-inline double CalculateDeformedSPMatrixElement(vector<WFComp> states, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf) {
+inline double CalculateDeformedSPMatrixElement(vector<WFComp> states, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
   auto delta = [](auto x, y) { return (x == y) ? 1 : 0; };
 
   double result = 0.;
@@ -108,7 +109,29 @@ inline double CalculateDeformedSPMatrixElement(vector<WFComp> states, bool V, in
   result *= sqrt((2*Ji+1)*(2*Jf+1)/(1.+delta(Kf, 0.))/(1.+delta(Ki, 0.)));
 
   return result;
-  
+}
+
+inline double CalculateWeakMagnetism(double gA, double gM, double R, int Z, int A, double beta, int betaType) {
+  struct NuclearState nsf = CalculateDeformedState(Z, A, beta);
+  struct NuclearState nsi = CalculateDeformedState(Z+betaType, A, beta);
+
+  return sqrt(2./3.)*(proton_mass_c2+neutron_mass_c2)/2./e_mass_c2*R/gA*CalculateDeformedSPMatrixElement(states, true, 1, 1, 1, nsi.O, nsf.O, msi.K, nsf.K, R)/
+	CalculateDeformedSPMatrixElement(states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)+gM/gA;
+}
+
+struct NuclearState { double O, K; int parity; vector<WFComp> states; };
+
+inline NuclearState CalculateDeformedState(int Z, int A, double beta) {
+  vector<WFComp> states;
+  double O;
+  double K;
+  double parity;
+
+  //TODO
+
+  struct NuclearState nuclearState = {O, K, parity, states};  
+
+  return nuclearState;
 }
 
 inline double GetRMSHO(int n, int l, double nu) {

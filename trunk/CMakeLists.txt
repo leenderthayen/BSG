@@ -21,7 +21,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 add_library(bsg SHARED ${sources})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/usr/lib -lgsl -lgslcblas -lm -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/usr/lib -lgsl -lgslcblas -lm -std=c++1y")
 
 add_executable(BSG BSG.cc ${sources} ${headers})
 

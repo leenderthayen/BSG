@@ -513,6 +513,8 @@ double Spectrum::CCorrection(double W) {
       }
     }
 
+    ratioM121 = utilities::CalculateDeformedSPMatrixElement()
+
     double x = sqrt(2.)/3.*10.*ratioM121-gP/gA*25./3./pow(1837.5*R, 2.);
 
     double NSC0 = -1./45.*R*R*x + 1./3.*W0/M/fc1*(- fBetaType * 2.*fb + fd) + fBetaType*2./5.*alpha*Zd/M/R/fc1*( fBetaType*2.*fb+fd)
