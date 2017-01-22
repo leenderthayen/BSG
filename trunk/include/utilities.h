@@ -11,6 +11,7 @@
 #include "constants.h"
 
 #include "gsl/gsl_sf_laguerre.h"
+#include "gsl/gsl_sf_coupling.h"
 #include "gsl/gsl_integration.h"
 #include "gsl/gsl_errno.h"
 #include "gsl/gsl_vector.h"
@@ -63,6 +64,51 @@ inline vector<int> GetOccupationNumbers(int N) {
     }
   }
   return occNumbers;
+}
+
+inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, int s, int li, int lf, int si, int sf) {
+  auto gL = [](auto k) { return (k > 0) ? k : abs(k)-1; };
+  auto GKLs = [](auto kf, auto ki) { return sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*
+		(2*(lf+sf/2.)+1)*(2*(li+si/2.)+1))*pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.)
+		*gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1)*
+		gsl_sf_coupling_9j(2*K, 2*s, 2*L, 2*lf+sf, 1, gL(kf), 2*li+si, 1, gL(ki)); };
+  auto kL = [](auto l, auto s) { return (s == 1) ? (-(l+1)) : l; };
+  auto sign = [](auto x) { return (s == 0) ? 0 : (x/abs(x)); };
+
+  double result = sqrt(2/(2*Ji+1));
+  if (V) {
+    if (s == 0) {
+      result *= GKLs(kL(lf, sf), kL(li, si));
+    }
+    else if (s == 1) {
+      result *= sign(kL(li, si))* GKLs(kL(lf, sf), -kL(li, si));
+    }
+  }
+}
+
+//Here dO stands for double Omega
+struct WFComp {double C; int l, s, dO; };
+
+inline double CalculateDeformedSPMatrixElement(vector<WFComp> states, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf) {
+  auto delta = [](auto x, y) { return (x == y) ? 1 : 0; };
+
+  double result = 0.;
+
+  for (vector<WFComp>::iterator it = states.begin(); it != states.end(); ++it) {
+    for(vector<WFComp>::iterator it2 = states.begin(); it2 != states.end(); ++it2) {
+      result += (*it).C*(*it2).C*(pow(-1, Jf-Kf+(*it).l+(*it).s/2.-(*it).dO/2.)*
+	gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, -2*Kf, (*it).dO-(*it2).dO, 2*Ki)*
+	gsl_sf_coupling_3j(2*(*it).l+(*it).s, 2*K, 2*(*it2).l+(*it2).s, -(*it).dO, (*it).dO-(*it2).dO, (*it2).dO)
+	+ gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, 2*Kf, -(*it).dO-(*it2).dO, 2*Ki)*
+	gsl_sf_coupling_3j(2*(*it).l+(*it).s, 2*K, 2*(*it2).l+(*it2).s, (*it).dO, -(*it).dO-(*it2).dO, (*it2).dO))*
+	GetSingleParticleMatrixElement(V, Ji, K, L, s, (*it2).l, (*it).l, (*it2).s, (*it).s);
+    }
+  }
+
+  result *= sqrt((2*Ji+1)*(2*Jf+1)/(1.+delta(Kf, 0.))/(1.+delta(Ki, 0.)));
+
+  return result;
+  
 }
 
 inline double GetRMSHO(int n, int l, double nu) {
