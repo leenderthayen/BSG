@@ -16,6 +16,7 @@
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_multifit_nlin.h"
+#include "gsl/gsl_sf_coupling.h"
 
 #include "TMath.h"
 #include "TF1.h"
@@ -48,6 +49,27 @@ inline int DoubleFactorial(int n) {
   }
 }
 
+inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int two_mb, int two_mc) {
+  return std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
+}
+
+// Function to calculate the matrix elements of spherical harmonics
+/*                       M
+           < L', LA' | Y  | L, LA >
+                         L
+
+*/
+inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll, int la) {
+  double result = 0.;
+  if (laP == m+la) {
+    double x = (2.*l+1.)*(2.*ll+1.)/(12.566375*(2.*lP+1.));
+    double cg = ClebschGordan(2*ll, 2*l, 2*lP, 2*lA, 2*m, 2*(lA+m));
+    result = x*cg;
+    cg = ClebschGordan(2*ll, 2*l, 2*lP, 0, 0, 0);
+    result*=cg;
+  }
+  return result;
+}
 inline vector<int> GetOccupationNumbers(int N) {
   vector<int> occNumbers;
   occNumbers.push_back(1);
