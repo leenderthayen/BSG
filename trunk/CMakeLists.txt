@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
-project(BSG)
+project(BDSM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_MATH} "${CMAKE_SOURCE_DIR}")
 
@@ -23,8 +23,8 @@ add_library(bsg SHARED ${sources})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/usr/lib -lgsl -lgslcblas -lm -std=c++1y")
 
-add_executable(BSG BSG.cc ${sources} ${headers})
+add_executable(BDSM BDSM.cc ${sources} ${headers})
 
-target_link_libraries(BSG ${GSL_LIBRARIES} ${ROOT_LIBRARIES})
+target_link_libraries(BDSM ${GSL_LIBRARIES} ${ROOT_LIBRARIES})
 
-install(TARGETS BSG DESTINATION bin)
+install(TARGETS BDSM DESTINATION bin)

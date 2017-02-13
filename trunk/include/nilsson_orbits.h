@@ -8,6 +8,149 @@
 #define NDIM3 35
 
 namespace nilsson {
+inline double V(int n, int l, double x) {
+  int m = (n-l)/2;
+  double V = 1.0;
+  double F = 1.0;
+  int mK = 1;
+  int mM = 1;
+  if (m > 0) {
+    for (int k = 1; k <= m; k++) {
+      mK *= m+1-k;
+      F *= -2.*x/k;
+      mM *= 2*n-4*m+1+2*k;
+      V += F*mK/mM;
+    }
+    return V;
+  }
+  return 0;
+}
+
+inline double VNORM(int n, int l) {
+  int minus = (n-l)/2;
+  int eMinus = 1+4*(minus/2)-2*minus;
+  double vNorm = 1.50225*eMinus;
+  int k = (n+1)/2-n/2+1;
+  if (k > 1) {
+    vNorm *= 0.816496;
+  }
+  if (n > 1) {
+    for (int j = k; j <= n; j+=2) {
+      vNorm *= std::sqrt((double)(j+k+1.)/(j-k+2.));
+    }
+  }
+  if (l > 1) {
+    for (int j = k; j <= l; j+=2) {
+      vNorm *= 2.*std::sqrt((double)((j+n+2)*(n-j+1))/((2.*j+3.)*(2.*j+1.)));
+    }
+  }
+  return vNorm;
+}
+
+inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, int Z, int nMax, double SW[2][84], double SDW[462]) {
+  double FINT[3] = {};
+  double S[3][4] = {};
+  int IP = 2;
+  int IW = 3;
+  int II = 0;
+  int JJ = 0;
+  int NDX = 300;
+  int N = NDX/4-2;
+  double A = std::pow(AMU, 1./3.);
+  double RO = A*std::abs(R0);
+  double AO = A0;
+  double pionComp = 1.4133;
+  double VOS = V0S*pionComp*pionComp;
+  double TWONU = 0.154666*std::sqrt(V0)/RO;
+  double T = TWONU*20.899*AMU/(AMU-1.);
+  double ZZ = Z*1.439978;
+  double ZCONST = 1.5*ZZ/RO;
+  double ZIN = 0.5*ZZ/std::pow(RO, 3.);
+  double DX = (RO+8.*AO)/NDX;
+  double DFO = std::exp(DX/AO);
+  int NMAXP1 = nMax+1;
+  int NMIN = NMAXP1/2-(NMAXP1-1)/2+1;
+  for (int NNI = NMIN; NNI <= NMAXP1; NNI+=2) {
+    for (int NNJ = NMIN; NNJ <= NNI; NNJ+=2) {
+      for (int LLI = NMIN; LLI <= NNI; LLI+=2) {
+        for (int LLJ = NMIN; LLJ <= NNJ; LLJ+=2) {
+          int NI = NNI-1;
+          int NJ = NNJ-1;
+          int LI = LLI-1;
+          int LJ = LLJ-1;
+
+          int KK = 1;
+          if (LI != LJ) {
+            KK = 3;
+          }
+          double R = DX;
+          double FO = DFO/std::exp(RO/AO);
+          for (int i = 0; i < 3; i++) {
+            FINT[i] = 0.0;
+          }
+          int M = 0;
+          while(M/N >= 0) {
+            if (M == 0) {
+              M = -N-2;
+            }
+            for (int I = 1; I <= 4; I++) {
+              double R2 = R*R*TWONU;
+              double PSI2 = V(NI, LI, R2)*V(NJ, LJ, R2)*std::pow(R2, (LI+LJ)/2)*R*R/std::exp(R2);
+              double F = 1./(1.+FO);
+              double DFDR = -FO*F*F/AO;
+              if (R <= RO) {
+                S[1][I] = -PSI2*(V0*F+T*R2+ZIN*R*R-ZCONST);
+              } else {
+                S[1][I] = -PSI2*(V0*F+T*R2-ZZ/R);
+              }
+              S[2][I] = PSI2*DFDR/R;
+              S[3][I] = PSI2*DFDR;
+              FO *= DFO;
+              R += DX;
+              for (int j = KK; j <= 3; j++) {
+                FINT[j] += S[j][I];
+              }
+            }
+            M += 2;
+            if (M/N > 0) {
+              R += 4.*DX;
+              DX = -DX;
+              FO *= std::pow(DFO, 4.);
+              DFO = 1./DFO;
+            }
+          }
+          for (int i = 2; i <= 4; i++) {
+            for (int l = i; l <= 4; l++) {
+              int K = 4+i-l;
+              for (int j = KK; j <= 3; j++) {
+                S[j][K] -= S[j][K-1];
+              }
+            }
+          }
+          for (int j = KK; j <= 3; j++) {
+            FINT[j] += -S[j][1]/2.+S[j][2]/12.-S[j][3]/24.+19.*S[j][4]/720.;
+          }
+          //TODO
+          if (DX <= 0) {
+            DX = -DX;
+            DFO = 1./DFO;
+          }
+          double X = VNORM(NI, LI)*VNORM(NJ, LJ);
+          if (KK != 3) {
+            II++;
+            SW[1][II] = FINT[1]*X*DX*std::pow(TWONU, 1.5);
+            if (NI == NJ) {
+              SW[1][II] += 2.*T*(NI+1.5);
+            }
+            SW[2][II] = FINT[2]*X*DX*std::pow(TWONU, 1.5)*VOS;
+          }
+          JJ++;
+          SDW[JJ] = FINT[3]*X*DX*std::pow(TWONU, 1.5)*V0*RO;
+        }
+      }
+    }
+  }
+}
 inline void Calculate(double spin, double beta2, double beta4, double V0,
                       double R0, double A0, double V0S, double AMU, int Z,
                       int nMax) {
@@ -20,9 +163,9 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   double A[40][NDIM1];
   double B[NDIM2];
   double D[NDIM2];
-  double LA[NDIM1];
-  double IX2[NDIM1];
-  double JX2[NDIM1];
+  int LA[NDIM1];
+  int IX2[NDIM1];
+  int JX2[NDIM1];
   double CNU[NDIM3][NDIM1] = {};
   double E[NDIM3];
   int LK[NDIM3];
@@ -73,13 +216,13 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     }
 
     // Set up matrix
-    KK = 0;
+    int KK = 0;
     for (int I = NI; I <= II; I++) {
       for (int J = NI; J <= I; J++) {
         KK++;
         AM[KK] = 0.0;
         if (!(JX2[J] != JX2[I])) {
-          NN = (N[I] / 2) * (N[I] / 2 + 1) * (N[I] / 2 + 2) / 6 +
+          int NN = (N[I] / 2) * (N[I] / 2 + 1) * (N[I] / 2 + 2) / 6 +
                (N[J] / 2) * (N[J] / 2 + 1) / 2 + L[I] / 2 + 1;
           AM[KK] = SW[1][NN] + SW[2][NN] * IX2[J] * (L[J] + LA[J]);
         }
@@ -96,7 +239,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
         }
         E[K] = AM[N0];
         LK[K] = L[I];
-        K3[K] = KX2[I];
+        K3[K] = JX2[I];
         for (int J = NI; J <= II; J++) {
           N0 = (II - NIM) * (I - NI) + J - NIM;
           CNU[K][J] = R[N0];
@@ -118,22 +261,17 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int ISX2 = std::abs(2 * spin);
   int ISPIN = (ISX2 + 1) / 2;
 
-  for (int I = 1; I <= ISPIN; I++) {
-    ROTI[I] = ROT;
-    ROTO[I] = ROT;
-  }
-
-  KK = 0;
+  int KK = 0;
   int KKKK = 0;
   int IOM = 1;
   for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
     IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
-    int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - MIN;
+    int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - min;
     int KKK = 0;
     for (int I = 1; I <= K; I++) {
-      LKK(KKK) = LK(I);
+      LKK[KKK] = LK[I];
       KN[IIOM][KKK] = I;
-      X = 0.0;
+      double X = 0.0;
       for (int J = 1; J <= II; J++) {
         if (L[J] == LKK[KKK]) {
           double cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J],
@@ -233,149 +371,6 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
             NK++;
             A[K][J]+R[NK]*CNU[I][J];
           }
-        }
-      }
-    }
-  }
-}
-
-inline double V(int n, int l, double x) {
-  int m = (n-l)/2;
-  double V = 1.0;
-  double F = 1.0;
-  int mK = 1;
-  int mM = 1;
-  if (m > 0) {
-    for (int k = 1; k <= m; k++) {
-      mK *= m+1-k;
-      F *= -2.*x/k;
-      mM *= 2*n-4*m+1+2*k;
-      V += F*mK/mM;
-    }
-    return V;
-  }
-  return 0;
-}
-
-inline double VNORM(int n, int l) {
-  int minus = (n-l)/2;
-  int eMinus = 1+4*(minus/2)-2*minus;
-  double vNorm = 1.50225*eMinus;
-  int k = (n+1)/2-n/2+1;
-  if (k > 1) {
-    vNorm *= 0.816496;
-  }
-  if (n > 1) {
-    for (int j = k; j <= n; j+=2) {
-      vNorm *= std::sqrt((double)(j+k+1.)/(j-k+2.));
-    }
-  }
-  if (l > 1) {
-    for (int j = k; j <= l; j+=2) {
-      vNorm *= 2.*std::sqrt((double)((j+n+2)*(n-j+1))/((2.*j+3.)*(2.*j+1.)));
-    }
-  }
-  return vNorm;
-}
-
-inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, int Z, int nMax, double[] SW, double[] SDW) {
-  double FINT[3] = {};
-  int IP = 2;
-  int IW = 3;
-  int II = 0;
-  int JJ = 0;
-  int NDX = 300;
-  int N = NDX/4-2;
-  double A = std::pow(AMU, 1./3.);
-  R0 = A*std::abs(R0);
-  AO = A0;
-  double pionComp = 1.4133;
-  VOS = V0S*pionComp*pionComp;
-  double TWONU = 0.154666*std::sqrt(V0)/RO;
-  double T = TWONU*20.899*AMU/(AMU-1.);
-  double ZZ = Z*1.439978;
-  double ZCONST = 1.5*ZZ/RO;
-  double ZIN = 0.5*ZZ/std::pow(RO, 3.);
-  double DX = (RO+8.*AO)/NDX;
-  double DFO = std::exp(DX/AO);
-  int NMAXP1 = NMAX+1;
-  int NMIN = NMAXP1/2-(NMAXP1-1)/2+1;
-  for (int NNI = NMIN; NNI <= NMAXP1; NNI+=2) {
-    for (int NNJ = NMIN; NNJ <= NNI; NNJ+=2) {
-      for (int LLI = NMIN; LLI <= NNI; LLI+=2) {
-        for (int LLJ = NMIN; LLJ <= NNJ; LLJ+=2) {
-          NI = NNI-1;
-          NJ = NNJ-1;
-          LI = LLI-1;
-          LJ = LLJ-1;
-
-          KK = 1;
-          if (LI != LJ) {
-            KK = 3;
-          }
-          double R = DX;
-          double FO = DFO/std::exp(RO/AO);
-          for (int i = 0; i < 3; i++) {
-            FINT[i] = 0.0;
-          }
-          int M = 0;
-          while(M/N >= 0) {
-            if (M == 0) {
-              M = -N-2;
-            }
-            for (int I = 1; I <= 4; I++) {
-              double R2 = R*R*TWONU;
-              double PSI2 = V(NI, LI, R2)*V(NJ, LJ, R2)*std::pow(R2, (LI+LJ)/2)*R*R/std::exp(R2);
-              double F = 1./(1.+FO);
-              double DFDR = -FO*F*F/AO;
-              if (R <= RO) {
-                S[1][I] = -PSI2*(V0*F+T*R2+ZIN*R*R-ZCONST);
-              } else {
-                S[1][I] = -PSI2*(V0*F+T*R2-ZZ/R);
-              }
-              S[2][I] = PSI2*DFDR/R;
-              S[3][I] = PSI2*DFDR;
-              FO *= DFO;
-              R += DX;
-              for (int j = KK; j <= 3; j++) {
-                FINT[j] += S[j][I];
-              }
-            }
-            M += 2;
-            if (M/N > 0) {
-              R += 4.*DX;
-              DX = -DX;
-              FO *= std::pow(DFO, 4.);
-              DFO = 1./DFO;
-            }
-          }
-          for (int i = 2; i <= 4; i++) {
-            for (int l = i; l <= 4; l++) {
-              K = 4+i-l;
-              for (int j = KK; j <= 3; j++) {
-                S[j][K] -= S[j][K-1];
-              }
-            }
-          }
-          for (int j = KK; j <= 3; j++) {
-            FINT[j] += -S[j][1]/2.+S[j][2]/12.-S[j][3]/24.+19.*S[j][4]/720.;
-          }
-          //TODO
-          if (DX <= 0) {
-            DX = -DX;
-            DFO = 1./DFO;
-          }
-          double X = VNORM(NI, LI)*VNORM(NJ, LJ);
-          if (KK != 3) {
-            II++;
-            SW[1][II] = FINT[1]*X*DX*std::pow(TWONU, 1.5);
-            if (NI == NJ) {
-              SW[1][II] += 2.*T*(NI+1.5);
-            }
-            SW[2][II] = FINT[2]*X*DX*std::pow(TWONU, 1.5)*VOS;
-          }
-          JJ++;
-          SDW[JJ] = FINT[3]*X*DX*std::pow(TWONU, 1.5)*V0*RO;
         }
       }
     }
