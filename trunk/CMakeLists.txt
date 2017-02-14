@@ -19,7 +19,7 @@ file(COPY init DESTINATION .)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
-add_library(bsg SHARED ${sources})
+add_library(bdsm SHARED ${sources})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L/usr/lib -lgsl -lgslcblas -lm -std=c++1y")
 

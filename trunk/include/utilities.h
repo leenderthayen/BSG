@@ -9,7 +9,6 @@
 #include <complex>
 
 #include "constants.h"
-#include "nilsson_orbits.h"
 
 #include "gsl/gsl_sf_laguerre.h"
 #include "gsl/gsl_sf_coupling.h"
@@ -25,7 +24,8 @@
 
 namespace utilities {
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 static int smOccupation[104] = {1, 0, 1, 2, 1, 1, 1, 6,  1, 1, -1, 8, 1, 2, 1, 14,  2, 0, 1, 16,
                         1, 2, -1, 20, 1, 3, 1, 28, 2, 1, 1, 32, 1, 3, -1, 38, 2, 1, -1, 40,
@@ -71,18 +71,18 @@ inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll, int la)
   return result;
 }
 
-inline vector<int> GetOccupationNumbers(int N) {
-  vector<int> occNumbers;
+inline std::vector<int> GetOccupationNumbers(int N) {
+  std::vector<int> occNumbers;
   occNumbers.push_back(1);
   occNumbers.push_back(0);
   occNumbers.push_back(1);
-  occNumbers.push_back(min(N, 2));
+  occNumbers.push_back(std::min(N, 2));
   for (int i = 4; i < sizeof(smOccupation) / sizeof(*smOccupation); i += 4) {
     if (N > smOccupation[i - 1]) {
       occNumbers.push_back(smOccupation[i]);
       occNumbers.push_back(smOccupation[i + 1]);
       occNumbers.push_back(smOccupation[i + 2]);
-      occNumbers.push_back(min(N - smOccupation[i - 1],
+      occNumbers.push_back(std::min(N - smOccupation[i - 1],
                                smOccupation[i + 3] - smOccupation[i - 1]));
     }
   }
@@ -90,7 +90,7 @@ inline vector<int> GetOccupationNumbers(int N) {
 }
 
 inline int gL(int k) {
-  return (k > 0) ? k : abs(k)-1;
+  return (k > 0) ? k : std::abs(k)-1;
 }
 
 inline int kL(int l, int s) {
@@ -98,30 +98,30 @@ inline int kL(int l, int s) {
 }
 
 inline double sign(double x) {
-  return (x == 0) ? 0 : x/abs(x);
+  return (x == 0) ? 0 : x/std::abs(x);
 }
 
 inline double getGKLs(int kf, int ki, double Ji, int K, int L, int s, int li, int lf, int si, int sf) {
   //cout << "Calc GKLs " << kf << " " << ki << endl;
-  double first = sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*(2*(lf+sf/2.)+1)*(2*(li+si/2.)+1));
-  //double second = pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.);
+  double first = std::sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*(2*(lf+sf/2.)+1)*(2*(li+si/2.)+1));
+  //double second = std::pow(sqrt(-1.), gL(ki)+gL(kf)+L)*std::pow(-1, li+si/2.-lf-sf/2.);
   double second = 1.;
-  double third = gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1);
-  double fourth = gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1);
+  double third = gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*std::sqrt(2*L+1.)*std::pow(-1, gL(kf)-gL(ki)-1);
+  double fourth = gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*std::sqrt(2*L+1.)*std::pow(-1, gL(kf)-gL(ki)-1);
 
   //cout << first << " " << second << " " << third << " " << fourth << endl;
 
   return first*second*third*fourth;
-  /*return sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*
-                (2*(lf+sf/2.)+1)*(2*(li+si/2.)+1))*pow(sqrt(-1.), gL(ki)+gL(kf)+L)*pow(-1, li+si/2.-lf-sf/2.)
-                *gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*sqrt(2*L+1.)*pow(-1, gL(kf)-gL(ki)-1)*
+  /*return std::sqrt((2*s+1)*(2*K+1)*(2*gL(kf)+1)*(2*gL(ki)+1)*
+                (2*(lf+sf/2.)+1)*(2*(li+si/2.)+1))*std::pow(sqrt(-1.), gL(ki)+gL(kf)+L)*std::pow(-1, li+si/2.-lf-sf/2.)
+                *gsl_sf_coupling_3j(2*gL(kf), 2*gL(ki), 2*L, 0, 0, 0)*std::sqrt(2*L+1.)*std::pow(-1, gL(kf)-gL(ki)-1)*
                 gsl_sf_coupling_9j(2*K, 2*s, 2*L, 2*lf+sf, 1, gL(kf), 2*li+si, 1, gL(ki));*/
 }
 
 inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, int s, int li, int lf, int si, int sf, double R) {
   //cout << "Calculating SP ME " << K << " " << L << " " << s << " state: " << li << " " << si << " " << lf << " " << sf << endl;
   double Mn = (proton_mass_c2+neutron_mass_c2)/2./electron_mass_c2;
-  double result = sqrt(2/(2*Ji+1));
+  double result = std::sqrt(2/(2*Ji+1));
   if (V) {
     if (s == 0) {
       result *= getGKLs(kL(lf, sf), kL(li, si), Ji, K, L, s, li, lf, si, sf);
@@ -130,14 +130,14 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, in
       if (li == lf) {
         if (si == sf) {
           if (si == 1) {
-            result *= -(li+1)*sqrt(6.*(li+1)*(2.*li+3)/(2.*li+1.))/(2.*Mn*R);
+            result *= -(li+1)*std::sqrt(6.*(li+1)*(2.*li+3)/(2.*li+1.))/(2.*Mn*R);
           }
           else {
-            result *= -li*sqrt(6.*li*(2*li-1.)/(2.*li+1.))/(2.*Mn*R);
+            result *= -li*std::sqrt(6.*li*(2*li-1.)/(2.*li+1.))/(2.*Mn*R);
           }
         }
         else {
-          result *= sf*sqrt(3.*li*(li+1.)/2./(2.*li+1))/(Mn*R);
+          result *= sf*std::sqrt(3.*li*(li+1.)/2./(2.*li+1))/(Mn*R);
         }
       }
       else {
@@ -154,27 +154,27 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, in
       if (L == 0) {
         if (si == sf) {
           if (si == 1) {
-            result *= sqrt((li+1.)*(2.*li+3.)/(2.*li+1));
+            result *= std::sqrt((li+1.)*(2.*li+3.)/(2.*li+1));
           }
           else {
-            result *= -sqrt(li*(2.*li-1.)/(2.*li+1.));
+            result *= -std::sqrt(li*(2.*li-1.)/(2.*li+1.));
           }
         }
         else {
-          result *= si*2.*sqrt(li*(li+1.)/(2.*li+1.));
+          result *= si*2.*std::sqrt(li*(li+1.)/(2.*li+1.));
         }
       }
       else if (L == 2) {
         if (si == sf) {
           if (si == 1) {
-            result *= -li*sqrt(2.*(li+1.)/(2.*li+1)/(2.*li+3.));
+            result *= -li*std::sqrt(2.*(li+1.)/(2.*li+1)/(2.*li+3.));
           }
           else {
-            result *= (li+1.)*sqrt(li/(2.*li+1)/(2.*li-1.));
+            result *= (li+1.)*std::sqrt(li/(2.*li+1)/(2.*li-1.));
           }
         }
         else {
-          result *= si*sqrt(li*(li+1.)/2./(2.*li+1.));
+          result *= si*std::sqrt(li*(li+1.)/2./(2.*li+1.));
         }
       }
     }
@@ -194,13 +194,13 @@ inline int delta(double x, double y) {
   return (x == y) ? 1 : 0;
 }
 
-inline double CalculateDeformedSPMatrixElement(vector<WFComp> initStates, vector<WFComp> finalStates, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
+inline double CalculateDeformedSPMatrixElement(std::vector<WFComp> initStates, std::vector<WFComp> finalStates, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
   double result = 0.;
 
   //cout << "Calculating deformed SP ME " << K << " " << L << " " << s << endl;
 
-  for (vector<WFComp>::iterator fIt = finalStates.begin(); fIt != finalStates.end(); ++fIt) {
-    for(vector<WFComp>::iterator inIt = initStates.begin(); inIt != initStates.end(); ++inIt) {
+  for (std::vector<WFComp>::iterator fIt = finalStates.begin(); fIt != finalStates.end(); ++fIt) {
+    for(std::vector<WFComp>::iterator inIt = initStates.begin(); inIt != initStates.end(); ++inIt) {
       result += (*fIt).C*(*inIt).C*(pow(-1, Jf-Kf+(*fIt).l+(*fIt).s/2.-(*fIt).dO/2.)*
 	gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, -2*Kf, (*fIt).dO-(*inIt).dO, 2*Ki)*
 	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, -(*fIt).dO, (*fIt).dO-(*inIt).dO, (*inIt).dO)
@@ -210,14 +210,14 @@ inline double CalculateDeformedSPMatrixElement(vector<WFComp> initStates, vector
     }
   }
 
-  result *= sqrt((2*Ji+1)*(2*Jf+1)/(1.+delta(Kf, 0.))/(1.+delta(Ki, 0.)));
+  result *= std::sqrt((2*Ji+1)*(2*Jf+1)/(1.+delta(Kf, 0.))/(1.+delta(Ki, 0.)));
 
   //cout << "Result: " << result << endl;
 
   return result;
 }
 
-struct NuclearState { double O, K; int parity; vector<WFComp> states; };
+struct NuclearState { double O, K; int parity; std::vector<WFComp> states; };
 
 inline NuclearState CalculateDeformedState(int Z, int A, double beta) {
   double O;
@@ -231,13 +231,13 @@ inline NuclearState CalculateDeformedState(int Z, int A, double beta) {
   struct WFComp d32 = {-0.297834, 2, -1, 1};
   struct WFComp d52 = {0.794676, 2, 1, 1};
   
-  vector<WFComp> states = {s12, d32, d52};*/
+  std::vector<WFComp> states = {s12, d32, d52};*/
 
   //special case for 33Cl
   struct WFComp d32 = {0.913656, 2, -1, 3};
   struct WFComp d52 = {-0.406489, 2, 1, 3};
 
-  vector<WFComp> states = {d32, d52};
+  std::vector<WFComp> states = {d32, d52};
 
   O = 3./2.;
   K = 3./2.;
@@ -252,29 +252,29 @@ inline double CalculateWeakMagnetism(double gA, double gM, double R, int Z, int 
   struct NuclearState nsf = CalculateDeformedState(Z, A, beta);
   struct NuclearState nsi = CalculateDeformedState(Z+betaType, A, beta);
 
-  return -sqrt(2./3.)*(proton_mass_c2+neutron_mass_c2)/2./electron_mass_c2*R/gA*CalculateDeformedSPMatrixElement(nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)/
+  return -std::sqrt(2./3.)*(proton_mass_c2+neutron_mass_c2)/2./electron_mass_c2*R/gA*CalculateDeformedSPMatrixElement(nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)/
 	CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)+gM/gA;
 }
 
 inline double GetRMSHO(int n, int l, double nu) {
-  return sqrt(1. / 4. / nu * (4 * n + 2 * l - 1));
+  return std::sqrt(1. / 4. / nu * (4 * n + 2 * l - 1));
 }
 
 inline double RadialHO(int n, int l, double nu, double r) {
   const int k = n - 1;
 
   double N =
-      sqrt(sqrt(2 * pow(nu, 3) / M_PI) * pow(2., k + 2 * l + 3) * Factorial(k) *
-           pow(nu, l) / DoubleFactorial(2 * k + 2 * l + 1));
+      std::sqrt(sqrt(2 * std::pow(nu, 3) / M_PI) * std::pow(2., k + 2 * l + 3) * Factorial(k) *
+           std::pow(nu, l) / DoubleFactorial(2 * k + 2 * l + 1));
 
   double gl = gsl_sf_laguerre_n(k, l + 0.5, 2 * nu * r * r);
 
-  return N * pow(r, l + 1) * exp(-nu * r * r) * gl;
+  return N * std::pow(r, l + 1) * exp(-nu * r * r) * gl;
 }
 
 inline double CalcBoverA(double beta) {
-  double C = 5./3.*sqrt(5./M_PI)*beta*(1.+0.16*beta);
-  return sqrt((1+C)/(1-C/2.));
+  double C = 5./3.*std::sqrt(5./M_PI)*beta*(1.+0.16*beta);
+  return std::sqrt((1+C)/(1-C/2.));
 }
 
 struct RadialParams {double nu1, nu2; int n1, l1, n2, l2; };
@@ -348,7 +348,7 @@ inline double WeakIntegratedRMS(double nu1, int n1, int l1, double nu2, int n2, 
 }
 
 inline double CalcNu(double rms, int Z) {
-  vector<int> occNumbers = GetOccupationNumbers(Z);
+  std::vector<int> occNumbers = GetOccupationNumbers(Z);
 
   double s = 0.;
   for (int i = 0; i < occNumbers.size(); i += 4) {
@@ -358,8 +358,8 @@ inline double CalcNu(double rms, int Z) {
 }
 
 inline double CalcChargeIndepNu(double rms, int Z, int N) {
-  vector<int> occNumbersZ = GetOccupationNumbers(Z);
-  vector<int> occNumbersN = GetOccupationNumbers(N);
+  std::vector<int> occNumbersZ = GetOccupationNumbers(Z);
+  std::vector<int> occNumbersN = GetOccupationNumbers(N);
 
   double s = 0.;
   for (int i = 0; i < occNumbersZ.size(); i += 4) {
@@ -376,9 +376,9 @@ inline double ChargeHO(double r, double rms, int Z, bool normalised) {
 
   double charge = 0.;
 
-  vector<int> occNumbers = GetOccupationNumbers(Z);
+  std::vector<int> occNumbers = GetOccupationNumbers(Z);
   for (int i = 0; i < occNumbers.size(); i += 4) {
-    charge += pow(RadialHO(occNumbers[i], occNumbers[i + 1], nu, r), 2.) *
+    charge += std::pow(RadialHO(occNumbers[i], occNumbers[i + 1], nu, r), 2.) *
               occNumbers[i + 3];
   }
   if (normalised) {
@@ -389,8 +389,8 @@ inline double ChargeHO(double r, double rms, int Z, bool normalised) {
 }
 
 inline double ChargeMG(double r, double A, double R) {
-  double a = R/sqrt(5./2.*(2.+5.*A)/(2.+3.*A));
-  return 8./(2.+3.*A)/pow(a, 3)/sqrt(M_PI)*(1.+A*pow(r/a, 2.))*exp(-pow(r/a, 2.))*r*r;
+  double a = R/std::sqrt(5./2.*(2.+5.*A)/(2.+3.*A));
+  return 8./(2.+3.*A)/std::pow(a, 3)/std::sqrt(M_PI)*(1.+A*std::pow(r/a, 2.))*exp(-std::pow(r/a, 2.))*r*r;
 }
 
 inline Double_t ChargeHO_f(Double_t x[], Double_t par[]) {
@@ -416,7 +416,7 @@ inline double DeformedChargeDist(double r, double a, double b) {
     result = rho0;
   }
   else if (r <= b) {
-    result = rho0*(1-b/r*sqrt((r*r-a*a)/(b*b-a*a)));
+    result = rho0*(1-b/r*std::sqrt((r*r-a*a)/(b*b-a*a)));
   }
   return result;
 }
@@ -425,7 +425,7 @@ inline double GetDerivDeformedChargeDist(double r, double a, double b) {
   double rho0 = 3./4./M_PI/a/a/b;
   double result = 0.;
   if (r >= a && r <= b) {
-    result = rho0*(b*sqrt((r*r-a*a)/(b*b-a*a))/r/r-b/sqrt((b*b-a*a)*(r*r-a*a)));
+    result = rho0*(b*std::sqrt((r*r-a*a)/(b*b-a*a))/r/r-b/std::sqrt((b*b-a*a)*(r*r-a*a)));
   }
   return result;
 }
@@ -464,18 +464,17 @@ inline double Trapezoid(double x[], double y[], int size) {
   return result;
 }
 
-#define N 1E7
-
 inline double FitHODist(int Z, double rms) {
 
   TF1* funcMG = new TF1("ChargeMG", ChargeMG_f, 0, 5*rms, 2);
-  funcMG->SetParameters(2.0, sqrt(5./3.)*rms);
-  funcMG->FixParameter(1, sqrt(5./3.)*rms);
+  funcMG->SetParameters(2.0, std::sqrt(5./3.)*rms);
+  funcMG->FixParameter(1, std::sqrt(5./3.)*rms);
 
   TF1* funcHO = new TF1("ChargeHO", ChargeHO_f, 0, 5*rms, 2);
   funcHO->SetParameters(rms, (double)Z);
   TH1F* histHO = new TH1F("stats", "my pdf", 1000, 0, 5*rms);
 
+  double N = 1E7;
   for(Int_t i = 0; i<N; i++) {
     histHO->Fill(funcHO->GetRandom());
   }
@@ -494,8 +493,8 @@ inline double FitHODist(int Z, double rms) {
 //================================================================================
 // Salvat's parameters for the screened potential
 
-inline void PotParam(int Zloc, vector<double> &Aby, vector<double> &Bby) {
-  vector<double> Aby_loc, Bby_loc;
+inline void PotParam(int Zloc, std::vector<double> &Aby, std::vector<double> &Bby) {
+  std::vector<double> Aby_loc, Bby_loc;
 
   Aby.clear();
   Bby.clear();
@@ -505,7 +504,7 @@ inline void PotParam(int Zloc, vector<double> &Aby, vector<double> &Bby) {
 
   if (Zloc > 92)  // Moliere's potential
   {
-    b = 0.88534 * pow(Zloc * 1., -1. / 3.);
+    b = 0.88534 * std::pow(Zloc * 1., -1. / 3.);
     Aby_loc.push_back(0.1);
     Aby_loc.push_back(0.55);
     Aby_loc.push_back(0.35);
@@ -1437,7 +1436,7 @@ inline void PotParam(int Zloc, vector<double> &Aby, vector<double> &Bby) {
   // Parameters are in atomic units, thus conversion in natural units
   for (int i = 0; i < (int)Bby_loc.size(); i++) Bby_loc[i] = Bby_loc[i] * alpha;
 
-  // Parameters are put in the global vectors for the required nucleus
+  // Parameters are put in the global std::vectors for the required nucleus
   for (int i = 0; i < (int)Aby_loc.size(); i++) {
     Aby.push_back(Aby_loc[i]);
     Bby.push_back(Bby_loc[i]);

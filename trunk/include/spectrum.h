@@ -33,7 +33,7 @@ class Spectrum {
   double EndPointEnergy;  ///< \a kinetic beta endpoint energy, in keV
   double MixingRatio;
   double Afit;
-  double deformation;
+  double beta2, beta4;
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
   std::string exParamFile;
@@ -235,6 +235,8 @@ class Spectrum {
   };
   void SetCalculateNeutrinoSpectrum(bool vs) { fCalcNeutrinoSpectrum = vs; };
   void SetWeakMagnetism(double b) { fc1 = 1.; bAc = b; };
+  
+  double CalculateWeakMagnetism();
 
   /**
    * @brief initialize the recoil corrections

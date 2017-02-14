@@ -2,12 +2,14 @@
 #define NILSSON_ORBITS
 
 #include "utilities.h"
+#include "gsl/gsl_eigen.h"
 
 #define NDIM1 56
 #define NDIM2 820
 #define NDIM3 35
 
 namespace nilsson {
+
 inline double V(int n, int l, double x) {
   int m = (n-l)/2;
   double V = 1.0;
@@ -151,6 +153,11 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
     }
   }
 }
+
+inline void Eigen(double A[], double R[], int N, int MV) {
+
+}
+
 inline void Calculate(double spin, double beta2, double beta4, double V0,
                       double R0, double A0, double V0S, double AMU, int Z,
                       int nMax) {
@@ -309,12 +316,12 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
         for (int N1 = 1; N1 <= II; N1++) {
           for (int N2 = 1; N2 <= II; N2++) {
             if (!(L[N1] != LKK[I] || L[N2] != LKK[J] || (L[N1]-L[N2])/5 != 0 || LA[N1] != LA[N2])) {
-              NI = N[N1]/2+1;
-              NJ = N[N2]/2+1;
-              LI = L[N1]/2+1;
-              LJ = L[N2]/2+1;
+              int NI = N[N1]/2+1;
+              int NJ = N[N2]/2+1;
+              int LI = L[N1]/2+1;
+              int LJ = L[N2]/2+1;
               if (NI < NJ) {
-                NN = NI;
+                int NN = NI;
                 NI = NJ;
                 NJ = NN;
                 NN = LI;
@@ -323,8 +330,8 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
               }
               int NNP = NI*(NI-1);
               NNP = (3*NNP*NNP+2*NNP*(2*NI-1))/24+NI*NJ*(NJ-1)/2+(LI+1)*NJ+LJ;
-              X = A[I][N1]*SDW[NNP]*A[J][N2];
-              LP = L[N1];
+              double X = A[I][N1]*SDW[NNP]*A[J][N2];
+              int LP = L[N1];
               int LAP = LA[N1]+IIOM-1;
               int LL = L[N2];
               int LLA = LA[N2]+IIOM-1;
@@ -342,7 +349,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   IOM = 1;
   for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
     IOM = -IOM-2*(int)(std::pow(-1., IIOM));
-    KKK = K1[IIOM]
+    int KKK = K1[IIOM];
     if (KKK != 0) {
       int NK = 0;
       for (int I = 1; I <= KKK; I++) {
@@ -351,11 +358,11 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
           KK++;
           AM[NK] = beta2*B[KK]+beta4*D[KK];
         }
-        N0 = KN[IIOM][I];
+        int N0 = KN[IIOM][I];
         AM[NK]+=E[N0];
       }
-      Eigen(Am, R, KKK, 0);
-      N0 = 0;
+      Eigen(AM, R, KKK, 0);
+      int N0 = 0;
       for (int MU = 1; MU <= KKK; MU++) {
         N0+=MU;
         K++;
@@ -367,7 +374,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
           A[K][J] = 0.0;
           NK = KKK*(MU-1);
           for (int NU = 1; NU <= KKK; NU++) {
-            I = KN[IIOM][NU];
+            int I = KN[IIOM][NU];
             NK++;
             A[K][J]+R[NK]*CNU[I][J];
           }
@@ -375,6 +382,35 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
       }
     }
   }
+}
+
+inline utilities::NuclearState CalculateDeformedState(int Z, int A, double beta2, double beta4) {
+  double O;
+  double K;
+  double parity;
+
+  //TODO
+
+  //special case for 19Ne
+  /*struct WFComp s12 = {0.528947, 0, 1, 1};
+  struct WFComp d32 = {-0.297834, 2, -1, 1};
+  struct WFComp d52 = {0.794676, 2, 1, 1};
+  
+  std::vector<WFComp> states = {s12, d32, d52};*/
+
+  //special case for 33Cl
+  utilities::WFComp d32 = {0.913656, 2, -1, 3};
+  utilities::WFComp d52 = {-0.406489, 2, 1, 3};
+
+  std::vector<utilities::WFComp> states = {d32, d52};
+
+  O = 3./2.;
+  K = 3./2.;
+  parity = 1;
+
+  utilities::NuclearState nuclearState = {O, K, parity, states};
+
+  return nuclearState;
 }
 }
 #endif

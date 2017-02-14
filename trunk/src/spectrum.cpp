@@ -1,5 +1,6 @@
 #include "spectrum.h"
 #include "utilities.h"
+#include "nilsson_orbits.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -28,7 +29,7 @@ Spectrum::Spectrum() {
   fFermiFunction = true;
   fCCorrection = true;
   fCICorrection = true;
-  //fQCDInducedCorrection = false;
+  // fQCDInducedCorrection = false;
   fRelativisticCorrection = true;
   fDeformationCorrection = true;
   fL0Correction = true;
@@ -41,7 +42,7 @@ Spectrum::Spectrum() {
   fAtomicMismatchCorrection = true;
 
   Afit = -1;
-  
+
   fCalcNeutrinoSpectrum = false;
 
   exParamFile = "data/ExchangeData.dat";
@@ -54,7 +55,7 @@ Spectrum::Spectrum() {
   gP = 0.;
   gM = 4.706;
 
-  deformation = 0.;
+  beta2 = 0.;
 }
 
 void Spectrum::ReadFromFile(char *FileName) {
@@ -107,36 +108,38 @@ void Spectrum::ReadFromFile(char *FileName) {
   sscanf(fline, "%f", &he);
 
   if (he != QValue) {
-    R = sqrt(5./3.) * he * 1e-15 * electron_mass_c2 * 1000 / hbar / speed_of_light;
+    R = sqrt(5. / 3.) * he * 1e-15 * electron_mass_c2 * 1000 / hbar /
+        speed_of_light;
+  } else {
+    R = 1.2 * pow(An, 1. / 3.) * 1e-15 * electron_mass_c2 * 1000 / hbar /
+        speed_of_light;
   }
-  else {
-    R = 1.2*pow(An, 1./3.)* 1e-15 * electron_mass_c2 * 1000 / hbar / speed_of_light;
-  }
-  
+
   he = 0.;
 
   ifile.getline(fline, 100);
   ifile.getline(fline, 100);
   sscanf(fline, "%f", &he);
 
-  deformation = he;
+  beta2 = he;
 
   if (fBetaType == BETA_MINUS) {
-    W0 = QValue/electron_mass_c2 +1.;
+    W0 = QValue / electron_mass_c2 + 1.;
   } else {
-    W0 = QValue/electron_mass_c2 - 1.;
+    W0 = QValue / electron_mass_c2 - 1.;
   }
-  W0 = W0 - (W0*W0-1)/2./An/1837.4;
-  EndPointEnergy = (W0-1.)*electron_mass_c2;
+  W0 = W0 - (W0 * W0 - 1) / 2. / An / 1837.4;
+  EndPointEnergy = (W0 - 1.) * electron_mass_c2;
 
   if (bAc != 0) {
     fc1 = 1.;
-    fb = An*bAc;
+    fb = An * bAc;
   } else {
     fc1 = 1.;
-    bAc = utilities::CalculateWeakMagnetism(gA, gM, R, Zd, An, deformation, fBetaType);
+    bAc = utilities::CalculateWeakMagnetism(gA, gM, R, Zd, An, beta2,
+                                            fBetaType);
     cout << "Received weak magnetism " << bAc << endl;
-    fb = An*bAc;
+    fb = An * bAc;
   }
 
   ifile.close();
@@ -219,7 +222,7 @@ void Spectrum::LoadExchangeParameters() {
       istringstream iss(line);
       iss >> Z >> a >> b >> c >> d >> e >> f >> g >> h >> i;
 
-      if (Z == Zd -fBetaType) {
+      if (Z == Zd - fBetaType) {
         exPars[0] = a;
         exPars[1] = b;
         exPars[2] = c;
@@ -230,7 +233,7 @@ void Spectrum::LoadExchangeParameters() {
         exPars[7] = h;
         exPars[8] = i;
 
-        //cout << "Loaded Exchange Params for Z=" << Z << ": " << a << " " << b
+        // cout << "Loaded Exchange Params for Z=" << Z << ": " << a << " " << b
         //     << " " << c << " and so on" << endl;
       }
     }
@@ -356,13 +359,14 @@ void Spectrum::PrintStatus(std::ostream *ofile) {
     *ofile << "\t\t negative beta decay" << endl;
   }
   *ofile << "\t\t Nuclear radius R = " << R << " (natural units)" << endl;
-  *ofile << "\t\t Deformation: " << deformation << endl;
+  *ofile << "\t\t Deformation: " << beta2 << endl;
   if (fDecayType == FERMI) {
     *ofile << "\t\t Pure Fermi transition" << endl;
   } else if (fDecayType == GAMOW_TELLER) {
     *ofile << "\t\t Pure Gamow-Teller transition" << endl;
   } else {
-    *ofile << "\t\t Mixed Fermi/Gamow-Teller transition. Mixing ratio: " << MixingRatio << endl;
+    *ofile << "\t\t Mixed Fermi/Gamow-Teller transition. Mixing ratio: "
+           << MixingRatio << endl;
   }
 
   *ofile << "\t Options:" << endl;
@@ -370,8 +374,7 @@ void Spectrum::PrintStatus(std::ostream *ofile) {
          << endl;
   *ofile << "\t\t Fermi Function: " << (fFermiFunction ? "true" : "false")
          << endl;
-  *ofile << "\t\t C Correction: " << (fCCorrection ? "true" : "false")
-         << endl;
+  *ofile << "\t\t C Correction: " << (fCCorrection ? "true" : "false") << endl;
   *ofile << "\t\t CI Correction: " << (fCICorrection ? "true" : "false")
          << endl;
   /**ofile << "\t\t QCD Induced Correction: "
@@ -408,7 +411,8 @@ double Spectrum::FermiFunction(double W) {
   // we use the complex gamma function from GSL
   gsl_sf_result magn;
   gsl_sf_result phase;
-  gsl_sf_lngamma_complex_e(gamma, fBetaType * alpha * Zd * W / p, &magn, &phase);
+  gsl_sf_lngamma_complex_e(gamma, fBetaType * alpha * Zd * W / p, &magn,
+                           &phase);
   // now we have what we want in magn.val
 
   // but we incorporate the second term here as well
@@ -420,7 +424,6 @@ double Spectrum::FermiFunction(double W) {
 }
 
 double Spectrum::CCorrection(double W) {
-
   double AC0, AC1, ACm1, AC2;
 
   /*AC0 = -233. * pow(alpha * Zd, 2) / 630. - (W0 * W0 - 1) * R * R / 5. +
@@ -432,7 +435,6 @@ double Spectrum::CCorrection(double W) {
 
   double VC0, VC1, VCm1, VC2;
 
-
   /*VC0 = -233 * pow(alpha * Zd, 2.) / 630. - pow(W0 * R, 2) / 5. -
         fBetaType * 6. / 35. * alpha * Zd * W0 * R +
         9./1225.*pow(alpha*Zd*W0*R, 2.);
@@ -443,44 +445,51 @@ double Spectrum::CCorrection(double W) {
 
   double A;
   if (Afit == -1) {
-    double A = utilities::FitHODist(Zd, R*sqrt(3./5.));
+    double A = utilities::FitHODist(Zd, R * sqrt(3. / 5.));
     Afit = A;
   }
 
-  double F1111 = 0.757+0.0069*(1-exp(-A/1.008));
-  double F1221 = 0.844 - 0.0182*(1-exp(-A/1.1974));
-  double F1222 = 1.219 - 0.0640*(1-exp(-A/1.550));
-  double F1211 = -3./70;
+  double F1111 = 0.757 + 0.0069 * (1 - exp(-A / 1.008));
+  double F1221 = 0.844 - 0.0182 * (1 - exp(-A / 1.1974));
+  double F1222 = 1.219 - 0.0640 * (1 - exp(-A / 1.550));
+  double F1211 = -3. / 70;
 
-  VC0 = -pow(W0*R, 2.)/5. - fBetaType * 2./9.*alpha*Zd*W0*R*F1111 - pow(alpha*Zd, 2.)/3.*F1222;
+  VC0 = -pow(W0 * R, 2.) / 5. -
+        fBetaType * 2. / 9. * alpha * Zd * W0 * R * F1111 -
+        pow(alpha * Zd, 2.) / 3. * F1222;
 
-  VC1 = 4./15.*W0*R*R- fBetaType*2./3.*alpha*Zd*R*(F1221-F1111/3.);
+  VC1 = 4. / 15. * W0 * R * R -
+        fBetaType * 2. / 3. * alpha * Zd * R * (F1221 - F1111 / 3.);
 
-  VCm1 = 2./15.*W0*R*R - fBetaType * alpha*Zd*R/3.*F1211;
+  VCm1 = 2. / 15. * W0 * R * R - fBetaType * alpha * Zd * R / 3. * F1211;
 
-  VC2 = -4./15.*R*R;
+  VC2 = -4. / 15. * R * R;
 
-  AC0 = -1./3.*pow(alpha*Zd, 2.)*F1222 - 1./5.*(W0*W0-1)*R*R + fBetaType*2./27.*alpha*Zd*W0*R*F1111+11./45.*R*R;
+  AC0 = -1. / 3. * pow(alpha * Zd, 2.) * F1222 -
+        1. / 5. * (W0 * W0 - 1) * R * R +
+        fBetaType * 2. / 27. * alpha * Zd * W0 * R * F1111 + 11. / 45. * R * R;
 
-  AC1 = 4./9.*W0*R*R - fBetaType * 2./3.*alpha*Zd*R*(1./9.*F1111+F1221);
+  AC1 = 4. / 9. * W0 * R * R -
+        fBetaType * 2. / 3. * alpha * Zd * R * (1. / 9. * F1111 + F1221);
 
-  ACm1 = -2./45.*W0*R*R + fBetaType * alpha*Zd/3.*F1211;
+  ACm1 = -2. / 45. * W0 * R * R + fBetaType * alpha * Zd / 3. * F1211;
 
-  AC2 = -4./9.*R*R;
+  AC2 = -4. / 9. * R * R;
 
   double result = 1.;
 
-  if (fDecayType == FERMI) {    
+  if (fDecayType == FERMI) {
     result = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
   } else if (fDecayType == GAMOW_TELLER) {
     result = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
   }
-  //TODO
+  // TODO
   /*} else if (MixingRatio > 0) {
     result = 1. +
            1. / (1 + pow(MixingRatio, 2)) *
                (VC0 + VC1 * W + VCm1 / W + VC2 * W * W) +
-           1. / (1 + pow(MixingRatio, -2)) * (AC0 + AC1 * W + ACm1 / W + AC2 * W * W);
+           1. / (1 + pow(MixingRatio, -2)) * (AC0 + AC1 * W + ACm1 / W + AC2 * W
+  * W);
   }*/
 
   if (fCICorrection) {
@@ -490,20 +499,22 @@ double Spectrum::CCorrection(double W) {
   if (fDecayType == GAMOW_TELLER) {
     double M = An * (proton_mass_c2 + neutron_mass_c2) / 2. / electron_mass_c2;
 
-    //TODO depends on beta+/- to check from parent or daughter nucleus, not both parent
+    // TODO depends on beta+/- to check from parent or daughter nucleus, not
+    // both parent
     int nN, lN, sN, nZ, lZ, sZ;
-    vector<int> occNumbersN = utilities::GetOccupationNumbers(An - (Zd - fBetaType));
+    vector<int> occNumbersN =
+        utilities::GetOccupationNumbers(An - (Zd - fBetaType));
     nN = occNumbersN[occNumbersN.size() - 1 - 3];
     lN = occNumbersN[occNumbersN.size() - 1 - 2];
     sN = occNumbersN[occNumbersN.size() - 1 - 1];
-    vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd-fBetaType);
+    vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd - fBetaType);
     nZ = occNumbersZ[occNumbersZ.size() - 1 - 3];
     lZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
     sZ = occNumbersZ[occNumbersZ.size() - 1 - 1];
 
-    //TODO replace <r^2>/R^2 with the HO rms
+    // TODO replace <r^2>/R^2 with the HO rms
     double ratioM121 = 0.;
-    double nu = utilities::CalcNu(sqrt(3./5.)*R, Zd-fBetaType);
+    double nu = utilities::CalcNu(sqrt(3. / 5.) * R, Zd - fBetaType);
     double rHO = pow(utilities::GetRMSHO(nN, lN, nu), 2.);
     /*if (lN == lZ) {
       double nu = utilities::CalcNu(sqrt(3./5.)*R, Zd-fBetaType);
@@ -521,29 +532,42 @@ double Spectrum::CCorrection(double W) {
       }
     }*/
 
-    struct utilities::NuclearState nsi = utilities::CalculateDeformedState(Zd-fBetaType, An, deformation);
-    struct utilities::NuclearState nsf = utilities::CalculateDeformedState(Zd, An, deformation);
+    struct utilities::NuclearState nsi =
+        utilities::CalculateDeformedState(Zd - fBetaType, An, beta2);
+    struct utilities::NuclearState nsf =
+        utilities::CalculateDeformedState(Zd, An, beta2);
 
-    ratioM121 = utilities::CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 2, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)/
-		utilities::CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R);
+    ratioM121 = utilities::CalculateDeformedSPMatrixElement(
+                    nsi.states, nsf.states, false, 1, 2, 1, nsi.O, nsf.O, nsi.K,
+                    nsf.K, R) /
+                utilities::CalculateDeformedSPMatrixElement(
+                    nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
+                    nsf.K, R);
 
-    ratioM121 *= rHO/R/R;
+    ratioM121 *= rHO / R / R;
 
-    double x = sqrt(2.)/3.*10.*ratioM121-gP/gA*25./3./pow(1837.5*R, 2.);
+    double x = sqrt(2.) / 3. * 10. * ratioM121 -
+               gP / gA * 25. / 3. / pow(1837.5 * R, 2.);
 
-    double NSC0 = -1./45.*R*R*x + 1./3.*W0/M/fc1*(- fBetaType * 2.*fb + fd) + fBetaType*2./5.*alpha*Zd/M/R/fc1*( fBetaType*2.*fb+fd)
-		- fBetaType * 2./35.*alpha*Zd*W0*R*x;
-    
-    double NSC1 = fBetaType * 4./3.*fb/M/fc1 - 2./45.*W0*R*R*x + fBetaType*alpha*Zd*R*2./35.*x;
+    double NSC0 = -1. / 45. * R * R * x +
+                  1. / 3. * W0 / M / fc1 * (-fBetaType * 2. * fb + fd) +
+                  fBetaType * 2. / 5. * alpha * Zd / M / R / fc1 *
+                      (fBetaType * 2. * fb + fd) -
+                  fBetaType * 2. / 35. * alpha * Zd * W0 * R * x;
 
-    double NSCm1 = -1./3./M/fc1*(fBetaType * 2.*fb + fd) + 2./45.*W0*R*R*x;
+    double NSC1 = fBetaType * 4. / 3. * fb / M / fc1 -
+                  2. / 45. * W0 * R * R * x +
+                  fBetaType * alpha * Zd * R * 2. / 35. * x;
 
-    double NSC2 = 2./45.*R*R*x;
+    double NSCm1 = -1. / 3. / M / fc1 * (fBetaType * 2. * fb + fd) +
+                   2. / 45. * W0 * R * R * x;
+
+    double NSC2 = 2. / 45. * R * R * x;
 
     result += NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
- }
+  }
 
-  //cout << "Mixing ratio badly defined. Returning 1." << endl;
+  // cout << "Mixing ratio badly defined. Returning 1." << endl;
   return result;
 }
 
@@ -569,45 +593,45 @@ double Spectrum::CICorrection(double W) {
   double nu = 0.;
 
   int nN, lN, nZ, lZ;
-  vector<int> occNumbersN = utilities::GetOccupationNumbers(An - (Zd - fBetaType));
+  vector<int> occNumbersN =
+      utilities::GetOccupationNumbers(An - (Zd - fBetaType));
   nN = occNumbersN[occNumbersN.size() - 1 - 3];
   lN = occNumbersN[occNumbersN.size() - 1 - 2];
-  vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd-fBetaType);
+  vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd - fBetaType);
   nZ = occNumbersZ[occNumbersZ.size() - 1 - 3];
   lZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
 
-  //cout << "nZ: " << nZ << " lZ: " << lZ << " p: " << occNumbersZ[occNumbersZ.size() - 1] << endl;
+  // cout << "nZ: " << nZ << " lZ: " << lZ << " p: " <<
+  // occNumbersZ[occNumbersZ.size() - 1] << endl;
 
-  double w = (4*nZ+2*lZ-1)/5.;
-  double V0 = fBetaType*3*alpha*Zd/2./R;
-  //double V0 = -alpha*sqrt(2.*1.825E-4/M_PI)*26.;
-  double e = (sqr(W0-W)+sqr(W+V0)-1)/6.;
+  double w = (4 * nZ + 2 * lZ - 1) / 5.;
+  double V0 = fBetaType * 3 * alpha * Zd / 2. / R;
+  // double V0 = -alpha*sqrt(2.*1.825E-4/M_PI)*26.;
+  double e = (sqr(W0 - W) + sqr(W + V0) - 1) / 6.;
 
   double Ap = 1.;
   double sum = 0.;
-  for (int j = 0; j < occNumbersZ.size(); j+=4) {
-    if (occNumbersZ[j+1] == 0) {
-      sum+=occNumbersZ[j+3];
+  for (int j = 0; j < occNumbersZ.size(); j += 4) {
+    if (occNumbersZ[j + 1] == 0) {
+      sum += occNumbersZ[j + 3];
     }
   }
-  Ap = (2.*(Zd-fBetaType)/sum-2.)/3.;
+  Ap = (2. * (Zd - fBetaType) / sum - 2.) / 3.;
 
-  //cout << "Ap: " << Ap << endl;
+  // cout << "Ap: " << Ap << endl;
 
-  return 1-8./5.*w*e*R*R/(5.*Ap+2);
-  
+  return 1 - 8. / 5. * w * e * R * R / (5. * Ap + 2);
+
   double weakR2;
   if (An > 90) {
-    nu =
-      utilities::CalcChargeIndepNu(rms, Zd - fBetaType, An - (Zd - fBetaType));
+    nu = utilities::CalcChargeIndepNu(rms, Zd - fBetaType,
+                                      An - (Zd - fBetaType));
     weakR2 = utilities::WeakIntegratedRMS(nu, nN, lN, nu, nZ, lZ);
-  }
-  else {
-    nu = utilities::CalcNu(rms, Zd-fBetaType);
+  } else {
+    nu = utilities::CalcNu(rms, Zd - fBetaType);
     if (fBetaType == BETA_MINUS) {
       weakR2 = pow(utilities::GetRMSHO(nN, lN, nu), 2);
-    }
-    else {
+    } else {
       weakR2 = pow(utilities::GetRMSHO(nZ, lZ, nu), 2);
     }
   }
@@ -616,28 +640,39 @@ double Spectrum::CICorrection(double W) {
   cout << "nN: " << nN << " lN: " << lN << endl;
   cout << "nZ: " << nZ << " lZ: " << lZ << endl;*/
 
-  double delta = (weakR2 - 3. / 5. * R*R)/6.;
+  double delta = (weakR2 - 3. / 5. * R * R) / 6.;
 
-  //return (1-e*weakR2)/(1-e*3./5.*R*R);
-  //return 1-e*(weakR2-R*R*3/5.);
+  // return (1-e*weakR2)/(1-e*3./5.*R*R);
+  // return 1-e*(weakR2-R*R*3/5.);
 
-  //cout << "rmsW: " << weakR2 << " rmsCh " << 3./5.*R*R << " Delta: " << delta << endl;
+  // cout << "rmsW: " << weakR2 << " rmsCh " << 3./5.*R*R << " Delta: " << delta
+  // << endl;
 
-  AC0 = alpha*Zd/R*(fBetaType*4./3.*W0-9/2.*alpha*Zd/R+4*alpha*Zd/R*W0*W0*delta);
-  AC1 = 40/9.*W0+alpha*Zd/R*(fBetaType*16./3.*W0*W0*delta-fBetaType*22./3.-22*alpha*Zd/R*W0*delta);
-  AC2 = -40/9.-fBetaType*24*alpha*Zd/R*W0*delta+27*pow(alpha*Zd/R, 2)*delta + 44./9.*W0*W0*delta;
-  ACm1 = -4/9.*W0;
+  AC0 = alpha * Zd / R * (fBetaType * 4. / 3. * W0 - 9 / 2. * alpha * Zd / R +
+                          4 * alpha * Zd / R * W0 * W0 * delta);
+  AC1 = 40 / 9. * W0 +
+        alpha * Zd / R *
+            (fBetaType * 16. / 3. * W0 * W0 * delta - fBetaType * 22. / 3. -
+             22 * alpha * Zd / R * W0 * delta);
+  AC2 = -40 / 9. - fBetaType * 24 * alpha * Zd / R * W0 * delta +
+        27 * pow(alpha * Zd / R, 2) * delta + 44. / 9. * W0 * W0 * delta;
+  ACm1 = -4 / 9. * W0;
 
   /*cout << "W: " << W << " W0: " << W0 << endl;
-  cout << "AC0: " << AC0 << " AC1: " << AC1 << " AC2: " << AC2 << " ACm1: " << ACm1 << endl;*/
+  cout << "AC0: " << AC0 << " AC1: " << AC1 << " AC2: " << AC2 << " ACm1: " <<
+  ACm1 << endl;*/
 
-  VC0 = alpha*Zd/R*(-fBetaType*4*W0-9./2.*alpha*Zd/R+4*alpha*Zd/R*W0*W0*delta);
-  VC1 = 8./3.*W0+alpha*Zd/R*(-fBetaType*16./3.*W0*W0*delta-fBetaType*2-2.*alpha*Zd/R*W0*delta);
-  VC2 = -8/3.+fBetaType*8./3.*alpha*Zd/R*W0*delta+7.*pow(alpha*Zd/R, 2)*delta;
-  VCm1 = 4./3.*W0;
+  VC0 = alpha * Zd / R * (-fBetaType * 4 * W0 - 9. / 2. * alpha * Zd / R +
+                          4 * alpha * Zd / R * W0 * W0 * delta);
+  VC1 = 8. / 3. * W0 +
+        alpha * Zd / R * (-fBetaType * 16. / 3. * W0 * W0 * delta -
+                          fBetaType * 2 - 2. * alpha * Zd / R * W0 * delta);
+  VC2 = -8 / 3. + fBetaType * 8. / 3. * alpha * Zd / R * W0 * delta +
+        7. * pow(alpha * Zd / R, 2) * delta;
+  VCm1 = 4. / 3. * W0;
 
-  double r2 = 0.75*R+weakR2/2./R;
-  double r2r = 0.7*weakR2/R;
+  double r2 = 0.75 * R + weakR2 / 2. / R;
+  double r2r = 0.7 * weakR2 / R;
 
   /*VC0 = -alpha*Zd*2./9.*W0*(r2r/2.-0.25*R);
   VC1 = alpha*Zd*(4./3.*r2+4./9.*r2r-14./9.*R);
@@ -645,99 +680,103 @@ double Spectrum::CICorrection(double W) {
   VC2 = 0.;*/
 
   if (fDecayType == FERMI) {
-    return 1 + delta * (VC0 + VC1 * W + VC2*W*W + VCm1 / W);
+    return 1 + delta * (VC0 + VC1 * W + VC2 * W * W + VCm1 / W);
   } else if (fDecayType == GAMOW_TELLER) {
-    return 1 + delta * (AC0 + AC1 * W + AC2*W*W + ACm1 / W);
+    return 1 + delta * (AC0 + AC1 * W + AC2 * W * W + ACm1 / W);
   } else if (MixingRatio > 0) {
-    return 1 + delta * ( 1. / (1 + pow(MixingRatio, 2)) *
-                    (VC0 + VC1 * W + VC2*W*W + VCm1 / W) +
-                1 / (1 + 1. / pow(MixingRatio, 2)) * (AC0 + AC1 * W + AC2*W*W + ACm1 / W));
+    return 1 +
+           delta * (1. / (1 + pow(MixingRatio, 2)) *
+                        (VC0 + VC1 * W + VC2 * W * W + VCm1 / W) +
+                    1 / (1 + 1. / pow(MixingRatio, 2)) *
+                        (AC0 + AC1 * W + AC2 * W * W + ACm1 / W));
   }
   cout << "Mixing ratio is badly defined. Returning 1." << endl;
-
-  
 
   return 1.;
 }
 
 double Spectrum::RelativisticCorrection(double W) {
-  double Wb = W +fBetaType*3*alpha*Zd/(2.*R);
-  double pb = sqrt(Wb*Wb-1.);
-  double H2 = -pow(pb*R, 2.)/6.;
-  double D1 = Wb*R/3.;
-  double D3 = -Wb*R*pow(pb*R, 2.)/30-fBetaType*alpha*Zd/10.;
-  double d1 = R/3.;
-  double d3 = -R*pow(pb*R, 2.)/30.;
-  double N1 = (W0-W)*R/3.;
-  double N2 = -pow((W0-W)*R, 2.)/6.;
-  double N3 = pow((W0-W)*R, 3.)/30;
+  double Wb = W + fBetaType * 3 * alpha * Zd / (2. * R);
+  double pb = sqrt(Wb * Wb - 1.);
+  double H2 = -pow(pb * R, 2.) / 6.;
+  double D1 = Wb * R / 3.;
+  double D3 = -Wb * R * pow(pb * R, 2.) / 30 - fBetaType * alpha * Zd / 10.;
+  double d1 = R / 3.;
+  double d3 = -R * pow(pb * R, 2.) / 30.;
+  double N1 = (W0 - W) * R / 3.;
+  double N2 = -pow((W0 - W) * R, 2.) / 6.;
+  double N3 = pow((W0 - W) * R, 3.) / 30;
 
   double Vf2, Vf3;
   double Af2, Af3;
 
-  Vf2 = -2.*(D1+N1)+2*gamma/W*d1;
-  Vf3 = -2.*(D3+N1*H2-N2*D1-N3)+2*gamma/W*(d3-N2*d1);
+  Vf2 = -2. * (D1 + N1) + 2 * gamma / W * d1;
+  Vf3 = -2. * (D3 + N1 * H2 - N2 * D1 - N3) + 2 * gamma / W * (d3 - N2 * d1);
 
-  Af2 = 2./sqrt(3)*(D1+N1)-2./sqrt(3)*gamma/W*d1;
-  Af3 = 2.*sqrt(2./3.)*(D1-N1)-2.*sqrt(2./3.)*gamma/W*d1;
+  Af2 = 2. / sqrt(3) * (D1 + N1) - 2. / sqrt(3) * gamma / W * d1;
+  Af3 = 2. * sqrt(2. / 3.) * (D1 - N1) - 2. * sqrt(2. / 3.) * gamma / W * d1;
 
-  double mismatch = W0-fBetaType*2.5+fBetaType*6./5.*alpha*Zd/R;
+  double mismatch = W0 - fBetaType * 2.5 + fBetaType * 6. / 5. * alpha * Zd / R;
 
   if (fDecayType == FERMI) {
-    return 1. -3./10*R*mismatch*Vf2 - 3./28.*R*mismatch*Vf3;
+    return 1. - 3. / 10 * R * mismatch * Vf2 - 3. / 28. * R * mismatch * Vf3;
   }
 
-  vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd-fBetaType);
-  vector<int> occNumbersN = utilities::GetOccupationNumbers(An-Zd+fBetaType);
+  vector<int> occNumbersZ = utilities::GetOccupationNumbers(Zd - fBetaType);
+  vector<int> occNumbersN =
+      utilities::GetOccupationNumbers(An - Zd + fBetaType);
 
   int li, lf;
   return 1;
 }
 
 double Spectrum::DeformationCorrection(double W) {
-  double bOverA = utilities::CalcBoverA(deformation);
+  double bOverA = utilities::CalcBoverA(beta2);
   double a, b;
 
-  a = R*sqrt(3./(bOverA*bOverA+2.));
-  b = bOverA*a;
+  a = R * sqrt(3. / (bOverA * bOverA + 2.));
+  b = bOverA * a;
 
-  //cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
+  // cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
 
-  double V0s = 3.*alpha*Zd/2./R;
+  double V0s = 3. * alpha * Zd / 2. / R;
   double V0d = 0.;
 
-  if (deformation > 0) {
-    V0d = 3.*alpha*Zd/2./a/sqrt(bOverA*bOverA-1.)*log(sqrt(bOverA*bOverA-1)+bOverA);
+  if (beta2 > 0) {
+    V0d = 3. * alpha * Zd / 2. / a / sqrt(bOverA * bOverA - 1.) *
+          log(sqrt(bOverA * bOverA - 1) + bOverA);
+  } else if (beta2 < 0) {
+    V0d = 3. * alpha * Zd / 2. / a / sqrt(1. - bOverA * bOverA) *
+          asin(sqrt(1 - bOverA * bOverA));
   }
-  else if (deformation < 0) {
-    V0d = 3.*alpha*Zd/2./a/sqrt(1.-bOverA*bOverA)*asin(sqrt(1-bOverA*bOverA));
-  }
-  double etaS = 1./6.*(pow(W0-W, 2.)+pow(W+fBetaType*V0s, 2.)-1.);
-  double etaD = 1./6.*(pow(W0-W, 2.)+pow(W+fBetaType*V0d, 2.)-1.);
-  double DC0 = (1-etaD*3./5.*R*R)/(1-etaS*3./5.*R*R);
+  double etaS = 1. / 6. * (pow(W0 - W, 2.) + pow(W + fBetaType * V0s, 2.) - 1.);
+  double etaD = 1. / 6. * (pow(W0 - W, 2.) + pow(W + fBetaType * V0d, 2.) - 1.);
+  double DC0 = (1 - etaD * 3. / 5. * R * R) / (1 - etaS * 3. / 5. * R * R);
 
-  //cout << "DC0 " << DC0 << endl;
+  // cout << "DC0 " << DC0 << endl;
 
   int steps = 1E2;
   double grid[steps];
   double integrand[steps];
 
-  double prefact = 4./3.*M_PI*pow(R, 2.*(1-gamma));
+  double prefact = 4. / 3. * M_PI * pow(R, 2. * (1 - gamma));
 
-  for(int i = 0; i < steps; i++) {
-    grid[i] = a + (i+1.)/(double)steps*(b-a);
-    integrand[i] = pow(grid[i], 3.)*Zd*abs(utilities::GetDerivDeformedChargeDist(grid[i], a, b))*L0Correction(W, grid[i])*pow(grid[i], 2.*(gamma-1));
-    cout << grid[i] <<  "\t" << integrand[i] << endl;
+  for (int i = 0; i < steps; i++) {
+    grid[i] = a + (i + 1.) / (double)steps * (b - a);
+    integrand[i] = pow(grid[i], 3.) * Zd *
+                   abs(utilities::GetDerivDeformedChargeDist(grid[i], a, b)) *
+                   L0Correction(W, grid[i]) * pow(grid[i], 2. * (gamma - 1));
+    cout << grid[i] << "\t" << integrand[i] << endl;
   }
 
-  double newL0 = prefact*utilities::Trapezoid(grid, integrand, steps);
+  double newL0 = prefact * utilities::Trapezoid(grid, integrand, steps);
 
-  //cout << "newL0 " << newL0 << endl;
-  double DFS = newL0/L0Correction(W, R);
+  // cout << "newL0 " << newL0 << endl;
+  double DFS = newL0 / L0Correction(W, R);
 
   DC0 = 1.;
 
-  return DC0*DFS;
+  return DC0 * DFS;
 }
 
 double Spectrum::L0Correction(double W, double r) {
@@ -787,7 +826,7 @@ double Spectrum::QCorrection(double W) {
 
   double p = sqrt(W * W - 1);
 
-  return 1 - fBetaType*M_PI * alpha * Zd / M / p * (1 + a * (W0 - W) / 3 / M);
+  return 1 - fBetaType * M_PI * alpha * Zd / M / p * (1 + a * (W0 - W) / 3 / M);
 }
 
 double Spectrum::RadiativeCorrection(double W) {
@@ -826,7 +865,7 @@ double Spectrum::RadiativeCorrection(double W) {
        (gamma_E - 1 + log(sqrt(10) / LambdaOverM) +
         M_PI / 4 / sqrt(10) * LambdaOverM);
 
-  double O2corr = fBetaType*alpha * alpha * Zd * (d14 + d1f + d2 + d3);
+  double O2corr = fBetaType * alpha * alpha * Zd * (d14 + d1f + d2 + d3);
 
   // 3rd order
   double a = 0.5697;
@@ -843,12 +882,14 @@ double Spectrum::RadiativeCorrection(double W) {
 }
 
 double Spectrum::NeutrinoRadiativeCorrection(double Wv) {
-
   double h = 0.;
-  double pv = sqrt(Wv*Wv-1);
-  double beta = pv/Wv;
-  h += 3*log(proton_mass_c2/electron_mass_c2)+23/4.+8/beta*Spence(2*beta/(1+beta))+8*(atan(beta)/beta-1)*log(2*Wv*beta)+4*atan(beta)/beta*((7+3*beta*beta)/8-2*atan(beta));
-  return 1+alpha/2/M_PI*h;
+  double pv = sqrt(Wv * Wv - 1);
+  double beta = pv / Wv;
+  h += 3 * log(proton_mass_c2 / electron_mass_c2) + 23 / 4. +
+       8 / beta * Spence(2 * beta / (1 + beta)) +
+       8 * (atan(beta) / beta - 1) * log(2 * Wv * beta) +
+       4 * atan(beta) / beta * ((7 + 3 * beta * beta) / 8 - 2 * atan(beta));
+  return 1 + alpha / 2 / M_PI * h;
 }
 
 double Spectrum::Spence(double x) { return -gsl_sf_dilog(x); }
@@ -877,9 +918,9 @@ double Spectrum::RecoilCorrection(double W) {
     return 1 + Ar0 + Ar1 / W + Ar2 * W + Ar3 * W * W;
   } else if (MixingRatio > 0) {
     return 1 +
-           1. / (1  + pow(MixingRatio, 2)) *
+           1. / (1 + pow(MixingRatio, 2)) *
                (Vr0 + Vr1 / W + Vr2 * W + Vr3 * W * W) +
-           1. / (1 + 1./ pow(MixingRatio, 2)) *
+           1. / (1 + 1. / pow(MixingRatio, 2)) *
                (Ar0 + Ar1 / W + Ar2 * W + Ar3 * W * W);
   }
   cout << "Mixing ratio badly defined. Returning 1." << endl;
@@ -895,7 +936,7 @@ double Spectrum::AtomicScreeningCorrection(double W) {
 
   double p = sqrt(W * W - 1);
 
-  double Wt = W - fBetaType * 0.5 * alpha * (Zd-fBetaType) * l;
+  double Wt = W - fBetaType * 0.5 * alpha * (Zd - fBetaType) * l;
 
   complex<double> pt;
 
@@ -941,7 +982,8 @@ double Spectrum::AtomicExchangeCorrection(double W) {
 }
 
 double Spectrum::AtomicMismatchCorrection(double W) {
-  double dBdZ2 = (44.200 * pow(Zd-fBetaType, 0.41) + 2.3196E-7 * pow(Zd-fBetaType, 4.45)) /
+  double dBdZ2 = (44.200 * pow(Zd - fBetaType, 0.41) +
+                  2.3196E-7 * pow(Zd - fBetaType, 4.45)) /
                  electron_mass_c2 / 1000.;
 
   double K = -0.872 + 1.270 * pow(Zd, 0.097) + 9.062E-11 * pow(Zd, 4.5);
@@ -962,22 +1004,38 @@ double Spectrum::AtomicMismatchCorrection(double W) {
   return 1 - 2 / (W0 - W) * (0.5 * dBdZ2 + 2 * (C0 + C1));
 }
 
+double Spectrum::CalculateWeakMagnetism() {
+  utilities::NuclearState nsf = nilsson::CalculateDeformedState(Zd, An, beta2, beta4);
+  utilities::NuclearState nsi =
+      nilsson::CalculateDeformedState(Zd + fBetaType, An, beta2, beta4);
+
+  return -std::sqrt(2. / 3.) * (proton_mass_c2 + neutron_mass_c2) / 2. /
+             electron_mass_c2 * R / gA *
+             utilities::CalculateDeformedSPMatrixElement(
+                 nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K,
+                 nsf.K, R) /
+             utilities::CalculateDeformedSPMatrixElement(
+                 nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
+                 nsf.K, R) +
+         gM / gA;
+}
+
 vector<double> Spectrum::GetSpectrumShape(double Energy) {
   double W = Energy / electron_mass_c2 + 1;
 
   double result = 1;
   double neutrinoResult = 1;
 
-  double Wv = W0-W+1;
+  double Wv = W0 - W + 1;
 
   if (fPhaseSpace) {
     result *= sqrt(W * W - 1) * W * sqr(W0 - W);
-    neutrinoResult *= sqrt(Wv*Wv-1)*Wv*sqr(W0-Wv);
+    neutrinoResult *= sqrt(Wv * Wv - 1) * Wv * sqr(W0 - Wv);
   }
 
   if (fFermiFunction) {
-     result *= FermiFunction(W);
-     neutrinoResult *= FermiFunction(Wv);
+    result *= FermiFunction(W);
+    neutrinoResult *= FermiFunction(Wv);
   }
 
   if (fCCorrection) {
@@ -994,7 +1052,7 @@ vector<double> Spectrum::GetSpectrumShape(double Energy) {
     result *= RelativisticCorrection(W);
     neutrinoResult *= RelativisticCorrection(Wv);
   }
-  
+
   if (fDeformationCorrection) {
     result *= DeformationCorrection(W);
     neutrinoResult *= DeformationCorrection(Wv);
@@ -1035,7 +1093,8 @@ vector<double> Spectrum::GetSpectrumShape(double Energy) {
       result *= AtomicExchangeCorrection(W);
       neutrinoResult *= AtomicExchangeCorrection(Wv);
     } else {
-      //cout << "The exchange correction does not exist for beta+ decay." << endl;
+      // cout << "The exchange correction does not exist for beta+ decay." <<
+      // endl;
     }
   }
 
@@ -1053,11 +1112,13 @@ vector<double> Spectrum::GetSpectrumShape(double Energy) {
 void Spectrum::WriteSpectrumToStream(ostream *ofile, double Step) {
   double CurrEn = Step;
   ofile->setf(std::ios::scientific);
-  cout << "Warning: Deformation corrections and relativistic corrections for GT transitions have not yet been implemented." << endl;
+  cout << "Warning: Deformation corrections and relativistic corrections for "
+          "GT transitions have not yet been implemented." << endl;
   do {
     vector<double> spectShape = GetSpectrumShape(CurrEn);
     if (fCalcNeutrinoSpectrum)
-      *ofile << CurrEn << "\t" << spectShape[0] << "\t" << spectShape[1] << endl;
+      *ofile << CurrEn << "\t" << spectShape[0] << "\t" << spectShape[1]
+             << endl;
     else
       *ofile << CurrEn << "\t" << spectShape[0] << endl;
     CurrEn += Step;
