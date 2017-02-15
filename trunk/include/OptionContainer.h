@@ -21,17 +21,19 @@ class OptionContainer {
     return vm[name].as<T>();
   }
   bool Exists(std::string name) { return (bool)vm.count(name); }
-  inline static po::options_description GetCmdOptions() { return cmdOptions; };
+  inline static po::options_description GetSpectrumOptions() { return spectrumOptions; };
   inline static po::options_description GetConfigOptions() {
     return configOptions;
   };
+  inline static po::options_description GetTransitionOptions() { return transitionOptions; };
   inline static po::options_description GetEnvOptions() { return envOptions; };
 
  private:
   static po::variables_map vm;
-  static po::options_description cmdOptions;
+  static po::options_description spectrumOptions;
   static po::options_description configOptions;
   static po::options_description envOptions;
+  static po::options_description transitionOptions;
   OptionContainer(int, char**);
   OptionContainer(OptionContainer const& copy);
   OptionContainer& operator=(OptionContainer const& copy);

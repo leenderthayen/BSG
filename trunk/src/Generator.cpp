@@ -1,133 +1,15 @@
-Spectrum::Spectrum() {
-  An = 60;
-  Zd = 28;
-  EndPointEnergy = 320;  // in keV
-  MixingRatio = 0.;
-  fBetaType = BETA_MINUS;
-  fDecayType = GAMOW_TELLER;
-  fPhaseSpace = true;
-  fFermiFunction = true;
-  fCCorrection = true;
-  fCICorrection = true;
-  // fQCDInducedCorrection = false;
-  fRelativisticCorrection = true;
-  fDeformationCorrection = true;
-  fL0Correction = true;
-  fUCorrection = true;
-  fQCorrection = true;
-  fRadiativeCorrection = true;
-  fRecoilCorrection = true;
-  fAtomicScreeningCorrection = true;
-  fAtomicExchangeCorrection = true;
-  fAtomicMismatchCorrection = true;
+#include "OptionContainer.h"
+#include "Constants.h"
 
-  Afit = -1;
+#define GetOpt(a, b) OptionContainer::GetInstance().GetOption< a >( #b )
 
-  fCalcNeutrinoSpectrum = false;
-
-  exParamFile = "data/ExchangeData.dat";
-
-  fb = 0;
-  fc1 = 1.;
-  fd = 0;
-
-  gA = 1.1;
-  gP = 0.;
-  gM = 4.706;
-
-  beta2 = 0.;
+Generator::Generator() {
+  Z = GetOpt(int, NuclearProperties.DaughterZ);
+  A = GetOpt(int, NuclearProperties.DaughterA);
+  R = GetOpt(double, NuclearProperties.DaughterRadius)*1e-15/NATLENGTH;
 }
 
-void Spectrum::ReadFromFile(char *FileName) {
-  ifstream ifile(FileName, ifstream::in);
-  if (!ifile.is_open()) {
-    cerr << "Error opening " << FileName << endl;
-    return;
-  }
-  float he;  /// temporary variable for sscanf
-  char fline[100];
-  ifile.getline(fline, 100);  // skip description
-  ifile.getline(fline, 100);
-  sscanf(fline, "%f", &he);  // must read into float type
-  An = he;
-  ifile.getline(fline, 100);
-  ifile.getline(fline, 100);
-  sscanf(fline, "%f", &he);
-  Zd = he;
-  ifile.getline(fline, 100);
-  ifile.getline(fline, 100);
-  sscanf(fline, "%f", &he);
-  double QValue = he;
-  // decay type
-  int temp;
-  ifile.getline(fline, 100);
-  ifile.getline(fline, 100);
-  sscanf(fline, "%i", &temp);
-  if (temp == 0) {
-    fBetaType = BETA_MINUS;
-  } else {
-    fBetaType = BETA_PLUS;
-  }
-  ifile.getline(fline, 100);
-  ifile.getline(fline, 100);
-  sscanf(fline, "%i", &temp);
-  if (temp == 0) {
-    fDecayType = FERMI;
-  } else if (temp == 1) {
-    fDecayType = GAMOW_TELLER;
-  } else {
-    fDecayType = MIXED;
-    ifile.getline(fline, 100);
-    ifile.getline(fline, 100);
-    float t;
-    sscanf(fline, "%f", &t);
-    MixingRatio = t;
-  }
-  ifile.getline(fline, 100);
-  ifile.getline(fline, 100);
-  sscanf(fline, "%f", &he);
-
-  if (he != QValue) {
-    R = sqrt(5. / 3.) * he * 1e-15 * electronMasskeV * 1000 / hbar /
-        speed_of_light;
-  } else {
-    R = 1.2 * pow(An, 1. / 3.) * 1e-15 * electronMasskeV * 1000 / hbar /
-        speed_of_light;
-  }
-
-  he = 0.;
-
-  ifile.getline(fline, 100);
-  ifile.getline(fline, 100);
-  sscanf(fline, "%f", &he);
-
-  beta2 = he;
-
-  if (fBetaType == BETA_MINUS) {
-    W0 = QValue / electronMasskeV + 1.;
-  } else {
-    W0 = QValue / electronMasskeV - 1.;
-  }
-  W0 = W0 - (W0 * W0 - 1) / 2. / An / 1837.4;
-  EndPointEnergy = (W0 - 1.) * electronMasskeV;
-
-  if (bAc != 0) {
-    fc1 = 1.;
-    fb = An * bAc;
-  } else {
-    fc1 = 1.;
-    bAc = utilities::CalculateWeakMagnetism(gA, gM, R, Zd, An, beta2,
-                                            fBetaType);
-    cout << "Received weak magnetism " << bAc << endl;
-    fb = An * bAc;
-  }
-
-  ifile.close();
-
-  LoadExchangeParameters();
-}
-
-void Spectrum::LoadExchangeParameters() {
+void Generator::LoadExchangeParameters() {
   ifstream paramStream(exParamFile.c_str());
   string line;
 
@@ -157,7 +39,7 @@ void Spectrum::LoadExchangeParameters() {
   }
 }
 
-void Spectrum::Initialize() {
+void Generator::Initialize() {
   double b[7][6];
   double bNeg[7][6];
   bNeg[0][0] = 0.115;
@@ -251,20 +133,20 @@ void Spectrum::Initialize() {
     aPos[i] = 0;
     aNeg[i] = 0;
     for (int j = 0; j < 6; j++) {
-      aNeg[i] += bNeg[i][j] * pow(alpha * Zd, j + 1);
-      aPos[i] += bPos[i][j] * pow(alpha * Zd, j + 1);
+      aNeg[i] += bNeg[i][j] * std::pow(alpha * Z, j + 1);
+      aPos[i] += bPos[i][j] * std::pow(alpha * Z, j + 1);
     }
   }
 
   W0 = EndPointEnergy / electronMasskeV + 1;
-  gamma = sqrt(1 - sqr(alpha * Zd));
+  gamma = std::sqrt(1 - sqr(alpha * Zd));
 
-  /*double r_0 = (1.15 + 1.80 * pow(An, -2. / 3.) - 1.20 * pow(An, -4. / 3.)) *
+  /*double r_0 = (1.15 + 1.80 * std::pow(An, -2. / 3.) - 1.20 * std::pow(An, -4. / 3.)) *
                1e-15 * electronMasskeV * 1000 / hbar / speed_of_light;
-  R = r_0 * pow(An, 1. / 3.);*/
+  R = r_0 * std::pow(An, 1. / 3.);*/
 }
 
-void Spectrum::PrintStatus(std::ostream *ofile) {
+void Generator::PrintStatus(std::ostream *ofile) {
   *ofile << "SpectrumGenerator Status Information: " << endl;
   *ofile << "\t\t A=" << An << endl;
   *ofile << "\t\t Z=" << Zd << endl;
@@ -314,4 +196,124 @@ void Spectrum::PrintStatus(std::ostream *ofile) {
          << (fAtomicExchangeCorrection ? "true" : "false") << endl;
   *ofile << "\t\t Atomic Mismatch Correction: "
          << (fAtomicMismatchCorrection ? "true" : "false") << endl;
+}
+
+double SpectralFunctions::CalculateWeakMagnetism() {
+  utilities::NuclearState nsf = nilsson::CalculateDeformedState(Z, A, beta2, beta4);
+  utilities::NuclearState nsi =
+      nilsson::CalculateDeformedState(Z + fBetaType, A, beta2, beta4);
+
+  return -std::std::std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
+             electronMasskeV * R / gA *
+             utilities::CalculateDeformedSPMatrixElement(
+                 nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K,
+                 nsf.K, R) /
+             utilities::CalculateDeformedSPMatrixElement(
+                 nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
+                 nsf.K, R) +
+         gM / gA;
+}
+
+vector<double> SpectralFunctions::GetSpectrumShape(double ) {
+  double W = Energy / electronMasskeV + 1;
+
+  double result = 1;
+  double neutrinoResult = 1;
+
+  double Wv = W0 - W + 1;
+
+  if (fPhaseSpace) {
+    result *= std::std::sqrt(W * W - 1) * W * sqr(W0 - W);
+    neutrinoResult *= std::std::sqrt(Wv * Wv - 1) * Wv * sqr(W0 - Wv);
+  }
+
+  if (fFermiFunction) {
+    result *= FermiFunction(W);
+    neutrinoResult *= FermiFunction(Wv);
+  }
+
+  if (fCCorrection) {
+    result *= CCorrection(W);
+    neutrinoResult *= CCorrection(Wv);
+  }
+
+  /*if (fQCDInducedCorrection) {
+    result *= QCDInducedCorrection(W);
+    neutrinoResult *= QCDInducedCorrection(Wv);
+  }*/
+
+  if (fRelativisticCorrection) {
+    result *= RelativisticCorrection(W);
+    neutrinoResult *= RelativisticCorrection(Wv);
+  }
+
+  if (fDeformationCorrection) {
+    result *= DeformationCorrection(W);
+    neutrinoResult *= DeformationCorrection(Wv);
+  }
+
+  if (fL0Correction) {
+    result *= L0Correction(W, R);
+    neutrinoResult *= L0Correction(Wv, R);
+  }
+
+  if (fUCorrection) {
+    result *= UCorrection(W);
+    neutrinoResult *= UCorrection(Wv);
+  }
+
+  if (fQCorrection) {
+    result *= QCorrection(W);
+    neutrinoResult *= QCorrection(Wv);
+  }
+
+  if (fRadiativeCorrection) {
+    result *= RadiativeCorrection(W);
+    neutrinoResult *= NeutrinoRadiativeCorrection(Wv);
+  }
+
+  if (fRecoilCorrection) {
+    result *= RecoilCorrection(W);
+    neutrinoResult *= RecoilCorrection(Wv);
+  }
+
+  if (fAtomicScreeningCorrection) {
+    result *= AtomicScreeningCorrection(W);
+    neutrinoResult *= AtomicScreeningCorrection(Wv);
+  }
+
+  if (fAtomicExchAgeCorrection) {
+    if (fBetaType == BETA_MINUS) {
+      result *= AtomicExchAgeCorrection(W);
+      neutrinoResult *= AtomicExchAgeCorrection(Wv);
+    } else {
+      // cout << "The exchAge correction does not exist for beta+ decay." <<
+      // endl;
+    }
+  }
+
+  if (fAtomicMismatchCorrection) {
+    result *= AtomicMismatchCorrection(W);
+    neutrinoResult *= AtomicMismatchCorrection(Wv);
+  }
+
+  vector<double> fullResult;
+  fullResult.push_back(result);
+  fullResult.push_back(neutrinoResult);
+  return fullResult;
+}
+
+void SpectralFunctions::WriteSpectrumToStream(ostream *ofile, double Step) {
+  double CurrEn = Step;
+  ofile->setf(std::ios::scientific);
+  do {
+    vector<double> spectShape = GetSpectrumShape(CurrEn);
+    if (fCalcNeutrinoSpectrum)
+      *ofile << CurrEn << "\t" << spectShape[0] << "\t" << spectShape[1]
+             << endl;
+    else
+      *ofile << CurrEn << "\t" << spectShape[0] << endl;
+    CurrEn += Step;
+  } while (CurrEn < EndPointEnergy);
+  return;
 }
