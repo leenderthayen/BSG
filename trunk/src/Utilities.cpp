@@ -1,4 +1,4 @@
-#include "utilities.h"
+#include "Utilities.h"
 
 utilities::Lagrange::Lagrange(double* x, double* y) {
   xC[0] = x[0];
