@@ -9,7 +9,7 @@
 #define NDIM1 56
 #define NDIM2 820
 #define NDIM3 35
-#define NDIM4 NDIM4
+#define NDIM4 40
 
 namespace nilsson {
 
@@ -170,10 +170,10 @@ inline void Eigen(double A[], double R[], int N, int MV) {
   gsl_matrix* eVec = gsl_matrix_calloc(NDIM4, NDIM4);
   gsl_vector* eVal = gsl_vector_calloc(NDIM4);
   int size = 1000;
-  gsl_eigenv_symm_workspace* w = gsl_eigen_symm_alloc(size);
+  gsl_eigen_symmv_workspace* w = gsl_eigen_symmv_alloc(size);
   gsl_eigen_symmv(aNew, eVal, eVec, w);
   gsl_eigen_symmv_free(w);
-  //TODO forget about A and R, and just return the euigenvalues and vectors and adjust fortran code
+  //TODO forget about A and R, and just return the eigenvalues and vectors and adjust fortran code
 }
 
 inline void Calculate(double spin, double beta2, double beta4, double V0,

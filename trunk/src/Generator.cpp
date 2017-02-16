@@ -228,8 +228,8 @@ double Generator::CalculateInducedTensor() {
 }
 
 double Generator::CalculateRatioM121() {
-  double ratio = result;
-  if (boost::iequals(GetOpt(std::string, Computational.Potential), "SHO") {
+  double ratio = 0.0;
+  if (boost::iequals(GetOpt(std::string, Computational.Potential), "SHO")) {
     int li, si, lf, sf;
     std::vector<int> occNumbersInit, occNumbersFinal;
     if (fDecayType == BETA_MINUS) {
@@ -240,10 +240,10 @@ double Generator::CalculateRatioM121() {
       occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
       occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
     }
-    li = occNumbersN[occNumbersInit.size() - 1 - 2];
-    si = occNumbersN[occNumbersInit.size() - 1 - 1];
-    lf = occNumbersZ[occNumbersFinal.size() - 1 - 2];
-    sf = occNumbersZ[occNumbersFinal.size() - 1 - 1];
+    li = occNumbersInit[occNumbersInit.size() - 1 - 2];
+    si = occNumbersInit[occNumbersInit.size() - 1 - 1];
+    lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
+    sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
     double M121 = ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 2, 1, li, lf, si, sf, R);
     double M101 = ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 0, 1, li, lf, si, sf, R);
 
