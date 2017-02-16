@@ -1,0 +1,10 @@
+[General]
+Folder=.
+
+[Computational]
+Potential=SHO
+
+[Constants]
+gA=1.1
+gP=0.0
+gM=4.706

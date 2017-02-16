@@ -1,7 +1,11 @@
 #ifndef MATRIXELEMENTS
 #define MATRIXELEMENTS
 
-namespace matrixelements {
+#include "gsl/gsl_sf_coupling.h"
+#include <cmath>
+
+namespace MatrixElements {
+
 inline int gL(int k) {
   return (k > 0) ? k : std::abs(k)-1;
 }

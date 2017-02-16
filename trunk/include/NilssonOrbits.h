@@ -3,10 +3,13 @@
 
 #include "Utilities.h"
 #include "gsl/gsl_eigen.h"
+#include "gsl/gsl_matrix.h"
+#include "gsl/gsl_vector.h"
 
 #define NDIM1 56
 #define NDIM2 820
 #define NDIM3 35
+#define NDIM4 NDIM4
 
 namespace nilsson {
 
@@ -155,7 +158,22 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
 }
 
 inline void Eigen(double A[], double R[], int N, int MV) {
-
+  gsl_matrix * aNew = gsl_matrix_alloc(NDIM4, NDIM4);
+  for (int i = 0; i < NDIM4; i++) {
+    for (int j = i; j < NDIM4; j++) {
+      gsl_matrix_set(aNew, i, j, A[NDIM4*i+j]);
+      if (i != j) {
+        gsl_matrix_set(aNew, j, i, A[NDIM4*i+j]);
+      }
+    }
+  }
+  gsl_matrix* eVec = gsl_matrix_calloc(NDIM4, NDIM4);
+  gsl_vector* eVal = gsl_vector_calloc(NDIM4);
+  int size = 1000;
+  gsl_eigenv_symm_workspace* w = gsl_eigen_symm_alloc(size);
+  gsl_eigen_symmv(aNew, eVal, eVec, w);
+  gsl_eigen_symmv_free(w);
+  //TODO forget about A and R, and just return the euigenvalues and vectors and adjust fortran code
 }
 
 inline void Calculate(double spin, double beta2, double beta4, double V0,
@@ -165,9 +183,9 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   double SDW[462] = {};
   int N[NDIM1];
   int L[NDIM1];
-  double AM[NDIM2];
-  double R[1600];
-  double A[40][NDIM1];
+  double AM[NDIM4*(NDIM4+1)/2];
+  double R[NDIM4*NDIM4];
+  double A[NDIM4][NDIM1];
   double B[NDIM2];
   double D[NDIM2];
   int LA[NDIM1];
@@ -179,13 +197,10 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int LKK[NDIM3];
   int KN[7][NDIM3];
   int K1[7];
-  double ROTO[7];
-  double RROTO[7];
-  double ROTI[7];
-  double ED[40];
-  int K2[40];
-  int K3[40];
-  int K4[40];
+  double ED[NDIM4];
+  int K2[NDIM4];
+  int K3[NDIM4];
+  int K4[NDIM4];
 
   if (V0 > 0.) {
     WoodsSaxon(V0, R0, A0, V0S, AMU, Z, nMax, SW, SDW);
@@ -301,7 +316,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
       }
     }
     KKKK+=KKK;
-    if (KKKK > 40) {
+    if (KKKK > NDIM4) {
       return;
     }
     K1[IIOM] = KKK;

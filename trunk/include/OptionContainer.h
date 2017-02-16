@@ -8,6 +8,9 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+#define GetOpt(a, b) OptionContainer::GetInstance().GetOption< a >( #b )
+#define OptExists(a) OptionContainer::GetInstance().Exists( #a )
+
 namespace po = boost::program_options;
 
 class OptionContainer {

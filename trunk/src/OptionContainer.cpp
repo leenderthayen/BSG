@@ -50,18 +50,18 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Change the configuration file.")
       ("input,i", po::value<std::string>(&inputName),
        "Specify input file containing transition and nuclear data")
-      ("output,o", po::value<std::string>(),
+      ("output,o", po::value<std::string>()->default_value("output.txt"),
        "Specify the output file name.");
 
   spectrumOptions.add_options()
       ("fermi,f", "Turn off the Fermi Function.")
       ("phase,p", "Turn off the phase space factor. ")
       ("l0,l", "Turn off L0 correction.")
-      ("C", "Turn off C correction.")
+      ("C,C", "Turn off C correction.")
       ("relativistic,R", "Turn off relativistic corrections.")
       ("deformation,D", "Turn off deformation corrections.")
-      ("U", "Turn off U correction.")
-      ("Q", "Turn off Q correction.")
+      ("U,U", "Turn off U correction.")
+      ("Q,Q", "Turn off Q correction.")
       ("radiative,r", "Turn off radiative corrections.")
       ("recoil,n", "Turn off kinematic recoil corrections.")
       ("screening,s", "Turn off atomic screening.")
@@ -71,16 +71,24 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Specify the b/Ac1 value in the Holstein formalism.")
       ("inducedtensor,d", po::value<double>()->default_value(0.),
        "Specify the d/Ac1 value in the Holstein formalism.")
-      ("X", po::value<double>()->default_value(0.),
+      ("ratioM121,X", po::value<double>()->default_value(0.),
        "Specify the ratio of matrix elements M121/M101 in the "
        "Behrens-Buhring formalism.")
+      ("begin,B", po::value<double>()->default_value(0.),
+       "Specify the starting energy in keV from which to start the spectrum calculation.")
+      ("end,E", po::value<double>()->default_value(0.),
+       "Specify the last energy in keV for which to calculate the spectrum.")
       ("step,S", po::value<double>()->default_value(0.1),
-       "Specify the stepsize in keV.");
+       "Specify the stepsize in keV.")
+      ("neutrino,v", "Turn off the generation of the neutrino spectrum.");
 
   configOptions.add(spectrumOptions);
   configOptions.add_options()
       ("General.Folder", po::value<std::string>()->default_value("."),
-      "Set the folder name for the results to be placed in.");
+      "Set the folder name for the results to be placed in.")
+      ("Computational.Potential", po::value<std::string>()->default_value("SHO"),
+       "Set the potential used for the calculation of the matrix elements. SHO:"
+       " Spherical Harmonic Oscillator; WS: Woods-Saxon; DWS: Deformed Woods-Saxon")
       ("Constants.gA", po::value<double>()->default_value(1.2723),
        "Set the weak coupling constant.")
       ("Constants.gP", po::value<double>()->default_value(0.),
@@ -88,15 +96,32 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("Constants.gM", po::value<double>()->default_value(4.706),
        "Set the weak magnetism coupling constant.");
 
-  envOptions.add_options()(
-      "ExchangeData",
-      po::value<std::string>()->default_value("data/ExchangeData.dat"),
-      "File location of the atomic exchange fit parameters.");
+  envOptions.add_options()
+      ("ExchangeData",
+       po::value<std::string>()->default_value("data/ExchangeData.dat"),
+       "File location of the atomic exchange fit parameters.");
 
-  po::store(po::parse_command_line(argc, argv, genericOptions), vm);
-  po::store(po::parse_command_line(argc, argv, spectrumOptions), vm);
-  po::store(po::parse_config_file(configName.c_str(), configOptions), vm);
-  po::store(po::parse_config_file(inputName.c_str(), transitionOptions), vm);
+  po::options_description cmdOptions;
+  cmdOptions.add(genericOptions).add(spectrumOptions);
+  po::store(po::parse_command_line(argc, argv, cmdOptions), vm);
+  po::notify(vm);
+
+  std::ifstream configStream(configName.c_str());
+  if (!configStream.is_open()) {
+    std::cerr << "ERROR: " << configName << " cannot be found.\n\n"
+              << std::endl;
+  }
+  else {
+    po::store(po::parse_config_file(configStream, configOptions), vm);
+  }
+  std::ifstream inputStream(inputName.c_str());
+  if (!inputStream.is_open()) {
+    std::cerr << "ERROR: " << inputName << " cannot be found.\n\n"
+              << std::endl;
+  }
+  else {
+    po::store(po::parse_config_file(inputStream, transitionOptions), vm);
+  }
   po::store(po::parse_environment(envOptions, "BDSM_"), vm);
   po::notify(vm);
 

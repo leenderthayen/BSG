@@ -1,8 +1,26 @@
+#include "Generator.h"
+
 #include "OptionContainer.h"
+#include "ChargeDistributions.h"
 #include "Constants.h"
+#include "Utilities.h"
+#include "NilssonOrbits.h"
+#include "MatrixElements.h"
+#include "SpectralFunctions.h"
+
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <cmath>
+
 #include "boost/algorithm/string.hpp"
 
-#define GetOpt(a, b) OptionContainer::GetInstance().GetOption< a >( #b )
+namespace SF = SpectralFunctions;
+namespace ME = MatrixElements;
+
+using std::cout;
+using std::endl;
 
 Generator::Generator() {
   Z = GetOpt(int, NuclearProperties.DaughterZ);
@@ -12,14 +30,14 @@ Generator::Generator() {
   motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
   daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
   daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
-  motherSpinParity = GetOpt(std::string, NuclearProperties.MotherSpinParity);
-  daughterSpinParity = GetOpt(std::string, NuclearProperties.DaughterSpinParity);
+  motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
+  daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
   
   gA = GetOpt(double, Constants.gA);
   gP = GetOpt(double, Constants.gP);
   gM = GetOpt(double, Constants.gM);
 
-  std::string process = getOpt(std::string, Transition.Process);
+  std::string process = GetOpt(std::string, Transition.Process);
   std::string type = GetOpt(std::string, Transition.Type);
 
   if (boost::iequals(process, "B+")) {
@@ -30,13 +48,13 @@ Generator::Generator() {
   }
 
   mixingRatio = 0.;
-  if (boost::iequals(type, "fermi")) {
+  if (boost::iequals(type, "Fermi")) {
     fDecayType = FERMI;
   }
-  else if (boost::iequals(type, "gamow-teller")) {
+  else if (boost::iequals(type, "Gamow-Teller")) {
     fDecayType = GAMOW_TELLER;
   }
-  else 
+  else {
     fDecayType = MIXED;
     mixingRatio = GetOpt(double, Transition.MixingRatio);
   }
@@ -56,22 +74,24 @@ Generator::Generator() {
   InitializeL0Constants();
 
   CalculateMatrixElements();
+
+  hoFit = chargedistributions::FitHODist(Z, R * std::sqrt(3. / 5.));
 }
 
 void Generator::LoadExchangeParameters() {
-  exParamFile = GetOpt(std::string, ExchangeData);
-  ifstream paramStream(exParamFile.c_str());
-  string line;
+  std::string exParamFile = GetOpt(std::string, ExchangeData);
+  std::ifstream paramStream(exParamFile.c_str());
+  std::string line;
 
   if (paramStream.is_open()) {
     while (getline(paramStream, line)) {
       double Z;
       double a, b, c, d, e, f, g, h, i;
 
-      istringstream iss(line);
+      std::istringstream iss(line);
       iss >> Z >> a >> b >> c >> d >> e >> f >> g >> h >> i;
 
-      if (Z == Zd - fBetaType) {
+      if (Z == Z - fBetaType) {
         exPars[0] = a;
         exPars[1] = b;
         exPars[2] = c;
@@ -81,9 +101,6 @@ void Generator::LoadExchangeParameters() {
         exPars[6] = g;
         exPars[7] = h;
         exPars[8] = i;
-
-        // cout << "Loaded Exchange Params for Z=" << Z << ": " << a << " " << b
-        //     << " " << c << " and so on" << endl;
       }
     }
   }
@@ -190,125 +207,177 @@ void Generator::InitializeL0Constants() {
 }
 
 double Generator::CalculateWeakMagnetism() {
-  utilities::NuclearState nsf = nilsson::CalculateDeformedState(Z, A, daughterBeta2, daughterBeta4);
+  /*utilities::NuclearState nsf = nilsson::CalculateDeformedState(Z, A, daughterBeta2, daughterBeta4);
   utilities::NuclearState nsi =
       nilsson::CalculateDeformedState(Z + fBetaType, A, motherBeta2, motherBeta4);
 
   return -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
              electronMasskeV * R / gA *
-             utilities::CalculateDeformedSPMatrixElement(
+             matrixelements::CalculateDeformedSPMatrixElement(
                  nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K,
                  nsf.K, R) /
-             utilities::CalculateDeformedSPMatrixElement(
+             matrixelements::CalculateDeformedSPMatrixElement(
                  nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
                  nsf.K, R) +
-         gM / gA;
+         gM / gA;*/
+  return 0.;
 }
 
-double Generator::CalculateMatrixElements() {
-  
+double Generator::CalculateInducedTensor() {
+  return 0.;
 }
 
-vector<double> SpectralFunctions::GetSpectrumShape(double ) {
-  double W = Energy / electronMasskeV + 1;
+double Generator::CalculateRatioM121() {
+  double ratio = result;
+  if (boost::iequals(GetOpt(std::string, Computational.Potential), "SHO") {
+    int li, si, lf, sf;
+    std::vector<int> occNumbersInit, occNumbersFinal;
+    if (fDecayType == BETA_MINUS) {
+      occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
+      occNumbersFinal = utilities::GetOccupationNumbers(Z);
+    }
+    else {
+      occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
+      occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
+    }
+    li = occNumbersN[occNumbersInit.size() - 1 - 2];
+    si = occNumbersN[occNumbersInit.size() - 1 - 1];
+    lf = occNumbersZ[occNumbersFinal.size() - 1 - 2];
+    sf = occNumbersZ[occNumbersFinal.size() - 1 - 1];
+    double M121 = ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 2, 1, li, lf, si, sf, R);
+    double M101 = ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 0, 1, li, lf, si, sf, R);
 
+    ratio = M121/M101;
+    fc1 = gA*M101;
+  }
+  return ratio;
+}
+
+void Generator::CalculateMatrixElements() {
+  ratioM121 = CalculateRatioM121();
+
+  double bAc, dAc;
+  if (!OptExists(weakmagnetism)) {
+    bAc = CalculateWeakMagnetism();
+  }
+  if (!OptExists(inducedtensor)) {
+    dAc = CalculateInducedTensor();
+  }
+
+  fb = bAc * A * fc1;
+  fd = dAc * A * fc1;
+
+}
+
+double* Generator::CalculateDecayRate(double W) {
   double result = 1;
   double neutrinoResult = 1;
 
   double Wv = W0 - W + 1;
 
-  if (fPhaseSpace) {
-    result *= std::std::sqrt(W * W - 1) * W * sqr(W0 - W);
-    neutrinoResult *= std::std::sqrt(Wv * Wv - 1) * Wv * sqr(W0 - Wv);
+  if (!OptExists(phase)) {
+    result *= SF::PhaseSpace(W, W0, motherSpinParity, daughterSpinParity);
+    neutrinoResult *= SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
 
-  if (fFermiFunction) {
-    result *= FermiFunction(W);
-    neutrinoResult *= FermiFunction(Wv);
+  if (!OptExists(fermi)) {
+    result *= SF::FermiFunction(W, Z, R, fBetaType);
+    neutrinoResult *= SF::FermiFunction(Wv, Z, R, fBetaType);
   }
 
-  if (fCCorrection) {
-    result *= CCorrection(W);
-    neutrinoResult *= CCorrection(Wv);
+  if (!OptExists(C)) {
+    result *= SF::CCorrection(W, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP, fc1, fb, fd, ratioM121);
+    neutrinoResult *= SF::CCorrection(Wv, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP, fc1, fb, fd, ratioM121);
   }
 
-  /*if (fQCDInducedCorrection) {
-    result *= QCDInducedCorrection(W);
-    neutrinoResult *= QCDInducedCorrection(Wv);
-  }*/
-
-  if (fRelativisticCorrection) {
-    result *= RelativisticCorrection(W);
-    neutrinoResult *= RelativisticCorrection(Wv);
+  if (!OptExists(relativistic)) {
+    result *= SF::RelativisticCorrection(W, W0, Z, A, R, fBetaType, fDecayType);
+    neutrinoResult *= SF::RelativisticCorrection(Wv, W0, Z, A, R, fBetaType, fDecayType);
   }
 
-  if (fDeformationCorrection) {
-    result *= DeformationCorrection(W);
-    neutrinoResult *= DeformationCorrection(Wv);
+  if (!OptExists(deformation)) {
+    result *= SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, daughterBeta4);
+    neutrinoResult *= SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, daughterBeta4);
   }
 
-  if (fL0Correction) {
-    result *= L0Correction(W, R);
-    neutrinoResult *= L0Correction(Wv, R);
+  if (!OptExists(l0)) {
+    result *= SF::L0Correction(W, Z, R, fBetaType, aPos, aNeg);
+    neutrinoResult *= SF::L0Correction(Wv, Z, R, fBetaType, aPos, aNeg);
   }
 
-  if (fUCorrection) {
-    result *= UCorrection(W);
-    neutrinoResult *= UCorrection(Wv);
+  if (!OptExists(U)) {
+    result *= SF::UCorrection(W, Z, fBetaType);
+    neutrinoResult *= SF::UCorrection(Wv, Z, fBetaType);
   }
 
-  if (fQCorrection) {
-    result *= QCorrection(W);
-    neutrinoResult *= QCorrection(Wv);
+  if (!OptExists(Q)) {
+    result *= SF::QCorrection(W, W0, Z, A, fBetaType, fDecayType, mixingRatio);
+    neutrinoResult *= SF::QCorrection(Wv, W0, Z, A, fBetaType, fDecayType, mixingRatio);
   }
 
-  if (fRadiativeCorrection) {
-    result *= RadiativeCorrection(W);
-    neutrinoResult *= NeutrinoRadiativeCorrection(Wv);
+  if (!OptExists(radiative)) {
+    result *= SF::RadiativeCorrection(W, W0, Z, R, fBetaType, gA, gM);
+    neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
 
-  if (fRecoilCorrection) {
-    result *= RecoilCorrection(W);
-    neutrinoResult *= RecoilCorrection(Wv);
+  if (!OptExists(recoil)) {
+    result *= SF::RecoilCorrection(W, W0, A, fDecayType, mixingRatio);
+    neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, fDecayType, mixingRatio);
   }
 
-  if (fAtomicScreeningCorrection) {
-    result *= AtomicScreeningCorrection(W);
-    neutrinoResult *= AtomicScreeningCorrection(Wv);
+  if (!OptExists(screening)) {
+    result *= SF::AtomicScreeningCorrection(W, Z, fBetaType);
+    neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, fBetaType);
   }
 
-  if (fAtomicExchAgeCorrection) {
+  if (!OptExists(exchange)) {
     if (fBetaType == BETA_MINUS) {
-      result *= AtomicExchAgeCorrection(W);
-      neutrinoResult *= AtomicExchAgeCorrection(Wv);
-    } else {
-      // cout << "The exchAge correction does not exist for beta+ decay." <<
-      // endl;
+      result *= SF::AtomicExchangeCorrection(W, exPars);
+      neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
     }
   }
 
-  if (fAtomicMismatchCorrection) {
-    result *= AtomicMismatchCorrection(W);
-    neutrinoResult *= AtomicMismatchCorrection(Wv);
+  if (!OptExists(mismatch)) {
+    result *= SF::AtomicMismatchCorrection(W, W0, Z, A, fBetaType);
+    neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, fBetaType);
   }
 
-  vector<double> fullResult;
-  fullResult.push_back(result);
-  fullResult.push_back(neutrinoResult);
+  double fullResult[2] = {result, neutrinoResult};
   return fullResult;
 }
 
-void SpectralFunctions::WriteSpectrumToStream(ostream *ofile, double Step) {
-  double CurrEn = Step;
-  ofile->setf(std::ios::scientific);
-  do {
-    vector<double> spectShape = GetSpectrumShape(CurrEn);
-    if (fCalcNeutrinoSpectrum)
-      *ofile << CurrEn << "\t" << spectShape[0] << "\t" << spectShape[1]
-             << endl;
-    else
-      *ofile << CurrEn << "\t" << spectShape[0] << endl;
-    CurrEn += Step;
-  } while (CurrEn < EndPointEnergy);
-  return;
+std::vector<std::vector<double> > Generator::CalculateSpectrum() {
+  double beginEn = GetOpt(double, begin);
+  double endEn = GetOpt(double, end);
+  double stepEn = GetOpt(double, step);
+
+  double beginW = beginEn/electronMasskeV + 1.;
+  double endW = endEn/electronMasskeV + 1.;
+  if (endEn == 0.0) {
+    endW = W0;
+  }
+  double stepW = stepEn/electronMasskeV;
+
+  double currentW = beginW;
+  while (currentW <= endW) {
+    double* result = CalculateDecayRate(currentW);
+    std::vector<double> entry = {currentW, result[0], result[1]};
+    spectrum.push_back(entry);
+    currentW += stepW;
+  }
+  return spectrum;
+}
+
+void Generator::WriteSpectrumToFile() {
+  std::string outputName = GetOpt(std::string, output);
+  std::ofstream outputStream(outputName.c_str());
+
+  outputStream.setf(std::ios::scientific);
+  for (int i = 0; i < spectrum.size(); i++) {
+    outputStream << spectrum[i][0] << "\t" << spectrum[i][1];
+    if (!OptExists(neutrino)) {
+      outputStream << "\t" << spectrum[i][2];
+    }
+    outputStream << endl;
+  }
 }

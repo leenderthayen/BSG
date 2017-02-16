@@ -1,8 +1,6 @@
 #ifndef GENERATOR
 #define GENERATOR
 
-#include <string>
-#include <iostream>
 #include <vector>
 
 class Generator {
@@ -28,13 +26,15 @@ class Generator {
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
 
+  std::vector<std::vector<double> > spectrum;
+
   /// recoil correction form factors
-  double fb, fc1, fd;
+  double fb, fc1, fd, ratioM121;
   double gA, gP, gM;
 
   double CalculateWeakMagnetism();
   double CalculateInducedTensor();
-  double CalculateInducedPseudoscalar();
+  double CalculateRatioM121();
   void CalculateMatrixElements();
 
   void InitializeL0Constants();
@@ -45,7 +45,9 @@ class Generator {
   /// nothing is created in the heap, therefore we have an empty destructor
   ~Generator(){};
 
-  void CalculateSpectrum();
+  std::vector<std::vector<double> > CalculateSpectrum();
+  double* CalculateDecayRate(double W);
+  void WriteSpectrumToFile();
 
 };
 

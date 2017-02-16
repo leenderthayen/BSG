@@ -14,6 +14,7 @@ namespace SpectralFunctions {
   enum DecayType { FERMI, GAMOW_TELLER, MIXED };
 
   // the different corrections
+  double PhaseSpace(double W, double W0, int motherSpinParity, int daughterSpinParity);
   /**
    * @brief Fermi function
    * @param W total energy in units of electron mass
@@ -42,9 +43,9 @@ namespace SpectralFunctions {
    */
   double CCorrection(double W, double W0, int Z, int A, double R, int fBetaType, double hoFit, int fDecayType, double gA, double gP, double fc1, double fb, double fd, double ratioM121);
 
-  double CICorrection(double W, double W0, int Z, int A, double R, int fBetaType);
+  double CICorrection(double W, double W0, int Z, int A, double R, int fBetaType, int fDecayType);
 
-  double RelativisticCorrection(double W, double W0, int Z, double R, int fBetaType);
+  double RelativisticCorrection(double W, double W0, int Z, int A, double R, int fBetaType, int fDecayType);
 
   double DeformationCorrection(double W, double W0, int Z, double R, double beta2, int fBetaType);
 
@@ -59,7 +60,7 @@ namespace SpectralFunctions {
 
   double UCorrection(double W, int Z, int fBetaType);
 
-  double QCorrection(double W, double W0, int Z, int fBetaType, double mixingRatio);
+  double QCorrection(double W, double W0, int Z, int A, int fBetaType, int fDecayType, double mixingRatio);
 
   /**
    * @brief Radiative corrections
@@ -80,7 +81,7 @@ namespace SpectralFunctions {
    *\beta = \sqrt{W^2-1} \f$ and the Spence function is defined elsewhere.
    * @see Spence()
    */
-  double RadiativeCorrection(double W, double W0, int Z, int fBetaType, double gA, double gM);
+  double RadiativeCorrection(double W, double W0, int Z, double R, int fBetaType, double gA, double gM);
 
   double NeutrinoRadiativeCorrection(double Wv);
 
@@ -102,7 +103,7 @@ namespace SpectralFunctions {
 
   double AtomicExchangeCorrection(double W, double exPars[9]);
 
-  double AtomicMismatchCorrection(double W, double W0, int Z, int fBetaType);
+  double AtomicMismatchCorrection(double W, double W0, int Z, int A, int fBetaType);
 
   // helper functions
   /**
