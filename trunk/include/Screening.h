@@ -1,3 +1,8 @@
+#ifndef SCREENING
+#define SCREENING
+
+#include <vector>
+
 namespace screening {
 
 //================================================================================
@@ -956,3 +961,4 @@ inline void PotParam(int Zloc, std::vector<double> &Aby, std::vector<double> &Bb
   Bby_loc.clear();
 }
 }
+#endif

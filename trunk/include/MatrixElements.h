@@ -1,3 +1,6 @@
+#ifndef MATRIXELEMENTS
+#define MATRIXELEMENTS
+
 namespace matrixelements {
 inline int gL(int k) {
   return (k > 0) ? k : std::abs(k)-1;
@@ -127,3 +130,4 @@ inline double CalculateDeformedSPMatrixElement(std::vector<WFComp> initStates, s
   return result;
 }
 }
+#endif

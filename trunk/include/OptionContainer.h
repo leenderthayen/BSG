@@ -21,6 +21,7 @@ class OptionContainer {
     return vm[name].as<T>();
   }
   bool Exists(std::string name) { return (bool)vm.count(name); }
+  inline static po::options_description GetGenericOptions() { return genericOptions; };
   inline static po::options_description GetSpectrumOptions() { return spectrumOptions; };
   inline static po::options_description GetConfigOptions() {
     return configOptions;
@@ -30,6 +31,7 @@ class OptionContainer {
 
  private:
   static po::variables_map vm;
+  static po::options_description genericOptions;
   static po::options_description spectrumOptions;
   static po::options_description configOptions;
   static po::options_description envOptions;

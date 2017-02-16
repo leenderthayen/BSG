@@ -8,19 +8,14 @@
 #include <vector>
 #include <complex>
 
-#include "constants.h"
+#include "Constants.h"
 
-#include "gsl/gsl_sf_laguerre.h"
 #include "gsl/gsl_sf_coupling.h"
 #include "gsl/gsl_integration.h"
 #include "gsl/gsl_errno.h"
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_multifit_nlin.h"
-
-#include "TMath.h"
-#include "TF1.h"
-#include "TH1.h"
 
 namespace utilities {
 
@@ -89,44 +84,12 @@ inline std::vector<int> GetOccupationNumbers(int N) {
   return occNumbers;
 }
 
+
+//Here dO stands for double Omega
+//s is +-1 depending of whether it is j=l+-1/2
+struct WFComp {double C; int l, s, dO; };
+
 struct NuclearState { double O, K; int parity; std::vector<WFComp> states; };
-
-inline NuclearState CalculateDeformedState(int Z, int A, double beta) {
-  double O;
-  double K;
-  double parity;
-
-  //TODO
-
-  //special case for 19Ne
-  /*struct WFComp s12 = {0.528947, 0, 1, 1};
-  struct WFComp d32 = {-0.297834, 2, -1, 1};
-  struct WFComp d52 = {0.794676, 2, 1, 1};
-  
-  std::vector<WFComp> states = {s12, d32, d52};*/
-
-  //special case for 33Cl
-  struct WFComp d32 = {0.913656, 2, -1, 3};
-  struct WFComp d52 = {-0.406489, 2, 1, 3};
-
-  std::vector<WFComp> states = {d32, d52};
-
-  O = 3./2.;
-  K = 3./2.;
-  parity = 1;
-
-  struct NuclearState nuclearState = {O, K, parity, states};
-
-  return nuclearState;
-}
-
-inline double CalculateWeakMagnetism(double gA, double gM, double R, int Z, int A, double beta, int betaType) {
-  struct NuclearState nsf = CalculateDeformedState(Z, A, beta);
-  struct NuclearState nsi = CalculateDeformedState(Z+betaType, A, beta);
-
-  return -std::sqrt(2./3.)*(protonMasskeV+neutronMasskeV)/2./electronMasskeV*R/gA*CalculateDeformedSPMatrixElement(nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)/
-	CalculateDeformedSPMatrixElement(nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K, nsf.K, R)+gM/gA;
-}
 
 class Lagrange {
  public:
@@ -161,7 +124,5 @@ inline double Trapezoid(double x[], double y[], int size) {
   }
   return result;
 }
-
 }
-
 #endif

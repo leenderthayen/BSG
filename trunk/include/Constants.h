@@ -7,6 +7,8 @@ const double protonMasskeV = 938271.998;    // in keV
 const double hbar = 6.58211889e-16;          // in ev*s
 const double speed_of_light = 299792458.0;   // in m/s
 
+const double NATLENGTH = hbar*speed_of_light/1e3/electronMasskeV;
+
 const double alpha = 0.0072973525664;
 const double EulMasConst = 0.577215664901532;  // Euler-Mascheroni constant
 

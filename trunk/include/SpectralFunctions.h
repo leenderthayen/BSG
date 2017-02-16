@@ -6,7 +6,7 @@
 #include <vector>
 #include <gsl/gsl_complex.h>
 
-#include "constants.h"
+#include "Constants.h"
 
 namespace SpectralFunctions {
   /// type of beta decay, negative or positive
@@ -31,7 +31,7 @@ namespace SpectralFunctions {
    * \f[ \ln\frac{a^2}{b^2} = 2\ln\frac{a}{b} = 2(\ln a - \ln b) \f]
    *
    */
-  double FermiFunction(double W, int Z);
+  double FermiFunction(double W, int Z, double R, int fBetaType);
 
   /**
    * @brief C corrections
@@ -40,15 +40,13 @@ namespace SpectralFunctions {
    *
    * Long description.
    */
-  double CCorrection(double W);
+  double CCorrection(double W, double W0, int Z, int A, double R, int fBetaType, double hoFit, int fDecayType, double gA, double gP, double fc1, double fb, double fd, double ratioM121);
 
-  double CICorrection(double W);
+  double CICorrection(double W, double W0, int Z, int A, double R, int fBetaType);
 
-  //double QCDInducedCorrection(double W);
+  double RelativisticCorrection(double W, double W0, int Z, double R, int fBetaType);
 
-  double RelativisticCorrection(double W);
-
-  double DeformationCorrection(double W);
+  double DeformationCorrection(double W, double W0, int Z, double R, double beta2, int fBetaType);
 
   /**
    * @brief L0Correction
@@ -57,11 +55,11 @@ namespace SpectralFunctions {
    *
    *
    */
-  double L0Correction(double W, double r);
+  double L0Correction(double W, int Z, double r, double fBetaType, double aPos[], double aNeg[]);
 
-  double UCorrection(double W);
+  double UCorrection(double W, int Z, int fBetaType);
 
-  double QCorrection(double W);
+  double QCorrection(double W, double W0, int Z, int fBetaType, double mixingRatio);
 
   /**
    * @brief Radiative corrections
@@ -82,9 +80,9 @@ namespace SpectralFunctions {
    *\beta = \sqrt{W^2-1} \f$ and the Spence function is defined elsewhere.
    * @see Spence()
    */
-  double RadiativeCorrection(double W);
+  double RadiativeCorrection(double W, double W0, int Z, int fBetaType, double gA, double gM);
 
-  double NeutrinoRadiativeCorrection(double W);
+  double NeutrinoRadiativeCorrection(double Wv);
 
   /**
    *@brief corrections from the recoiling nucleus
@@ -92,7 +90,7 @@ namespace SpectralFunctions {
    *
    * Extend this!
    */
-  double RecoilCorrection(double W);
+  double RecoilCorrection(double W, double W0, int A, int fDecayType, double mixingRatio);
 
   /**
    *@brief screening corrections as per Huber.
@@ -100,11 +98,11 @@ namespace SpectralFunctions {
    *
    * The value of Ntilde is calculated during initialization.
    */
-  double AtomicScreeningCorrection(double W);
+  double AtomicScreeningCorrection(double W, int Z, int fBetaType);
 
-  double AtomicExchangeCorrection(double W);
+  double AtomicExchangeCorrection(double W, double exPars[9]);
 
-  double AtomicMismatchCorrection(double W);
+  double AtomicMismatchCorrection(double W, double W0, int Z, int fBetaType);
 
   // helper functions
   /**

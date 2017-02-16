@@ -1,4 +1,20 @@
+#ifndef CHARGEDISTRIBUTIONS
+#define CHARGEDISTRIBUTIONS
+
+#include "Utilities.h"
+#include "gsl/gsl_sf_laguerre.h"
+
+#include <complex>
+
+#include "TMath.h"
+#include "TF1.h"
+#include "TH1.h"
+
 namespace chargedistributions {
+
+using std::cout;
+using std::endl;
+
 inline double GetRMSHO(int n, int l, double nu) {
   return std::sqrt(1. / 4. / nu * (4 * n + 2 * l - 1));
 }
@@ -7,8 +23,8 @@ inline double RadialHO(int n, int l, double nu, double r) {
   const int k = n - 1;
 
   double N =
-      std::sqrt(sqrt(2 * std::pow(nu, 3) / M_PI) * std::pow(2., k + 2 * l + 3) * Factorial(k) *
-           std::pow(nu, l) / DoubleFactorial(2 * k + 2 * l + 1));
+      std::sqrt(sqrt(2 * std::pow(nu, 3) / M_PI) * std::pow(2., k + 2 * l + 3) * utilities::Factorial(k) *
+           std::pow(nu, l) / utilities::DoubleFactorial(2 * k + 2 * l + 1));
 
   double gl = gsl_sf_laguerre_n(k, l + 0.5, 2 * nu * r * r);
 
@@ -91,7 +107,7 @@ inline double WeakIntegratedRMS(double nu1, int n1, int l1, double nu2, int n2, 
 }
 
 inline double CalcNu(double rms, int Z) {
-  std::vector<int> occNumbers = GetOccupationNumbers(Z);
+  std::vector<int> occNumbers = utilities::GetOccupationNumbers(Z);
 
   double s = 0.;
   for (int i = 0; i < occNumbers.size(); i += 4) {
@@ -101,8 +117,8 @@ inline double CalcNu(double rms, int Z) {
 }
 
 inline double CalcChargeIndepNu(double rms, int Z, int N) {
-  std::vector<int> occNumbersZ = GetOccupationNumbers(Z);
-  std::vector<int> occNumbersN = GetOccupationNumbers(N);
+  std::vector<int> occNumbersZ = utilities::GetOccupationNumbers(Z);
+  std::vector<int> occNumbersN = utilities::GetOccupationNumbers(N);
 
   double s = 0.;
   for (int i = 0; i < occNumbersZ.size(); i += 4) {
@@ -119,7 +135,7 @@ inline double ChargeHO(double r, double rms, int Z, bool normalised) {
 
   double charge = 0.;
 
-  std::vector<int> occNumbers = GetOccupationNumbers(Z);
+  std::vector<int> occNumbers = utilities::GetOccupationNumbers(Z);
   for (int i = 0; i < occNumbers.size(); i += 4) {
     charge += std::pow(RadialHO(occNumbers[i], occNumbers[i + 1], nu, r), 2.) *
               occNumbers[i + 3];
@@ -198,3 +214,4 @@ inline double FitHODist(int Z, double rms) {
   return A;
 }
 }
+#endif

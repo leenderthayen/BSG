@@ -1,5 +1,6 @@
 #include "OptionContainer.h"
 #include "Constants.h"
+#include "boost/algorithm/string.hpp"
 
 #define GetOpt(a, b) OptionContainer::GetInstance().GetOption< a >( #b )
 
@@ -7,9 +8,58 @@ Generator::Generator() {
   Z = GetOpt(int, NuclearProperties.DaughterZ);
   A = GetOpt(int, NuclearProperties.DaughterA);
   R = GetOpt(double, NuclearProperties.DaughterRadius)*1e-15/NATLENGTH;
+  motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
+  motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
+  daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
+  daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
+  motherSpinParity = GetOpt(std::string, NuclearProperties.MotherSpinParity);
+  daughterSpinParity = GetOpt(std::string, NuclearProperties.DaughterSpinParity);
+  
+  gA = GetOpt(double, Constants.gA);
+  gP = GetOpt(double, Constants.gP);
+  gM = GetOpt(double, Constants.gM);
+
+  std::string process = getOpt(std::string, Transition.Process);
+  std::string type = GetOpt(std::string, Transition.Type);
+
+  if (boost::iequals(process, "B+")) {
+    fBetaType = BETA_PLUS;
+  }
+  else {
+    fBetaType = BETA_MINUS;
+  }
+
+  mixingRatio = 0.;
+  if (boost::iequals(type, "fermi")) {
+    fDecayType = FERMI;
+  }
+  else if (boost::iequals(type, "gamow-teller")) {
+    fDecayType = GAMOW_TELLER;
+  }
+  else {
+    fDecayType = MIXED;
+    mixingRatio = GetOpt(double, Transition.MixingRatio);
+  }
+
+  double QValue = GetOpt(double, Transition.QValue);
+  
+  if (fBetaType == BETA_MINUS) {
+    W0 = QValue/electronMasskeV + 1.;
+  } 
+  else {
+    W0 = QValue/electronMasskeV - 1.;
+  }
+  W0 = W0 - (W0*W0-1)/2./A/1837.4;
+
+  LoadExchangeParameters();
+
+  InitializeL0Constants();
+
+  CalculateMatrixElements();
 }
 
 void Generator::LoadExchangeParameters() {
+  exParamFile = GetOpt(std::string, ExchangeData);
   ifstream paramStream(exParamFile.c_str());
   string line;
 
@@ -39,7 +89,7 @@ void Generator::LoadExchangeParameters() {
   }
 }
 
-void Generator::Initialize() {
+void Generator::InitializeL0Constants() {
   double b[7][6];
   double bNeg[7][6];
   bNeg[0][0] = 0.115;
@@ -137,73 +187,14 @@ void Generator::Initialize() {
       aPos[i] += bPos[i][j] * std::pow(alpha * Z, j + 1);
     }
   }
-
-  W0 = EndPointEnergy / electronMasskeV + 1;
-  gamma = std::sqrt(1 - sqr(alpha * Zd));
-
-  /*double r_0 = (1.15 + 1.80 * std::pow(An, -2. / 3.) - 1.20 * std::pow(An, -4. / 3.)) *
-               1e-15 * electronMasskeV * 1000 / hbar / speed_of_light;
-  R = r_0 * std::pow(An, 1. / 3.);*/
 }
 
-void Generator::PrintStatus(std::ostream *ofile) {
-  *ofile << "SpectrumGenerator Status Information: " << endl;
-  *ofile << "\t\t A=" << An << endl;
-  *ofile << "\t\t Z=" << Zd << endl;
-  *ofile << "\t\t E0=" << EndPointEnergy << " keV" << endl;
-  //*ofile << "\t\t Ntilde (screening)=" << Ntilde << endl;
-  if (fBetaType == BETA_PLUS) {
-    *ofile << "\t\t positive beta decay" << endl;
-  } else {
-    *ofile << "\t\t negative beta decay" << endl;
-  }
-  *ofile << "\t\t Nuclear radius R = " << R << " (natural units)" << endl;
-  *ofile << "\t\t Deformation: " << beta2 << endl;
-  if (fDecayType == FERMI) {
-    *ofile << "\t\t Pure Fermi transition" << endl;
-  } else if (fDecayType == GAMOW_TELLER) {
-    *ofile << "\t\t Pure Gamow-Teller transition" << endl;
-  } else {
-    *ofile << "\t\t Mixed Fermi/Gamow-Teller transition. Mixing ratio: "
-           << MixingRatio << endl;
-  }
-
-  *ofile << "\t Options:" << endl;
-  *ofile << "\t\t Phase Space factor: " << (fPhaseSpace ? "true" : "false")
-         << endl;
-  *ofile << "\t\t Fermi Function: " << (fFermiFunction ? "true" : "false")
-         << endl;
-  *ofile << "\t\t C Correction: " << (fCCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t CI Correction: " << (fCICorrection ? "true" : "false")
-         << endl;
-  /**ofile << "\t\t QCD Induced Correction: "
-         << (fQCDInducedCorrection ? "true" : "false") << endl;*/
-  *ofile << "\t\t Relativistic Correction: "
-         << (fRelativisticCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t Deformation Correction: "
-         << (fDeformationCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t L0 Correction: " << (fL0Correction ? "true" : "false")
-         << endl;
-  *ofile << "\t\t U Correction: " << (fUCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t Q Correction: " << (fQCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t Radiative Correction: "
-         << (fRadiativeCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t Recoil Correction: " << (fRecoilCorrection ? "true" : "false")
-         << endl;
-  *ofile << "\t\t Atomic Screening: "
-         << (fAtomicScreeningCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t Atomic Exchange Correction: "
-         << (fAtomicExchangeCorrection ? "true" : "false") << endl;
-  *ofile << "\t\t Atomic Mismatch Correction: "
-         << (fAtomicMismatchCorrection ? "true" : "false") << endl;
-}
-
-double SpectralFunctions::CalculateWeakMagnetism() {
-  utilities::NuclearState nsf = nilsson::CalculateDeformedState(Z, A, beta2, beta4);
+double Generator::CalculateWeakMagnetism() {
+  utilities::NuclearState nsf = nilsson::CalculateDeformedState(Z, A, daughterBeta2, daughterBeta4);
   utilities::NuclearState nsi =
-      nilsson::CalculateDeformedState(Z + fBetaType, A, beta2, beta4);
+      nilsson::CalculateDeformedState(Z + fBetaType, A, motherBeta2, motherBeta4);
 
-  return -std::std::std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
+  return -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
              electronMasskeV * R / gA *
              utilities::CalculateDeformedSPMatrixElement(
                  nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K,
@@ -212,6 +203,10 @@ double SpectralFunctions::CalculateWeakMagnetism() {
                  nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
                  nsf.K, R) +
          gM / gA;
+}
+
+double Generator::CalculateMatrixElements() {
+  
 }
 
 vector<double> SpectralFunctions::GetSpectrumShape(double ) {

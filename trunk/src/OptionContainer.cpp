@@ -1,4 +1,4 @@
-#include "OptionContainer.hh"
+#include "OptionContainer.h"
 #include <iostream>
 
 using std::cout;
@@ -27,14 +27,18 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Set the total number of nucleons of the daughter nucleus.")
       ("NuclearProperties.DaughterRadius", po::value<double>(),
        "Set the nuclear radius of the daughter nucleus in fm.")
+      ("NuclearProperties.MotherBeta2", po::value<double>()->default_value(0.),
+       "Set the quadrupole deformation beta2 parameter for the mother nucleus.")
+      ("NuclearProperties.MotherBeta4", po::value<double>()->default_value(0.),
+       "Set the octupole deformation beta4 parameter for the mother nucleus.")
       ("NuclearProperties.DaughterBeta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the daughter nucleus.")
       ("NuclearProperties.DaughterBeta4", po::value<double>()->default_value(0.),
        "Set the octupole deformation beta4 parameter for the daughter nucleus.")
-      ("NuclearProperties.MotherSpinParity", po::value<std::string>(),
-       "Set the spin times 2 and parity of the mother nucleus: 2Ji[+/-]")
-      ("NuclearProperties.DaughterSpinParity", po::value<std::string>(),
-       "Set the spin times 2 and parity of the daughter nucleus: 2Jf[+/-]");
+      ("NuclearProperties.MotherSpinParity", po::value<int>(),
+       "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
+      ("NuclearProperties.DaughterSpinParity", po::value<int>(),
+       "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf");
 
   std::string configName = "config.txt";
   std::string inputName = "test.ini";

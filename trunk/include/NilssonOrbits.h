@@ -1,7 +1,7 @@
 #ifndef NILSSON_ORBITS
 #define NILSSON_ORBITS
 
-#include "utilities.h"
+#include "Utilities.h"
 #include "gsl/gsl_eigen.h"
 
 #define NDIM1 56

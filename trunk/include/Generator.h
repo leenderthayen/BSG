@@ -17,13 +17,16 @@ class Generator {
   double R;   ///< nuclear radius in natural units
   double A;  ///< Mass number \f$ A \f$
   double Z;  ///< number of protons of the daughter nucleus \f$ Z \f$
-  double EndPointEnergy;  ///< \a kinetic beta endpoint energy, in keV
-  double MixingRatio;
-  double Afit;
-  double beta2, beta4;
+  double mixingRatio;
+  double hoFit;
+  double daughterBeta2;
+  double daughterBeta4;
+  double motherBeta2;
+  double motherBeta4;
+  int motherSpinParity;
+  int daughterSpinParity;
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
-  std::string exParamFile;
 
   /// recoil correction form factors
   double fb, fc1, fd;
@@ -34,12 +37,15 @@ class Generator {
   double CalculateInducedPseudoscalar();
   void CalculateMatrixElements();
 
+  void InitializeL0Constants();
   void LoadExchangeParameters();
 
  public:
   Generator();
   /// nothing is created in the heap, therefore we have an empty destructor
   ~Generator(){};
+
+  void CalculateSpectrum();
 
 };
 
