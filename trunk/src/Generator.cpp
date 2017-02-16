@@ -36,7 +36,7 @@ Generator::Generator() {
   else if (boost::iequals(type, "gamow-teller")) {
     fDecayType = GAMOW_TELLER;
   }
-  else {
+  else 
     fDecayType = MIXED;
     mixingRatio = GetOpt(double, Transition.MixingRatio);
   }
