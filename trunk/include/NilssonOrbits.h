@@ -13,6 +13,12 @@
 
 namespace nilsson {
 
+//Here dO stands for double Omega
+//s is +-1 depending of whether it is j=l+-1/2
+struct WFComp {double C; int l, s, dO; };
+
+struct NuclearState { double O, K; int parity; std::vector<WFComp> states; };
+
 inline double V(int n, int l, double x) {
   int m = (n-l)/2;
   double V = 1.0;
@@ -34,10 +40,10 @@ inline double V(int n, int l, double x) {
 inline double VNORM(int n, int l) {
   int minus = (n-l)/2;
   int eMinus = 1+4*(minus/2)-2*minus;
-  double vNorm = 1.50225*eMinus;
+  double vNorm = 2./std::pow(M_PI, 0.25)*eMinus;
   int k = (n+1)/2-n/2+1;
   if (k > 1) {
-    vNorm *= 0.816496;
+    vNorm *= std::sqrt(2./3.);
   }
   if (n > 1) {
     for (int j = k; j <= n; j+=2) {
@@ -64,10 +70,12 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
   double A = std::pow(AMU, 1./3.);
   double RO = A*std::abs(R0);
   double AO = A0;
+  //Compton wavelength of the pion=  1.4133 fm
   double pionComp = 1.4133;
   double VOS = V0S*pionComp*pionComp;
   double TWONU = 0.154666*std::sqrt(V0)/RO;
   double T = TWONU*20.899*AMU/(AMU-1.);
+  //e^2 = 1.439978 MeV*fm
   double ZZ = Z*1.439978;
   double ZCONST = 1.5*ZZ/RO;
   double ZIN = 0.5*ZZ/std::pow(RO, 3.);
@@ -84,9 +92,9 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
           int LI = LLI-1;
           int LJ = LLJ-1;
 
-          int KK = 1;
+          int KK = 0;
           if (LI != LJ) {
-            KK = 3;
+            KK = 2;
           }
           double R = DX;
           double FO = DFO/std::exp(RO/AO);
@@ -98,21 +106,21 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
             if (M == 0) {
               M = -N-2;
             }
-            for (int I = 1; I <= 4; I++) {
+            for (int I = 0; I < 4; I++) {
               double R2 = R*R*TWONU;
               double PSI2 = V(NI, LI, R2)*V(NJ, LJ, R2)*std::pow(R2, (LI+LJ)/2)*R*R/std::exp(R2);
               double F = 1./(1.+FO);
               double DFDR = -FO*F*F/AO;
               if (R <= RO) {
-                S[1][I] = -PSI2*(V0*F+T*R2+ZIN*R*R-ZCONST);
+                S[0][I] = -PSI2*(V0*F+T*R2+ZIN*R*R-ZCONST);
               } else {
-                S[1][I] = -PSI2*(V0*F+T*R2-ZZ/R);
+                S[0][I] = -PSI2*(V0*F+T*R2-ZZ/R);
               }
-              S[2][I] = PSI2*DFDR/R;
-              S[3][I] = PSI2*DFDR;
+              S[1][I] = PSI2*DFDR/R;
+              S[2][I] = PSI2*DFDR;
               FO *= DFO;
               R += DX;
-              for (int j = KK; j <= 3; j++) {
+              for (int j = KK; j < 3; j++) {
                 FINT[j] += S[j][I];
               }
             }
@@ -124,16 +132,17 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
               DFO = 1./DFO;
             }
           }
-          for (int i = 2; i <= 4; i++) {
-            for (int l = i; l <= 4; l++) {
-              int K = 4+i-l;
-              for (int j = KK; j <= 3; j++) {
+          for (int i = 1; i < 4; i++) {
+            for (int l = i; l < 4; l++) {
+              //TODO look at K
+              int K = 3+i-l;
+              for (int j = KK; j < 3; j++) {
                 S[j][K] -= S[j][K-1];
               }
             }
           }
-          for (int j = KK; j <= 3; j++) {
-            FINT[j] += -S[j][1]/2.+S[j][2]/12.-S[j][3]/24.+19.*S[j][4]/720.;
+          for (int j = KK; j < 3; j++) {
+            FINT[j] += -S[j][0]/2.+S[j][1]/12.-S[j][2]/24.+19.*S[j][3]/720.;
           }
           //TODO
           if (DX <= 0) {
@@ -141,27 +150,30 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
             DFO = 1./DFO;
           }
           double X = VNORM(NI, LI)*VNORM(NJ, LJ);
-          if (KK != 3) {
+          if (KK != 2) {
             II++;
-            SW[1][II] = FINT[1]*X*DX*std::pow(TWONU, 1.5);
+            SW[0][II] = FINT[0]*X*DX*std::pow(TWONU, 1.5);
             if (NI == NJ) {
-              SW[1][II] += 2.*T*(NI+1.5);
+              SW[0][II] += 2.*T*(NI+1.5);
             }
-            SW[2][II] = FINT[2]*X*DX*std::pow(TWONU, 1.5)*VOS;
+            SW[1][II] = FINT[1]*X*DX*std::pow(TWONU, 1.5)*VOS;
           }
+          //TODO Look at II and JJ
           JJ++;
-          SDW[JJ] = FINT[3]*X*DX*std::pow(TWONU, 1.5)*V0*RO;
+          SDW[JJ] = FINT[2]*X*DX*std::pow(TWONU, 1.5)*V0*RO;
         }
       }
     }
   }
 }
 
-inline void Eigen(double A[], double R[], int N, int MV) {
+//Calculate eigenvalues & vectors for a real symmetric FORTRAN matrix A
+inline void Eigen(double* A, int rank, double* eVecs, std::vector<double>* eVals) {
   gsl_matrix * aNew = gsl_matrix_alloc(NDIM4, NDIM4);
   for (int i = 0; i < NDIM4; i++) {
     for (int j = i; j < NDIM4; j++) {
-      gsl_matrix_set(aNew, i, j, A[NDIM4*i+j]);
+      //FORTRAN matrices are stored column-major
+      gsl_matrix_set(aNew, i, j, A[NDIM*i+j]);
       if (i != j) {
         gsl_matrix_set(aNew, j, i, A[NDIM4*i+j]);
       }
@@ -169,11 +181,21 @@ inline void Eigen(double A[], double R[], int N, int MV) {
   }
   gsl_matrix* eVec = gsl_matrix_calloc(NDIM4, NDIM4);
   gsl_vector* eVal = gsl_vector_calloc(NDIM4);
-  int size = 1000;
+  int size = 4*NDIM4;
   gsl_eigen_symmv_workspace* w = gsl_eigen_symmv_alloc(size);
   gsl_eigen_symmv(aNew, eVal, eVec, w);
   gsl_eigen_symmv_free(w);
-  //TODO forget about A and R, and just return the eigenvalues and vectors and adjust fortran code
+  for (int i = 0; i < rank; i++) {
+    eVals->push_back(gsl_vector_get(eVal, i));
+  }
+  gsl_vector_free(eVal);
+  for (int i = 0; i < NDIM4; i++) {
+    for (int j = 0; j < NDIM4; j++) {
+      //FORTRAN matrices are stored column-major
+      eVecs[NDIM4*i+j] = gsl_matrix_get(eVec, i, j);
+    }
+  }
+  gsl_matrix_free(eVec);
 }
 
 inline void Calculate(double spin, double beta2, double beta4, double V0,
@@ -222,7 +244,6 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     // Set up quantum numbers of the harmonic oscillator basis
     for (int NN = LI; NN <= nMaxP1; NN += 2) {
       for (int I = 1; I <= 2; I++) {
-        II++;
         N[II] = NN - 1;
         L[II] = LI - 1;
         LA[II] = 2 - I;
@@ -231,6 +252,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
         if (L[II] < LA[II]) {
           II--;
         }
+        II++;
       }
     }
     if (II == NIM) {
@@ -239,17 +261,18 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
 
     // Set up matrix
     int KK = 0;
-    for (int I = NI; I <= II; I++) {
-      for (int J = NI; J <= I; J++) {
-        KK++;
+    for (int I = NI-1; I < II; I++) {
+      for (int J = NI-1; J < I; J++) {
         AM[KK] = 0.0;
         if (!(JX2[J] != JX2[I])) {
           int NN = (N[I] / 2) * (N[I] / 2 + 1) * (N[I] / 2 + 2) / 6 +
-               (N[J] / 2) * (N[J] / 2 + 1) / 2 + L[I] / 2 + 1;
-          AM[KK] = SW[1][NN] + SW[2][NN] * IX2[J] * (L[J] + LA[J]);
+               (N[J] / 2) * (N[J] / 2 + 1) / 2 + L[I] / 2;
+          AM[KK] = SW[0][NN] + SW[1][NN] * IX2[J] * (L[J] + LA[J]);
         }
+        KK++;
       }
     }
+    //TODO start from here
     Eigen(AM, R, II - NIM, 0);
 
     for (int I = NI; I <= II; I++) {
@@ -385,10 +408,10 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
         K3[K] = std::abs(IOM);
         K4[K] = KKK-MU+1;
         ED[K] = AM[N0];
-        for (int J = 1; J <= II; J++) {
+        for (int J = 0; J < II; J++) {
           A[K][J] = 0.0;
           NK = KKK*(MU-1);
-          for (int NU = 1; NU <= KKK; NU++) {
+          for (int NU = 0; NU < KKK; NU++) {
             int I = KN[IIOM][NU];
             NK++;
             A[K][J]+R[NK]*CNU[I][J];
@@ -399,7 +422,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   }
 }
 
-inline utilities::NuclearState CalculateDeformedState(int Z, int A, double beta2, double beta4) {
+inline NuclearState CalculateDeformedState(int Z, int A, double beta2, double beta4) {
   double O;
   double K;
   double parity;
@@ -414,16 +437,16 @@ inline utilities::NuclearState CalculateDeformedState(int Z, int A, double beta2
   std::vector<WFComp> states = {s12, d32, d52};*/
 
   //special case for 33Cl
-  utilities::WFComp d32 = {0.913656, 2, -1, 3};
-  utilities::WFComp d52 = {-0.406489, 2, 1, 3};
+  WFComp d32 = {0.913656, 2, -1, 3};
+  WFComp d52 = {-0.406489, 2, 1, 3};
 
-  std::vector<utilities::WFComp> states = {d32, d52};
+  std::vector<WFComp> states = {d32, d52};
 
   O = 3./2.;
   K = 3./2.;
   parity = 1;
 
-  utilities::NuclearState nuclearState = {O, K, parity, states};
+  NuclearState nuclearState = {O, K, parity, states};
 
   return nuclearState;
 }
