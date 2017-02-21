@@ -85,12 +85,6 @@ inline std::vector<int> GetOccupationNumbers(int N) {
 }
 
 
-//Here dO stands for double Omega
-//s is +-1 depending of whether it is j=l+-1/2
-struct WFComp {double C; int l, s, dO; };
-
-struct NuclearState { double O, K; int parity; std::vector<WFComp> states; };
-
 class Lagrange {
  public:
   Lagrange(double*, double*);

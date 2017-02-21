@@ -2,6 +2,8 @@
 #define NILSSON_ORBITS
 
 #include "Utilities.h"
+#include "Constants.h"
+
 #include "gsl/gsl_eigen.h"
 #include "gsl/gsl_matrix.h"
 #include "gsl/gsl_vector.h"
@@ -58,7 +60,7 @@ inline double VNORM(int n, int l) {
   return vNorm;
 }
 
-inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, int Z, int nMax, double SW[2][84], double SDW[462]) {
+inline void WoodsSaxon(double V0, double R, double A0, double V0S, int A, int Z, int nMax, double SW[2][84], double SDW[462]) {
   double FINT[3] = {};
   double S[3][4] = {};
   int IP = 2;
@@ -67,21 +69,21 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
   int JJ = 0;
   int NDX = 300;
   int N = NDX/4-2;
-  double A = std::pow(AMU, 1./3.);
-  double RO = A*std::abs(R0);
+  double A = std::pow(A, 1./3.);
   double AO = A0;
   //Compton wavelength of the pion=  1.4133 fm
-  double pionComp = 1.4133;
+  double pionComp = hbar/pionMasskeV/speedOfLight;
   double VOS = V0S*pionComp*pionComp;
-  double TWONU = 0.154666*std::sqrt(V0)/RO;
-  double T = TWONU*20.899*AMU/(AMU-1.);
+  double TWONU = 0.154666*std::sqrt(V0)/R;
+  double T = TWONU*20.899*A/(A-1.);
   //e^2 = 1.439978 MeV*fm
   double ZZ = Z*1.439978;
-  double ZCONST = 1.5*ZZ/RO;
-  double ZIN = 0.5*ZZ/std::pow(RO, 3.);
-  double DX = (RO+8.*AO)/NDX;
+  double ZCONST = 1.5*ZZ/R;
+  double ZIN = 0.5*ZZ/std::pow(R, 3.);
+  double DX = (R+8.*AO)/NDX;
   double DFO = std::exp(DX/AO);
   int NMAXP1 = nMax+1;
+  //equal to 1 when even, 2 when odd
   int NMIN = NMAXP1/2-(NMAXP1-1)/2+1;
   for (int NNI = NMIN; NNI <= NMAXP1; NNI+=2) {
     for (int NNJ = NMIN; NNJ <= NNI; NNJ+=2) {
@@ -96,37 +98,34 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
           if (LI != LJ) {
             KK = 2;
           }
-          double R = DX;
-          double FO = DFO/std::exp(RO/AO);
-          for (int i = 0; i < 3; i++) {
-            FINT[i] = 0.0;
-          }
+          double r = DX;
+          double FO = DFO/std::exp(R/AO);
           int M = 0;
           while(M/N >= 0) {
             if (M == 0) {
               M = -N-2;
             }
             for (int I = 0; I < 4; I++) {
-              double R2 = R*R*TWONU;
+              double R2 = r*r*TWONU;
               double PSI2 = V(NI, LI, R2)*V(NJ, LJ, R2)*std::pow(R2, (LI+LJ)/2)*R*R/std::exp(R2);
               double F = 1./(1.+FO);
               double DFDR = -FO*F*F/AO;
-              if (R <= RO) {
-                S[0][I] = -PSI2*(V0*F+T*R2+ZIN*R*R-ZCONST);
+              if (r <= R) {
+                S[0][I] = -PSI2*(V0*F+T*R2+ZIN*r*r-ZCONST);
               } else {
-                S[0][I] = -PSI2*(V0*F+T*R2-ZZ/R);
+                S[0][I] = -PSI2*(V0*F+T*R2-ZZ/r);
               }
-              S[1][I] = PSI2*DFDR/R;
+              S[1][I] = PSI2*DFDR/r;
               S[2][I] = PSI2*DFDR;
               FO *= DFO;
-              R += DX;
+              r += DX;
               for (int j = KK; j < 3; j++) {
                 FINT[j] += S[j][I];
               }
             }
             M += 2;
             if (M/N > 0) {
-              R += 4.*DX;
+              r += 4.*DX;
               DX = -DX;
               FO *= std::pow(DFO, 4.);
               DFO = 1./DFO;
@@ -151,16 +150,15 @@ inline void WoodsSaxon(double V0, double R0, double A0, double V0S, double AMU, 
           }
           double X = VNORM(NI, LI)*VNORM(NJ, LJ);
           if (KK != 2) {
-            II++;
             SW[0][II] = FINT[0]*X*DX*std::pow(TWONU, 1.5);
             if (NI == NJ) {
               SW[0][II] += 2.*T*(NI+1.5);
             }
             SW[1][II] = FINT[1]*X*DX*std::pow(TWONU, 1.5)*VOS;
+            II++;
           }
-          //TODO Look at II and JJ
-          JJ++;
           SDW[JJ] = FINT[2]*X*DX*std::pow(TWONU, 1.5)*V0*RO;
+          JJ++;
         }
       }
     }
@@ -199,7 +197,7 @@ inline void Eigen(double* A, int rank, double* eVecs, std::vector<double>* eVals
 }
 
 inline void Calculate(double spin, double beta2, double beta4, double V0,
-                      double R0, double A0, double V0S, double AMU, int Z,
+                      double R, double A0, double V0S, double A, int Z,
                       int nMax) {
   double SW[2][84] = {};
   double SDW[462] = {};
@@ -224,11 +222,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int K3[NDIM4];
   int K4[NDIM4];
 
-  if (V0 > 0.) {
-    WoodsSaxon(V0, R0, A0, V0S, AMU, Z, nMax, SW, SDW);
-  } else if (V0 < 0.) {
-    // TODO
-  }
+  WoodsSaxon(V0, R0, A0, V0S, A, Z, nMax, SW, SDW);
 
   int II = 0;
   int K = 0;
@@ -272,23 +266,24 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
         KK++;
       }
     }
-    //TODO start from here
-    Eigen(AM, R, II - NIM, 0);
+    //inline void Eigen(double* A, int rank, double* eVecs, std::vector<double>* eVals) {
+    std::vector<double> * eVals = new std::vector<double>();
+    Eigen(AM, II - NIM, R, eVals);
 
     for (int I = NI; I <= II; I++) {
-      int N0 = (I - NIM) * (I - NIM + 1) / 2;
-      if (AM[N0] <= 10.0) {
-        K++;
-        if (K >= NDIM3) {
+      double eigenValue = (*eVals)[K];
+      if (eigenValue <= 10.0) {
+        if (K >= NDIM3-1) {
           return;
         }
-        E[K] = AM[N0];
-        LK[K] = L[I];
-        K3[K] = JX2[I];
+        E[K] = eigenValue;
+        LK[K] = L[I-1];
+        K3[K] = JX2[I-1];
         for (int J = NI; J <= II; J++) {
-          N0 = (II - NIM) * (I - NI) + J - NIM;
-          CNU[K][J] = R[N0];
+          N0 = (II - NIM) * (I - NI) + J - NIM - 1;
+          CNU[K][J-1] = R[N0];
         }
+        K++;
       }
     }
     // II = size of harmonic oscillator basis
@@ -309,20 +304,19 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int KK = 0;
   int KKKK = 0;
   int IOM = 1;
-  for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
-    IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
+  for (int IIOM = 0; IIOM < ISPIN; IIOM++) {
+    IOM = -IOM + 2 * (int)(std::pow(-1., IIOM));
     int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - min;
     int KKK = 0;
-    for (int I = 1; I <= K; I++) {
+    for (int I = 0; I < K; I++) {
       LKK[KKK] = LK[I];
       KN[IIOM][KKK] = I;
       double X = 0.0;
-      for (int J = 1; J <= II; J++) {
+      for (int J = 0; J < II; J++) {
         if (L[J] == LKK[KKK]) {
           double cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J],
                                                2 * (LA[J] + IIOM - 1), IX2[J],
                                                2 * (LA[J] + IIOM - 1) + IX2[J]);
-          // TODO Check if coefficient I is correct
           double X1 = CNU[I][J] * cg;
           cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J] - 2 * IX2[J],
                                         2 * (LA[J] + IIOM - 1), IX2[J],
@@ -337,6 +331,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
       if (X < 0.1) {
         KKK--;
       }
+      KKK++;
     }
     KKKK+=KKK;
     if (KKKK > NDIM4) {
@@ -346,13 +341,12 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     if (KKK == 0) {
       break;
     }
-    for (int I = 1; I <= KKK; I++) {
-      for (int J = 1; J <= I; J++) {
-        KK++;
+    for (int I = 0; I < KKK; I++) {
+      for (int J = 0; J < I; J++) {
         B[KK] = 0.0;
         D[KK] = 0.0;
-        for (int N1 = 1; N1 <= II; N1++) {
-          for (int N2 = 1; N2 <= II; N2++) {
+        for (int N1 = 0; N1 < II; N1++) {
+          for (int N2 = 0; N2 < II; N2++) {
             if (!(L[N1] != LKK[I] || L[N2] != LKK[J] || (L[N1]-L[N2])/5 != 0 || LA[N1] != LA[N2])) {
               int NI = N[N1]/2+1;
               int NJ = N[N2]/2+1;
@@ -368,7 +362,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
               }
               int NNP = NI*(NI-1);
               NNP = (3*NNP*NNP+2*NNP*(2*NI-1))/24+NI*NJ*(NJ-1)/2+(LI+1)*NJ+LJ;
-              double X = A[I][N1]*SDW[NNP]*A[J][N2];
+              double X = A[I][N1]*SDW[NNP-1]*A[J][N2];
               int LP = L[N1];
               int LAP = LA[N1]+IIOM-1;
               int LL = L[N2];
@@ -378,6 +372,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
             }
           }
         }
+        KK++;
       }
     }
   }
@@ -385,38 +380,39 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   K = 0;
   KK = 0;
   IOM = 1;
-  for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
-    IOM = -IOM-2*(int)(std::pow(-1., IIOM));
+  for (int IIOM = 0; IIOM < ISPIN; IIOM++) {
+    IOM = -IOM+2*(int)(std::pow(-1., IIOM));
     int KKK = K1[IIOM];
     if (KKK != 0) {
       int NK = 0;
       for (int I = 1; I <= KKK; I++) {
         for (int J = 1; J <= I; J++) {
+          AM[NK] = beta2*B[KK]+beta4*D[KK];
           NK++;
           KK++;
-          AM[NK] = beta2*B[KK]+beta4*D[KK];
         }
         int N0 = KN[IIOM][I];
         AM[NK]+=E[N0];
       }
       Eigen(AM, R, KKK, 0);
       int N0 = 0;
-      for (int MU = 1; MU <= KKK; MU++) {
-        N0+=MU;
-        K++;
+      for (int MU = 0; MU < KKK; MU++) {
         K2[K] = IOM;
         K3[K] = std::abs(IOM);
-        K4[K] = KKK-MU+1;
+        //TODO check
+        K4[K] = KKK-MU+2;
         ED[K] = AM[N0];
         for (int J = 0; J < II; J++) {
           A[K][J] = 0.0;
-          NK = KKK*(MU-1);
+          NK = KKK*MU;
           for (int NU = 0; NU < KKK; NU++) {
             int I = KN[IIOM][NU];
             NK++;
             A[K][J]+R[NK]*CNU[I][J];
           }
         }
+        N0+=MU;
+        K++;
       }
     }
   }
