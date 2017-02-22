@@ -232,8 +232,8 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int LA[NDIM1];
   int IX2[NDIM1];
   int JX2[NDIM1];
-  double CNU[NDIM3][NDIM1] = {};
-  double E[NDIM3];
+  double sphExpCoef[NDIM3][NDIM1] = {};
+  double eValsWS[NDIM3];
   int LK[NDIM3];
   int LKK[NDIM3];
   int KN[7][NDIM3];
@@ -293,18 +293,19 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     //TODO see if Eigen function returns same values, and in same order when rank != dim
     Eigen(hamM, II - NIM, eVecs, eVals);
 
-    for (int I = NI; I <= II; I++) {
+    for (int I = NI-1; I < II; I++) {
       double eigenValue = (*eVals)[K];
       if (eigenValue <= 10.0) {
         if (K >= NDIM3 - 1) {
+          cout << "Dimensioned space inadequate" << endl;
           return;
         }
-        E[K] = eigenValue;
-        LK[K] = L[I - 1];
-        K3[K] = JX2[I - 1];
-        for (int J = NI; J <= II; J++) {
+        eValsWS[K] = eigenValue;
+        LK[K] = L[I];
+        K3[K] = JX2[I];
+        for (int J = NI-1; J < II; J++) {
           int N0 = (II - NIM) * (I - NI) + J - NIM - 1;
-          CNU[K][J - 1] = eVecs[N0];
+          sphExpCoef[K][J] = eVecs[N0];
         }
         K++;
       }
@@ -340,12 +341,12 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
           double cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J],
                                                2 * (LA[J] + IIOM - 1), IX2[J],
                                                2 * (LA[J] + IIOM - 1) + IX2[J]);
-          double X1 = CNU[I][J] * cg;
+          double X1 = sphExpCoef[I][J] * cg;
           cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J] - 2 * IX2[J],
                                         2 * (LA[J] + IIOM - 1), IX2[J],
                                         2 * (LA[J] + IIOM - 1) + IX2[J]);
           if (JX2[J] > IIIOM) {
-            X1 += CNU[I][J - IX2[J]] * cg;
+            X1 += sphExpCoef[I][J - IX2[J]] * cg;
           }
           defExpCoef[KKK][J] = X1;
           X += X1 * X1;
@@ -419,7 +420,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
           KK++;
         }
         int N0 = KN[IIOM][I];
-        hamM[NK] += E[N0];
+        hamM[NK] += eValsWS[N0];
       }
       std::vector<double>* eVals = new std::vector<double>();
       Eigen(hamM, KKK, eVecs, eVals);
@@ -436,7 +437,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
           for (int NU = 0; NU < KKK; NU++) {
             int I = KN[IIOM][NU];
             NK++;
-            defExpCoef[K][J] += eVecs[NK] * CNU[I][J];
+            defExpCoef[K][J] += eVecs[NK] * sphExpCoef[I][J];
           }
         }
         N0 += MU;
