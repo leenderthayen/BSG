@@ -65,7 +65,7 @@ inline double VNORM(int n, int l) {
   if (l > 1) {
     for (int j = k; j <= l; j += 2) {
       vNorm *= 2. * std::sqrt((j + n + 2.) * (n - j + 1.)) /
-                              ((2. * j + 3.) * (2. * j + 1.));
+               ((2. * j + 3.) * (2. * j + 1.));
     }
   }
   return vNorm;
@@ -145,8 +145,7 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
               if (DX <= 0) {
                 break;
               }
-            }
-            else if (M / N > 0) {
+            } else if (M / N > 0) {
               r += 4. * DX;
               DX = -DX;
               FO *= std::pow(DFO, 4.);
@@ -155,12 +154,12 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
             }
           }
           DX = -DX;
-          DFO = 1./DFO;
+          DFO = 1. / DFO;
           double X = VNORM(NI, LI) * VNORM(NJ, LJ);
           if (KK != 2) {
             SW[0][II] = FINT[0] * X * DX * std::pow(TWONU, 1.5);
             if (NI == NJ) {
-              //Harmonic oscillator energy
+              // Harmonic oscillator energy
               SW[0][II] += 2. * T * (NI + 1.5);
             }
             SW[1][II] = FINT[1] * X * DX * std::pow(TWONU, 1.5) * VOS;
@@ -184,51 +183,211 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
   }
 }
 
-// Calculate eigenvalues & vectors for a real symmetric FORTRAN matrix A
-inline void Eigen(double* A, int rank, double* eVecs,
-                  std::vector<double>* eVals) {
-  gsl_matrix* aNew = gsl_matrix_alloc(NDIM4, NDIM4);
-  for (int i = 0; i < NDIM4; i++) {
-    for (int j = i; j < NDIM4; j++) {
+// Calculate eigenvalues & vectors for a real symmetric FORTRAN matrix A, only
+// upper half of A is used
+inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
+                  bool onlyUpper = true) {
+  gsl_matrix* aNew = gsl_matrix_alloc(dim, dim);
+  // Loop over upper half of matrix
+  for (int j = 0; j < dim; j++) {
+    for (int i = 0; i <= j; i++) {
       // FORTRAN matrices are stored column-major
-      gsl_matrix_set(aNew, i, j, A[NDIM4 * i + j]);
+      int index = dim * j + i;
+      if (onlyUpper) {
+        index = j * (j + 1) / 2 + i;
+        // cout << i << "," << j << ": " << index << endl;
+      }
+      gsl_matrix_set(aNew, i, j, A[index]);
       if (i != j) {
-        gsl_matrix_set(aNew, j, i, A[NDIM4 * i + j]);
+        gsl_matrix_set(aNew, j, i, A[index]);
       }
     }
   }
-  gsl_matrix* eVec = gsl_matrix_calloc(NDIM4, NDIM4);
-  gsl_vector* eVal = gsl_vector_calloc(NDIM4);
-  int size = 4 * NDIM4;
+  /*for (int i = 0; i < dim; i++) {
+    for (int j = 0; j < dim; j++) {
+      cout << gsl_matrix_get(aNew, i, j) << " ";
+    }
+    cout << endl;
+  }*/
+  gsl_matrix* eVec = gsl_matrix_calloc(dim, dim);
+  gsl_vector* eVal = gsl_vector_calloc(dim);
+  int size = 4 * dim;
   gsl_eigen_symmv_workspace* w = gsl_eigen_symmv_alloc(size);
   gsl_eigen_symmv(aNew, eVal, eVec, w);
   gsl_eigen_symmv_free(w);
-  for (int i = 0; i < rank; i++) {
-    eVals->push_back(gsl_vector_get(eVal, i));
+  for (int i = 0; i < dim; i++) {
+    for (int j = i; j < dim; j++) {
+      if (gsl_vector_get(eVal, j) > gsl_vector_get(eVal, i)) {
+        double x = gsl_vector_get(eVal, i);
+        gsl_vector_set(eVal, i, gsl_vector_get(eVal, j));
+        gsl_vector_set(eVal, j, x);
+        for (int k = 0; k < dim; k++) {
+          x = gsl_matrix_get(eVec, k, i);
+          gsl_matrix_set(eVec, k, i, gsl_matrix_get(eVec, k, j));
+          gsl_matrix_set(eVec, k, j, x);
+        }
+        i = 0;
+        j = 0;
+      }
+    }
+  }
+  for (int i = 0; i < dim; i++) {
+    eVals.push_back(gsl_vector_get(eVal, i));
   }
   gsl_vector_free(eVal);
-  for (int i = 0; i < NDIM4; i++) {
-    for (int j = 0; j < NDIM4; j++) {
+  for (int j = 0; j < dim; j++) {
+    for (int i = 0; i < dim; i++) {
       // FORTRAN matrices are stored column-major
-      eVecs[NDIM4 * i + j] = gsl_matrix_get(eVec, i, j);
+      eVecs[dim * j + i] = gsl_matrix_get(eVec, i, j);
     }
   }
   gsl_matrix_free(eVec);
 }
 
+inline void Eigen(double* A, int rank, double* R) {
+  // Turn R into identity matrix of dim rank
+  for (int j = 0; j < rank; j++) {
+    for (int i = 0; i < rank; i++) {
+      R[rank * j + i] = 0.0;
+      if (i == j) R[rank * j + i] = 1.0;
+    }
+  }
+  double aNorm = 0.0;
+  for (int i = 1; i <= rank; i++) {
+    for (int j = i; j <= rank; j++) {
+      if (i != j) {
+        int IA = i + j * (j - 1) / 2;
+        aNorm += A[IA - 1] * A[IA - 1];
+      }
+    }
+  }
+  cout << "aNorm: " << aNorm << endl;
+  if (aNorm > 0.) {
+    aNorm = 1.414 * std::sqrt(aNorm);
+
+    int IND = 0;
+    double THR = aNorm / rank;
+    int L = 1;
+    int M = L + 1;
+
+    while (true) {
+      int MQ = M * (M - 1) / 2;
+      int LQ = L * (L - 1) / 2;
+      int LM = L + MQ;
+
+      if (std::abs(A[LM - 1]) >= THR) {
+        IND = 1;
+        int LL = L + LQ;
+        int MM = M + MQ;
+        double X = 0.5 * (A[LL - 1] - A[MM - 1]);
+        double Y = -A[LM - 1] / std::sqrt(A[LM - 1] * A[LM - 1] + X * X);
+        if (X < 0) {
+          Y = -Y;
+        }
+        double SINX = Y / std::sqrt(2.0 * (1.0 + std::sqrt(1.0 - Y * Y)));
+        double SINX2 = SINX * SINX;
+        double COSX = std::sqrt(1.0 - SINX2);
+        double COSX2 = COSX * COSX;
+        double SINCS = SINX * COSX;
+
+        int ILQ = rank * (L - 1);
+        int IMQ = rank * (M - 1);
+        for (int I = 1; I <= rank; I++) {
+          int IQ = I * (I - 1) / 2;
+          if (I != L) {
+            if (I != M) {
+              int IM = 0;
+              if (I < M) {
+                IM = I + MQ;
+              } else if (I > M) {
+                IM = M + IQ;
+              }
+              int IL = 0;
+              if (I < L) {
+                IL = I + LQ;
+              } else {
+                IL = L + IQ;
+              }
+              X = A[IL - 1] * COSX - A[IM - 1] * SINX;
+              A[IM - 1] = A[IL - 1] * SINX + A[IM - 1] * COSX;
+              A[IL - 1] = X;
+            }
+          }
+          int ILR = ILQ + 1;
+          int IMR = IMQ + 1;
+          X = R[ILR - 1] * COSX - R[IMR - 1] * SINX;
+          R[IMR - 1] = R[ILR - 1] * SINX + R[IMR - 1] * COSX;
+          R[ILR - 1] = X;
+          X = 2.0 * A[LM - 1] * SINCS;
+          Y = A[LL - 1] * COSX2 + A[MM - 1] * SINX2 - X;
+          X = A[LL - 1] * SINX2 + A[MM - 1] * COSX2 + X;
+          A[LM - 1] =
+              (A[LL - 1] - A[MM - 1]) * SINCS + A[LM - 1] * (COSX2 - SINX2);
+          A[LL - 1] = Y;
+          A[MM - 1] = X;
+        }
+      }
+      if (M == rank && L == (rank - 1) && IND != 1) {
+        break;
+      }
+      if (M != rank) {
+        M++;
+      } else {
+        if (L != (rank-1)) {
+          L++;
+          M++;
+        }
+        else if (IND == 1) {
+          IND = 0;
+          L = 1;
+          M = L + 1;
+        }
+      }
+    }
+  }
+  int IQ = -rank;
+  for (int I = 1; I <= rank; I++) {
+    IQ += rank;
+    int LL = I + I * (I - 1) / 2;
+    int JQ = rank * (I - 2);
+    for (int J = I; J <= rank; J++) {
+      JQ += rank;
+      int MM = J + J * (J - 1) / 2;
+      if (A[LL - 1] < A[MM - 1]) {
+        double X = A[LL - 1];
+        A[LL - 1] = A[MM - 1];
+        A[MM - 1] = X;
+        for (int K = 1; K <= rank; K++) {
+          int ILR = IQ + K;
+          int IMR = JQ + K;
+          X = R[ILR - 1];
+          R[ILR - 1] = R[IMR - 1];
+          R[IMR - 1] = X;
+        }
+      }
+    }
+  }
+  for (int i = 0; i < rank; i++) {
+    for (int j = 0; j < rank; j++) {
+      cout << R[i * rank + j] << " ";
+    }
+    cout << endl;
+  }
+}
+
 inline void Calculate(double spin, double beta2, double beta4, double V0,
-                      double R, double A0, double V0S, double A, int Z,
+                      double R, double A0, double V0S, double A, double Z,
                       int nMax) {
   double SW[2][84] = {};
   double SDW[462] = {};
   int N[NDIM1];
   int L[NDIM1];
-  //Matrix elements of Hamiltonian in chosen basis, real & symmetric
+  // Matrix elements of Hamiltonian in chosen basis, real & symmetric
   double hamM[NDIM4 * (NDIM4 + 1) / 2];
-  double eVecs[NDIM4 * NDIM4];
+  double eVecs[NDIM4 * NDIM4] = {};
   double defExpCoef[NDIM4][NDIM1];
-  double B[NDIM2];
-  double D[NDIM2];
+  double B[NDIM4 * (NDIM4 + 1) / 2];
+  double D[NDIM4 * (NDIM4 + 1) / 2];
   int LA[NDIM1];
   int IX2[NDIM1];
   int JX2[NDIM1];
@@ -250,18 +409,19 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int II = 0;
   int K = 0;
 
-  int nMin = nMax%2;
+  int nMin = nMax % 2+1;
+  int nMaxP1 = nMax+1;
   // Diagonalize each L-value separately
-  for (int LI = nMin; LI <= nMax; LI += 2) {
+  for (int LI = nMin; LI <= nMaxP1; LI += 2) {
     int NIM = II;
     int NI = II + 1;
     int NK = K + 1;
 
     // Set up quantum numbers of the harmonic oscillator basis
-    for (int NN = LI; NN <= nMax; NN += 2) {
+    for (int NN = LI; NN <= nMaxP1; NN += 2) {
       for (int I = 1; I <= 2; I++) {
-        N[II] = NN;
-        L[II] = LI;
+        N[II] = NN-1;
+        L[II] = LI-1;
         LA[II] = 2 - I;
         IX2[II] = 2 * I - 3;
         JX2[II] = 2 * L[II] + IX2[II];
@@ -276,39 +436,41 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
 
     // Set up matrix
     int KK = 0;
-    for (int i = NI - 1; i < II; i++) {
-      for (int j = NI - 1; j <= i; j++) {
+    for (int i = NI; i <= II; i++) {
+      for (int j = NI; j <= i; j++) {
         hamM[KK] = 0.0;
-        if (JX2[j] == JX2[i]) {
-          int NN = (N[i] / 2) * (N[i] / 2 + 1) * (N[i] / 2 + 2) / 6 +
-                   (N[j] / 2) * (N[j] / 2 + 1) / 2 + L[i] / 2;
-          hamM[KK] = SW[0][NN] + SW[1][NN] * IX2[j] * (L[j] + LA[j]);
+        if (JX2[j-1] == JX2[i-1]) {
+          int NN = (N[i-1] / 2) * (N[i-1] / 2 + 1) * (N[i-1] / 2 + 2) / 6 +
+                   (N[j-1] / 2) * (N[j-1] / 2 + 1) / 2 + L[i-1] / 2;
+          hamM[KK] = SW[0][NN] + SW[1][NN] * IX2[j-1] * (L[j-1] + LA[j-1]);
         }
         KK++;
       }
     }
-    // inline void Eigen(double* A, int rank, double* eVecs,
-    // std::vector<double>* eVals) {
-    std::vector<double>* eVals = new std::vector<double>();
-    //TODO see if Eigen function returns same values, and in same order when rank != dim
+    std::vector<double> eVals;
     Eigen(hamM, II - NIM, eVecs, eVals);
+    //Eigen(hamM, II - NIM, eVecs);
 
-    for (int I = NI-1; I < II; I++) {
-      double eigenValue = (*eVals)[K];
+    cout << "Out of Eigen" << endl;
+    int index = 0.0;
+    for (int i = NI; i <= II; i++) {
+      double eigenValue = eVals[index];
       if (eigenValue <= 10.0) {
+        cout << "Eigenvalue: " << eigenValue << endl;
         if (K >= NDIM3 - 1) {
           cout << "Dimensioned space inadequate" << endl;
           return;
         }
         eValsWS[K] = eigenValue;
-        LK[K] = L[I];
-        K3[K] = JX2[I];
-        for (int J = NI-1; J < II; J++) {
-          int N0 = (II - NIM) * (I - NI) + J - NIM - 1;
-          sphExpCoef[K][J] = eVecs[N0];
+        LK[K] = L[i - 1];
+        K3[K] = JX2[i - 1];
+        for (int J = NI; J <= II; J++) {
+          int N0 = (II - NIM) * (i - NI) + J - NIM;
+          sphExpCoef[K][J - 1] = eVecs[N0 - 1];
         }
         K++;
       }
+      index++;
     }
     // II = size of harmonic oscillator basis
     // K = size of Woods-Saxon basis for deformed state diagonalization
@@ -320,7 +482,27 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     return;
   }
 
-  // TODO Print stuff, line ABOV0161
+  for (int KKK = 1; KKK <= K; KKK += 12) {
+    int KKKK = std::min(K, KKK + 11);
+    cout << "Energy (MeV): ";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << eValsWS[i - 1] << " ";
+    }
+    cout << endl;
+    cout << "Spin: \t\t";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << K3[i - 1] << "/2 \t";
+    }
+    cout << endl;
+    cout << "Coefficients: " << endl;
+    for (int J = 1; J <= II; J++) {
+      cout << "| " << N[J - 1] << " " << JX2[J - 1] << "/2 > ";
+      for (int L = KKK; L <= KKKK; L++) {
+        cout << sphExpCoef[L - 1][J - 1] << "\t\t ";
+      }
+      cout << endl;
+    }
+  }
 
   int ISX2 = std::abs(2 * spin);
   int ISPIN = (ISX2 + 1) / 2;
@@ -328,13 +510,13 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int KK = 0;
   int KKKK = 0;
   int IOM = 1;
-  for (int IIOM = 0; IIOM < ISPIN; IIOM++) {
-    IOM = -IOM + 2 * (int)(std::pow(-1., IIOM));
-    int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - min;
+  for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
+    IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
+    int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - nMin;
     int KKK = 0;
     for (int I = 0; I < K; I++) {
       LKK[KKK] = LK[I];
-      KN[IIOM][KKK] = I;
+      KN[IIOM-1][KKK] = I+1;
       double X = 0.0;
       for (int J = 0; J < II; J++) {
         if (L[J] == LKK[KKK]) {
@@ -366,7 +548,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
       break;
     }
     for (int I = 0; I < KKK; I++) {
-      for (int J = 0; J < I; J++) {
+      for (int J = 0; J <= I; J++) {
         B[KK] = 0.0;
         D[KK] = 0.0;
         for (int N1 = 0; N1 < II; N1++) {
@@ -387,7 +569,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
               }
               int NNP = NI * (NI - 1);
               NNP = (3 * NNP * NNP + 2 * NNP * (2 * NI - 1)) / 24 +
-                    NI * NJ * (NJ - 1) / 2 + (LI + 1) * NJ + LJ;
+                    NI * NJ * (NJ - 1) / 2 + (LI - 1) * NJ + LJ;
               double X = defExpCoef[I][N1] * SDW[NNP - 1] * defExpCoef[J][N2];
               int LP = L[N1];
               int LAP = LA[N1] + IIOM - 1;
@@ -408,41 +590,60 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   K = 0;
   KK = 0;
   IOM = 1;
-  for (int IIOM = 0; IIOM < ISPIN; IIOM++) {
-    IOM = -IOM + 2 * (int)(std::pow(-1., IIOM));
-    int KKK = K1[IIOM];
+  for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
+    IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
+    int KKK = K1[IIOM-1];
     if (KKK != 0) {
       int NK = 0;
       for (int I = 1; I <= KKK; I++) {
         for (int J = 1; J <= I; J++) {
-          hamM[NK] = beta2 * B[KK] + beta4 * D[KK];
           NK++;
+          hamM[NK-1] = beta2 * B[KK] + beta4 * D[KK];
           KK++;
         }
-        int N0 = KN[IIOM][I];
-        hamM[NK] += eValsWS[N0];
+        int N0 = KN[IIOM-1][I-1];
+        hamM[NK-1] += eValsWS[N0-1];
       }
-      std::vector<double>* eVals = new std::vector<double>();
+      std::vector<double> eVals;
       Eigen(hamM, KKK, eVecs, eVals);
       int N0 = 0;
-      for (int MU = 0; MU < KKK; MU++) {
+      for (int MU = 1; MU <= KKK; MU++) {
+        N0+=MU;
         K2[K] = IOM;
         K3[K] = std::abs(IOM);
-        // TODO check
-        K4[K] = KKK - MU + 2;
-        eValsDWS[K] = hamM[N0];
+        K4[K] = KKK - MU + 1;
+        eValsDWS[K] = eVals[MU-1];
         for (int J = 0; J < II; J++) {
           defExpCoef[K][J] = 0.0;
-          NK = KKK * MU;
+          NK = KKK * (MU-1);
           for (int NU = 0; NU < KKK; NU++) {
-            int I = KN[IIOM][NU];
+            int I = KN[IIOM-1][NU];
             NK++;
-            defExpCoef[K][J] += eVecs[NK] * sphExpCoef[I][J];
+            defExpCoef[K][J] += eVecs[NK-1] * sphExpCoef[I-1][J];
           }
         }
-        N0 += MU;
         K++;
       }
+    }
+  }
+  for (int KKK = 1; KKK <= K; KKK+=12) {
+    int KKKK = std::min(K, KKK+11);
+    cout << "Energy (MeV): ";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << eValsDWS[i-1] << " ";
+    }
+    cout << endl;
+    cout << "*OMEGA |MU> ";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << K3[i-1] << "/2|" << K4[i-1] << "> \t";
+    }
+    cout << endl;
+    for (int j = 1; j <= II; j++) {
+      cout << "| " << N[j-1] << ", " << JX2[j-1] << "/2 > ";
+      for (int l = KKK; l <= KKKK; l++) {
+        cout << defExpCoef[l-1][j-1] << "\t\t";
+      }
+      cout << endl;
     }
   }
 }

@@ -45,7 +45,10 @@ inline int DoubleFactorial(int n) {
 }
 
 inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int two_mb, int two_mc) {
-  return std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
+  if (two_ja < 0 || two_jb < 0 || two_jc < 0) {
+    return 0.0;
+  }
+  return std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1.0)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
 }
 
 // Function to calculate the matrix elements of spherical harmonics
