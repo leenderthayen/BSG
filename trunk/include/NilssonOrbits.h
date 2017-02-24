@@ -94,6 +94,10 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
   double DX = (R + 8. * AO) / NDX;
   double DFO = std::exp(DX / AO);
   int nMin = nMax % 2;
+
+  if (report) {
+    cout << "Radial integrals for Woods-Saxon potential" << endl;
+  }
   for (int NI = nMin; NI <= nMax; NI += 2) {
     for (int NJ = nMin; NJ <= NI; NJ += 2) {
       for (int LI = nMin; LI <= NI; LI += 2) {
@@ -168,17 +172,16 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
           SDW[JJ] = FINT[2] * X * DX * std::pow(TWONU, 1.5) * V0 * R;
           JJ++;
           if (report) {
-            cout << "Radial integrals for Woods-Saxon potential" << endl;
             if (KK == 0) {
               cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ
                    << " >";
               cout << "    " << II << " " << JJ << " =    " << SW[0][II - 1]
-                   << " " << SW[1][II - 1] << " " << SDW[JJ - 1];
+                   << "\t " << SW[1][II - 1] << "\t " << SDW[JJ - 1];
               cout << endl;
             } else if (KK == 2) {
               cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ
                    << " >";
-              cout << "      " << JJ << " =    " << SDW[JJ - 1];
+              cout << "      " << JJ << " = \t\t\t\t\t" << SDW[JJ - 1];
               cout << endl;
             }
           }
@@ -200,7 +203,6 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
       int index = dim * j + i;
       if (onlyUpper) {
         index = j * (j + 1) / 2 + i;
-        // cout << i << "," << j << ": " << index << endl;
       }
       gsl_matrix_set(aNew, i, j, A[index]);
       if (i != j) {
@@ -208,18 +210,13 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
       }
     }
   }
-  /*for (int i = 0; i < dim; i++) {
-    for (int j = 0; j < dim; j++) {
-      cout << gsl_matrix_get(aNew, i, j) << " ";
-    }
-    cout << endl;
-  }*/
   gsl_matrix* eVec = gsl_matrix_calloc(dim, dim);
   gsl_vector* eVal = gsl_vector_calloc(dim);
   int size = 4 * dim;
   gsl_eigen_symmv_workspace* w = gsl_eigen_symmv_alloc(size);
   gsl_eigen_symmv(aNew, eVal, eVec, w);
   gsl_eigen_symmv_free(w);
+  //Sort eigenvalues and eigenvalues according to descending eigenvalue
   for (int i = 0; i < dim; i++) {
     for (int j = i; j < dim; j++) {
       if (gsl_vector_get(eVal, j) > gsl_vector_get(eVal, i)) {
