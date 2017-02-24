@@ -89,6 +89,16 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("Computational.Potential", po::value<std::string>()->default_value("SHO"),
        "Set the potential used for the calculation of the matrix elements. SHO:"
        " Spherical Harmonic Oscillator; WS: Woods-Saxon; DWS: Deformed Woods-Saxon")
+      ("Computational.SurfaceThickness", po::value<double>()->default_value(0.650),
+       "Surface thickness of the Woods-Saxon potential in fm.")
+      ("Computational.V0neutron", po::value<double>()->default_value(53.0),
+       "Set the depth of the Woods-Saxon potential for neutrons in MeV.")
+      ("Computational.V0proton", po::value<double>()->default_value(48.0),
+       "Set the depth of the Woods-Saxon potential for protons in MeV.")
+      ("Computational.V0Sneutron", po::value<double>()->default_value(7.2),
+       "Set the magnitude of the spin-orbit potential for neutrons in MeV.")
+      ("Computational.V0Sproton", po::value<double>()->default_value(7.2),
+       "Set the magnitude of the spin-orbit potential for protons in MeV.")
       ("Constants.gA", po::value<double>()->default_value(1.2723),
        "Set the weak coupling constant.")
       ("Constants.gP", po::value<double>()->default_value(0.),

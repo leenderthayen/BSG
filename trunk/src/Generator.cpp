@@ -207,8 +207,26 @@ void Generator::InitializeL0Constants() {
 }
 
 double Generator::CalculateWeakMagnetism() {
-  /*utilities::NuclearState nsf = nilsson::CalculateDeformedState(Z, A, daughterBeta2, daughterBeta4);
-  utilities::NuclearState nsi =
+  double result = 0.0;
+
+  if (boost::iequals(GetOpt(std::string, Computational.Potential), "SHO")) {
+    int li, lf;
+    std::vector<int> occNumbersInit, occNumbersFinal;
+    if (fDecayType == BETA_MINUS) {
+      occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
+      occNumbersFinal = utilities::GetOccupationNumbers(Z);
+    }
+    else {
+      occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
+      occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
+    }
+    li = occNumbersInit[occNumbersInit.size() - 1 - 2];
+    si = occNumbersInit[occNumbersInit.size() - 1 - 1];
+    lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
+    sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
+  }
+  /*nilsson::SingleParticleState nsf = nilsson::CalculateDeformedState(Z, A, daughterBeta2, daughterBeta4);
+  nilsson::SingleParticleState nsi =
       nilsson::CalculateDeformedState(Z + fBetaType, A, motherBeta2, motherBeta4);
 
   return -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
@@ -220,7 +238,7 @@ double Generator::CalculateWeakMagnetism() {
                  nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
                  nsf.K, R) +
          gM / gA;*/
-  return 0.;
+  return result;
 }
 
 double Generator::CalculateInducedTensor() {

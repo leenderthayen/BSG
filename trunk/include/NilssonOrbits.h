@@ -19,17 +19,17 @@ namespace nilsson {
 using std::cout;
 using std::endl;
 
-// Here dO stands for double Omega
 // s is +-1 depending of whether it is j=l+-1/2
 struct WFComp {
   double C;
-  int l, s, dO;
+  int l, s;
 };
 
-struct NuclearState {
-  double O, K;
+struct SingleParticleState {
+  double O;
   int parity;
-  std::vector<WFComp> states;
+  double energy;
+  std::vector<WFComp> componentsHO;
 };
 
 inline double V(int n, int l, double x) {
@@ -246,7 +246,7 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
   gsl_matrix_free(eVec);
 }
 
-inline void Calculate(double spin, double beta2, double beta4, double V0,
+inline std::vector<SingleParticleState> Calculate(double spin, double beta2, double beta4, double V0,
                       double R, double A0, double V0S, double A, double Z,
                       int nMax, bool report = false) {
   double SW[2][84] = {};
@@ -272,6 +272,8 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int K2[NDIM4];
   int K3[NDIM4];
   int K4[NDIM4];
+
+  std::vector<SingleParticleState> states;
 
   WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, report);
 
@@ -327,7 +329,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
       if (eigenValue <= 10.0) {
         if (K >= NDIM3 - 1) {
           cout << "Dimensioned space inadequate" << endl;
-          return;
+          return states;
         }
         eValsWS[K] = eigenValue;
         LK[K] = L[i - 1];
@@ -347,7 +349,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     }
   }
   if (K == 0) {
-    return;
+    return states;
   }
 
   if (report) {
@@ -415,7 +417,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     }
     KKKK += KKK;
     if (KKKK > NDIM4) {
-      return;
+      return states;
     }
     K1[IIOM - 1] = KKK;
     if (KKK == 0) {
@@ -524,36 +526,50 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
       }
     }
   }
+  for (int i = 0; i < K; i++) {
+    SingleParticleState sps;
+    sps.energy = eValsDWS[i];
+    sps.O = K3[i];
+    sps.parity = 1 - 2 * (nMax % 2);
+    for (int j = 0; j < II; j++) {
+      WFComp wfc;
+      wfc.l = L[j];
+      wfc.s = (JX2[j]-L[j]) * 2;
+      wfc.C = defExpCoef[i][j];
+      sps.componentsHO.push_back(wfc);
+    }
+    states.push_back(sps);
+  }
+  return states;
 }
 
-inline NuclearState CalculateDeformedState(int Z, int A, double beta2,
-                                           double beta4) {
-  double O;
-  double K;
-  double parity;
+inline bool StateSorter(SingleParticleState const& lhs, SingleParticleState const& rhs) {
+  return lhs.energy < rhs.energy;
+}
 
-  // TODO
+inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R, double beta2,
+                                           double beta4, double V0, double A0, double VS) {
+  
+  std::vector<SingleParticleState> evenStates = Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 12);
+  std::vector<SingleParticleState> oddStates = Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 13);
 
-  // special case for 19Ne
-  /*struct WFComp s12 = {0.528947, 0, 1, 1};
-  struct WFComp d32 = {-0.297834, 2, -1, 1};
-  struct WFComp d52 = {0.794676, 2, 1, 1};
+  //Join all states
+  std::vector<SingleParticleState> allStates;
+  allStates.reserve(evenStates.size() + oddStates.size());
+  allStates.insert(allStates.end(), evenStates.begin(), evenStates.end());
+  allStates.insert(allStates.end(), oddStates.begin(), oddStates.end());
+  
+  //Sort all states according to energy
+  std::sort(allStates.begin(), allStates.end(), &StateSorter);
 
-  std::vector<WFComp> states = {s12, d32, d52};*/
+  int index = 0;
+  if (Z > 0) {
+    index = Z/2;
+  } else {
+    index = N/2;
+  }
 
-  // special case for 33Cl
-  WFComp d32 = {0.913656, 2, -1, 3};
-  WFComp d52 = {-0.406489, 2, 1, 3};
-
-  std::vector<WFComp> states = {d32, d52};
-
-  O = 3. / 2.;
-  K = 3. / 2.;
-  parity = 1;
-
-  NuclearState nuclearState = {O, K, parity, states};
-
-  return nuclearState;
+  return allStates[index];
 }
 }
 #endif

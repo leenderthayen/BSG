@@ -8,8 +8,8 @@ using std::cout;
 using std::endl;
 using std::cerr;
 
-double version = 0.9;
-char* lastUpdate = "February 16, 2017";
+double version = 0.10;
+char* lastUpdate = "February 24, 2017";
 char* author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 void ShowIntro() {

@@ -3,6 +3,10 @@ Folder=.
 
 [Computational]
 Potential=SHO
+V0neutron=53.0
+V0proton=48.0
+V0Sneutron=7.2
+V0Sproton=7.2
 
 [Constants]
 gA=1.1
