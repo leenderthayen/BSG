@@ -72,8 +72,8 @@ inline double VNORM(int n, int l) {
 }
 
 inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
-                       double Z, int nMax, double SW[2][84], double SDW[462]) {
-  cout << "In Woods-Saxon" << endl;
+                       double Z, int nMax, double SW[2][84], double SDW[462],
+                       bool report = false) {
   double FINT[3] = {};
   double S[3][4] = {};
   int II = 0;
@@ -167,15 +167,20 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
           }
           SDW[JJ] = FINT[2] * X * DX * std::pow(TWONU, 1.5) * V0 * R;
           JJ++;
-          if (KK == 0) {
-            cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ << " >";
-            cout << "    " << II << " " << JJ << " =    " << SW[0][II - 1]
-                 << " " << SW[1][II - 1] << " " << SDW[JJ - 1];
-            cout << endl;
-          } else if (KK == 2) {
-            cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ << " >";
-            cout << "      " << JJ << " =    " << SDW[JJ - 1];
-            cout << endl;
+          if (report) {
+            cout << "Radial integrals for Woods-Saxon potential" << endl;
+            if (KK == 0) {
+              cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ
+                   << " >";
+              cout << "    " << II << " " << JJ << " =    " << SW[0][II - 1]
+                   << " " << SW[1][II - 1] << " " << SDW[JJ - 1];
+              cout << endl;
+            } else if (KK == 2) {
+              cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ
+                   << " >";
+              cout << "      " << JJ << " =    " << SDW[JJ - 1];
+              cout << endl;
+            }
           }
         }
       }
@@ -244,7 +249,7 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
   gsl_matrix_free(eVec);
 }
 
-inline void Eigen(double* A, int rank, double* R) {
+/*inline void Eigen(double* A, int rank, double* R) {
   // Turn R into identity matrix of dim rank
   for (int j = 0; j < rank; j++) {
     for (int i = 0; i < rank; i++) {
@@ -373,11 +378,11 @@ inline void Eigen(double* A, int rank, double* R) {
     }
     cout << endl;
   }
-}
+}*/
 
 inline void Calculate(double spin, double beta2, double beta4, double V0,
                       double R, double A0, double V0S, double A, double Z,
-                      int nMax) {
+                      int nMax, bool report = false) {
   double SW[2][84] = {};
   double SDW[462] = {};
   int N[NDIM1];
@@ -402,15 +407,13 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   int K3[NDIM4];
   int K4[NDIM4];
 
-  cout << "Entered Calculate from nilsson ns" << endl;
-
-  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW);
+  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, report);
 
   int II = 0;
   int K = 0;
 
-  int nMin = nMax % 2+1;
-  int nMaxP1 = nMax+1;
+  int nMin = nMax % 2 + 1;
+  int nMaxP1 = nMax + 1;
   // Diagonalize each L-value separately
   for (int LI = nMin; LI <= nMaxP1; LI += 2) {
     int NIM = II;
@@ -420,8 +423,8 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     // Set up quantum numbers of the harmonic oscillator basis
     for (int NN = LI; NN <= nMaxP1; NN += 2) {
       for (int I = 1; I <= 2; I++) {
-        N[II] = NN-1;
-        L[II] = LI-1;
+        N[II] = NN - 1;
+        L[II] = LI - 1;
         LA[II] = 2 - I;
         IX2[II] = 2 * I - 3;
         JX2[II] = 2 * L[II] + IX2[II];
@@ -439,24 +442,23 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     for (int i = NI; i <= II; i++) {
       for (int j = NI; j <= i; j++) {
         hamM[KK] = 0.0;
-        if (JX2[j-1] == JX2[i-1]) {
-          int NN = (N[i-1] / 2) * (N[i-1] / 2 + 1) * (N[i-1] / 2 + 2) / 6 +
-                   (N[j-1] / 2) * (N[j-1] / 2 + 1) / 2 + L[i-1] / 2;
-          hamM[KK] = SW[0][NN] + SW[1][NN] * IX2[j-1] * (L[j-1] + LA[j-1]);
+        if (JX2[j - 1] == JX2[i - 1]) {
+          int NN =
+              (N[i - 1] / 2) * (N[i - 1] / 2 + 1) * (N[i - 1] / 2 + 2) / 6 +
+              (N[j - 1] / 2) * (N[j - 1] / 2 + 1) / 2 + L[i - 1] / 2;
+          hamM[KK] =
+              SW[0][NN] + SW[1][NN] * IX2[j - 1] * (L[j - 1] + LA[j - 1]);
         }
         KK++;
       }
     }
     std::vector<double> eVals;
     Eigen(hamM, II - NIM, eVecs, eVals);
-    //Eigen(hamM, II - NIM, eVecs);
 
-    cout << "Out of Eigen" << endl;
     int index = 0.0;
     for (int i = NI; i <= II; i++) {
       double eigenValue = eVals[index];
       if (eigenValue <= 10.0) {
-        cout << "Eigenvalue: " << eigenValue << endl;
         if (K >= NDIM3 - 1) {
           cout << "Dimensioned space inadequate" << endl;
           return;
@@ -482,25 +484,29 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     return;
   }
 
-  for (int KKK = 1; KKK <= K; KKK += 12) {
-    int KKKK = std::min(K, KKK + 11);
-    cout << "Energy (MeV): ";
-    for (int i = KKK; i <= KKKK; i++) {
-      cout << eValsWS[i - 1] << " ";
-    }
-    cout << endl;
-    cout << "Spin: \t\t";
-    for (int i = KKK; i <= KKKK; i++) {
-      cout << K3[i - 1] << "/2 \t";
-    }
-    cout << endl;
-    cout << "Coefficients: " << endl;
-    for (int J = 1; J <= II; J++) {
-      cout << "| " << N[J - 1] << " " << JX2[J - 1] << "/2 > ";
-      for (int L = KKK; L <= KKKK; L++) {
-        cout << sphExpCoef[L - 1][J - 1] << "\t\t ";
+  if (report) {
+    cout << "Spherical Woods-Saxon expansion in Harmonic Oscillator basis."
+         << endl;
+    for (int KKK = 1; KKK <= K; KKK += 12) {
+      int KKKK = std::min(K, KKK + 11);
+      cout << "Energy (MeV): ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << eValsWS[i - 1] << " ";
       }
       cout << endl;
+      cout << "Spin: \t\t";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << K3[i - 1] << "/2 \t";
+      }
+      cout << endl;
+      cout << "Coefficients: " << endl;
+      for (int J = 1; J <= II; J++) {
+        cout << "| " << N[J - 1] << " " << JX2[J - 1] << "/2 > ";
+        for (int L = KKK; L <= KKKK; L++) {
+          cout << sphExpCoef[L - 1][J - 1] << "\t\t ";
+        }
+        cout << endl;
+      }
     }
   }
 
@@ -514,10 +520,12 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
     int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - nMin;
     int KKK = 0;
+    // Loop over all spherical states with E < 10.0 MeV
     for (int I = 0; I < K; I++) {
       LKK[KKK] = LK[I];
-      KN[IIOM-1][KKK] = I+1;
+      KN[IIOM - 1][KKK] = I + 1;
       double X = 0.0;
+      // Loop over the full spherical basis
       for (int J = 0; J < II; J++) {
         if (L[J] == LKK[KKK]) {
           double cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J],
@@ -543,7 +551,7 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
     if (KKKK > NDIM4) {
       return;
     }
-    K1[IIOM] = KKK;
+    K1[IIOM - 1] = KKK;
     if (KKK == 0) {
       break;
     }
@@ -592,58 +600,62 @@ inline void Calculate(double spin, double beta2, double beta4, double V0,
   IOM = 1;
   for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
     IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
-    int KKK = K1[IIOM-1];
+    int KKK = K1[IIOM - 1];
     if (KKK != 0) {
       int NK = 0;
       for (int I = 1; I <= KKK; I++) {
         for (int J = 1; J <= I; J++) {
           NK++;
-          hamM[NK-1] = beta2 * B[KK] + beta4 * D[KK];
+          hamM[NK - 1] = beta2 * B[KK] + beta4 * D[KK];
           KK++;
         }
-        int N0 = KN[IIOM-1][I-1];
-        hamM[NK-1] += eValsWS[N0-1];
+        int N0 = KN[IIOM - 1][I - 1];
+        hamM[NK - 1] += eValsWS[N0 - 1];
       }
       std::vector<double> eVals;
       Eigen(hamM, KKK, eVecs, eVals);
       int N0 = 0;
       for (int MU = 1; MU <= KKK; MU++) {
-        N0+=MU;
+        N0 += MU;
         K2[K] = IOM;
         K3[K] = std::abs(IOM);
         K4[K] = KKK - MU + 1;
-        eValsDWS[K] = eVals[MU-1];
+        eValsDWS[K] = eVals[MU - 1];
         for (int J = 0; J < II; J++) {
           defExpCoef[K][J] = 0.0;
-          NK = KKK * (MU-1);
+          NK = KKK * (MU - 1);
           for (int NU = 0; NU < KKK; NU++) {
-            int I = KN[IIOM-1][NU];
+            int I = KN[IIOM - 1][NU];
             NK++;
-            defExpCoef[K][J] += eVecs[NK-1] * sphExpCoef[I-1][J];
+            defExpCoef[K][J] += eVecs[NK - 1] * sphExpCoef[I - 1][J];
           }
         }
         K++;
       }
     }
   }
-  for (int KKK = 1; KKK <= K; KKK+=12) {
-    int KKKK = std::min(K, KKK+11);
-    cout << "Energy (MeV): ";
-    for (int i = KKK; i <= KKKK; i++) {
-      cout << eValsDWS[i-1] << " ";
-    }
-    cout << endl;
-    cout << "*OMEGA |MU> ";
-    for (int i = KKK; i <= KKKK; i++) {
-      cout << K3[i-1] << "/2|" << K4[i-1] << "> \t";
-    }
-    cout << endl;
-    for (int j = 1; j <= II; j++) {
-      cout << "| " << N[j-1] << ", " << JX2[j-1] << "/2 > ";
-      for (int l = KKK; l <= KKKK; l++) {
-        cout << defExpCoef[l-1][j-1] << "\t\t";
+  if (report) {
+    cout << "Deformed states: No band mixing   Beta2: " << beta2
+         << " Beta4: " << beta4 << endl;
+    for (int KKK = 1; KKK <= K; KKK += 12) {
+      int KKKK = std::min(K, KKK + 11);
+      cout << "Energy (MeV): ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << eValsDWS[i - 1] << " ";
       }
       cout << endl;
+      cout << "*OMEGA |MU> ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << K3[i - 1] << "/2|" << K4[i - 1] << "> \t";
+      }
+      cout << endl;
+      for (int j = 1; j <= II; j++) {
+        cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > ";
+        for (int l = KKK; l <= KKKK; l++) {
+          cout << defExpCoef[l - 1][j - 1] << "\t\t";
+        }
+        cout << endl;
+      }
     }
   }
 }

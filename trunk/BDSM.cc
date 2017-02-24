@@ -24,7 +24,7 @@ void TestNilssonMethods() {
   cout << "Testing Nilsson methods" << endl;
 
   int dim = 2;
-  double M[dim*(dim+1)/2] = {1.0, 0.0, 2.0};
+  double M[dim*(dim+1)/2] = {1.0, 1.0, 2.0};
 
   std::vector<double> eVals;
   double eVecs[dim*dim] = {};
@@ -57,9 +57,9 @@ void TestNilssonMethods() {
   double spin = 1.5;
   double beta2 = 0.4;
   double beta4 = 0.05;
+  bool report = true;
 
-  //nilsson::WoodsSaxon(V0, R, A0, VS, A, Z, nMax, SW, SDW);
-  nilsson::Calculate(spin, beta2, beta4, V0, R, A0, VS, A, Z, nMax);
+  nilsson::Calculate(spin, beta2, beta4, V0, R, A0, VS, A, Z, nMax, true);
 }
 
 int main(int argc, char** argv) {

@@ -45,10 +45,14 @@ inline int DoubleFactorial(int n) {
 }
 
 inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int two_mb, int two_mc) {
-  if (two_ja < 0 || two_jb < 0 || two_jc < 0) {
-    return 0.0;
+  double result = 0.0;
+  //cout << "Clebsch-Gordan " << two_ja << " " << two_jb << " " << two_jc << endl;
+  //cout << "               " << two_ma << " " << two_mb << " " << two_mc << endl;
+  if (two_ja >= 0 && two_jb >= 0 && two_jc >= 0) {
+    result = std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1.0)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
   }
-  return std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1.0)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
+  //cout << "Result: " << result << endl;
+  return result;
 }
 
 // Function to calculate the matrix elements of spherical harmonics
@@ -62,7 +66,7 @@ inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll, int la)
   if (laP == m+la) {
     double x = (2.*l+1.)*(2.*ll+1.)/(12.566375*(2.*lP+1.));
     double cg = ClebschGordan(2*ll, 2*l, 2*lP, 2*la, 2*m, 2*(la+m));
-    result = x*cg;
+    result = std::sqrt(x)*cg;
     cg = ClebschGordan(2*ll, 2*l, 2*lP, 0, 0, 0);
     result*=cg;
   }
