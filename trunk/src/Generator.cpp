@@ -25,14 +25,14 @@ using std::endl;
 Generator::Generator() {
   Z = GetOpt(int, NuclearProperties.DaughterZ);
   A = GetOpt(int, NuclearProperties.DaughterA);
-  R = GetOpt(double, NuclearProperties.DaughterRadius)*1e-15/NATLENGTH;
+  R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH;
   motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
   motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
   daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
   daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
   motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
   daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
-  
+
   gA = GetOpt(double, Constants.gA);
   gP = GetOpt(double, Constants.gP);
   gM = GetOpt(double, Constants.gM);
@@ -42,32 +42,28 @@ Generator::Generator() {
 
   if (boost::iequals(process, "B+")) {
     fBetaType = BETA_PLUS;
-  }
-  else {
+  } else {
     fBetaType = BETA_MINUS;
   }
 
   mixingRatio = 0.;
   if (boost::iequals(type, "Fermi")) {
     fDecayType = FERMI;
-  }
-  else if (boost::iequals(type, "Gamow-Teller")) {
+  } else if (boost::iequals(type, "Gamow-Teller")) {
     fDecayType = GAMOW_TELLER;
-  }
-  else {
+  } else {
     fDecayType = MIXED;
     mixingRatio = GetOpt(double, Transition.MixingRatio);
   }
 
   double QValue = GetOpt(double, Transition.QValue);
-  
+
   if (fBetaType == BETA_MINUS) {
-    W0 = QValue/electronMasskeV + 1.;
-  } 
-  else {
-    W0 = QValue/electronMasskeV - 1.;
+    W0 = QValue / electronMasskeV + 1.;
+  } else {
+    W0 = QValue / electronMasskeV - 1.;
   }
-  W0 = W0 - (W0*W0-1)/2./A/1837.4;
+  W0 = W0 - (W0 * W0 - 1) / 2. / A / 1837.4;
 
   LoadExchangeParameters();
 
@@ -208,15 +204,14 @@ void Generator::InitializeL0Constants() {
 
 double Generator::CalculateWeakMagnetism() {
   double result = 0.0;
-
-  if (boost::iequals(GetOpt(std::string, Computational.Potential), "SHO")) {
-    int li, lf;
+  std::string pot = GetOpt(std::string, Computational.Potential);
+  if (boost::iequals(pot, "SHO")) {
+    int li, si, lf, sf;
     std::vector<int> occNumbersInit, occNumbersFinal;
     if (fDecayType == BETA_MINUS) {
       occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
       occNumbersFinal = utilities::GetOccupationNumbers(Z);
-    }
-    else {
+    } else {
       occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
       occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
     }
@@ -224,25 +219,116 @@ double Generator::CalculateWeakMagnetism() {
     si = occNumbersInit[occNumbersInit.size() - 1 - 1];
     lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
     sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
-  }
-  /*nilsson::SingleParticleState nsf = nilsson::CalculateDeformedState(Z, A, daughterBeta2, daughterBeta4);
-  nilsson::SingleParticleState nsi =
-      nilsson::CalculateDeformedState(Z + fBetaType, A, motherBeta2, motherBeta4);
+    if (li == lf) {
+      if (si == sf && si > 0) {
+        return 1. / gA * (li + 1 + gM);
+      } else if (si == sf) {
+        return 1. / gA * (li + 1 - gM);
+      }
+    }
+  } else {
+    nilsson::SingleParticleState spsi;
+    nilsson::SingleParticleState spsf;
+    if (boost::iequals(pot, "WS")) {
+      if (fDecayType == BETA_MINUS) {
+        spsf = nilsson::CalculateDeformedState(Z, 0, A, 0.0, 0.0);
+        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, 0.0,
+                                               0.0);
+      } else {
+        spsf = nilsson::CalculateDeformedState(0, A - Z, A, 0.0, 0.0);
+        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, 0.0, 0.0);
+      }
+    } else if (boost::iequals(pot, "DWS")) {
+      if (fDecayType == BETA_MINUS) {
+        spsf = nilsson::CalculateDeformedState(Z, 0, A, daughterBeta2,
+                                               daughterBeta4);
+        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A,
+                                               motherBeta2, motherBeta4);
+      } else {
+        spsf = nilsson::CalculateDeformedState(0, A - Z, A, daughterBeta2,
+                                               daughterBeta4);
+        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A,
+                                               motherBeta2, motherBeta4);
+      }
+    }
 
-  return -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
-             electronMasskeV * R / gA *
-             matrixelements::CalculateDeformedSPMatrixElement(
-                 nsi.states, nsf.states, true, 1, 1, 1, nsi.O, nsf.O, nsi.K,
-                 nsf.K, R) /
-             matrixelements::CalculateDeformedSPMatrixElement(
-                 nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
-                 nsf.K, R) +
-         gM / gA;*/
+    result = -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
+                 electronMasskeV * R / gA *
+                 matrixelements::CalculateDeformedSPMatrixElement(
+                     spsi.componentsHO, spsf.componentsHO, true, 1, 1, 1, spsi.O, spsf.O,
+                     spsi.K, spsf.K, R) /
+                 matrixelements::CalculateDeformedSPMatrixElement(
+                     spsi.componentsHO, spsf.componentsHO, false, 1, 0, 1, spsi.O, spsf.O,
+                     spsi.K, spsf.K, R) +
+             gM / gA;
+  }
   return result;
 }
 
-double Generator::CalculateInducedTensor() {
-  return 0.;
+double Generator::CalculateInducedTensor() { 
+  double result = 0.0;
+  std::string pot = GetOpt(std::string, Computational.Potential);
+  if (boost::iequals(pot, "SHO")) {
+    int li, si, lf, sf;
+    std::vector<int> occNumbersInit, occNumbersFinal;
+    if (fDecayType == BETA_MINUS) {
+      occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
+      occNumbersFinal = utilities::GetOccupationNumbers(Z);
+    } else {
+      occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
+      occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
+    }
+    li = occNumbersInit[occNumbersInit.size() - 1 - 2];
+    si = occNumbersInit[occNumbersInit.size() - 1 - 1];
+    lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
+    sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
+    //TODO change to induced tensor 
+    if (li == lf) {
+      if (si == sf && si > 0) {
+        return 1. / gA * (li + 1 + gM);
+      } else if (si == sf) {
+        return 1. / gA * (li + 1 - gM);
+      }
+    }
+  } else {
+    nilsson::SingleParticleState spsi;
+    nilsson::SingleParticleState spsf;
+    if (boost::iequals(pot, "WS")) {
+      if (fDecayType == BETA_MINUS) {
+        spsf = nilsson::CalculateDeformedState(Z, 0, A, 0.0, 0.0);
+        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, 0.0,
+                                               0.0);
+      } else {
+        spsf = nilsson::CalculateDeformedState(0, A - Z, A, 0.0, 0.0);
+        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, 0.0, 0.0);
+      }
+    } else if (boost::iequals(pot, "DWS")) {
+      if (fDecayType == BETA_MINUS) {
+        spsf = nilsson::CalculateDeformedState(Z, 0, A, daughterBeta2,
+                                               daughterBeta4);
+        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A,
+                                               motherBeta2, motherBeta4);
+      } else {
+        spsf = nilsson::CalculateDeformedState(0, A - Z, A, daughterBeta2,
+                                               daughterBeta4);
+        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A,
+                                               motherBeta2, motherBeta4);
+      }
+    }
+
+    //TODO change to induced tensor
+    result = -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
+                 electronMasskeV * R / gA *
+                 matrixelements::CalculateDeformedSPMatrixElement(
+                     spsi.componentsHO, spsf.componentsHO, true, 1, 1, 0, spsi.O, spsf.O,
+                     spsi.K, spsf.K, R) /
+                 matrixelements::CalculateDeformedSPMatrixElement(
+                     spsi.componentsHO, spsf.componentsHO, false, 1, 0, 1, spsi.O, spsf.O,
+                     spsi.K, spsf.K, R) +
+             gM / gA;
+  }
+  return result;
+return 0.; 
 }
 
 double Generator::CalculateRatioM121() {
@@ -253,8 +339,7 @@ double Generator::CalculateRatioM121() {
     if (fDecayType == BETA_MINUS) {
       occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
       occNumbersFinal = utilities::GetOccupationNumbers(Z);
-    }
-    else {
+    } else {
       occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
       occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
     }
@@ -262,11 +347,13 @@ double Generator::CalculateRatioM121() {
     si = occNumbersInit[occNumbersInit.size() - 1 - 1];
     lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
     sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
-    double M121 = ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 2, 1, li, lf, si, sf, R);
-    double M101 = ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 0, 1, li, lf, si, sf, R);
+    double M121 = ME::GetSingleParticleMatrixElement(
+        false, std::abs(motherSpinParity) / 2., 1, 2, 1, li, lf, si, sf, R);
+    double M101 = ME::GetSingleParticleMatrixElement(
+        false, std::abs(motherSpinParity) / 2., 1, 0, 1, li, lf, si, sf, R);
 
-    ratio = M121/M101;
-    fc1 = gA*M101;
+    ratio = M121 / M101;
+    fc1 = gA * M101;
   }
   return ratio;
 }
@@ -284,7 +371,6 @@ void Generator::CalculateMatrixElements() {
 
   fb = bAc * A * fc1;
   fd = dAc * A * fc1;
-
 }
 
 double* Generator::CalculateDecayRate(double W) {
@@ -295,7 +381,8 @@ double* Generator::CalculateDecayRate(double W) {
 
   if (!OptExists(phase)) {
     result *= SF::PhaseSpace(W, W0, motherSpinParity, daughterSpinParity);
-    neutrinoResult *= SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
+    neutrinoResult *=
+        SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
 
   if (!OptExists(fermi)) {
@@ -304,18 +391,24 @@ double* Generator::CalculateDecayRate(double W) {
   }
 
   if (!OptExists(C)) {
-    result *= SF::CCorrection(W, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP, fc1, fb, fd, ratioM121);
-    neutrinoResult *= SF::CCorrection(Wv, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP, fc1, fb, fd, ratioM121);
+    result *= SF::CCorrection(W, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA,
+                              gP, fc1, fb, fd, ratioM121);
+    neutrinoResult *=
+        SF::CCorrection(Wv, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP,
+                        fc1, fb, fd, ratioM121);
   }
 
   if (!OptExists(relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, fBetaType, fDecayType);
-    neutrinoResult *= SF::RelativisticCorrection(Wv, W0, Z, A, R, fBetaType, fDecayType);
+    neutrinoResult *=
+        SF::RelativisticCorrection(Wv, W0, Z, A, R, fBetaType, fDecayType);
   }
 
   if (!OptExists(deformation)) {
-    result *= SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, daughterBeta4);
-    neutrinoResult *= SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, daughterBeta4);
+    result *=
+        SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, daughterBeta4);
+    neutrinoResult *=
+        SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, daughterBeta4);
   }
 
   if (!OptExists(l0)) {
@@ -330,7 +423,8 @@ double* Generator::CalculateDecayRate(double W) {
 
   if (!OptExists(Q)) {
     result *= SF::QCorrection(W, W0, Z, A, fBetaType, fDecayType, mixingRatio);
-    neutrinoResult *= SF::QCorrection(Wv, W0, Z, A, fBetaType, fDecayType, mixingRatio);
+    neutrinoResult *=
+        SF::QCorrection(Wv, W0, Z, A, fBetaType, fDecayType, mixingRatio);
   }
 
   if (!OptExists(radiative)) {
@@ -369,12 +463,12 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
   double endEn = GetOpt(double, end);
   double stepEn = GetOpt(double, step);
 
-  double beginW = beginEn/electronMasskeV + 1.;
-  double endW = endEn/electronMasskeV + 1.;
+  double beginW = beginEn / electronMasskeV + 1.;
+  double endW = endEn / electronMasskeV + 1.;
   if (endEn == 0.0) {
     endW = W0;
   }
-  double stepW = stepEn/electronMasskeV;
+  double stepW = stepEn / electronMasskeV;
 
   double currentW = beginW;
   while (currentW <= endW) {
