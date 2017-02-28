@@ -5,6 +5,7 @@
 #include "Constants.h"
 
 #include <iostream>
+#include <algorithm>
 
 #include "gsl/gsl_eigen.h"
 #include "gsl/gsl_matrix.h"
@@ -26,11 +27,59 @@ struct WFComp {
 };
 
 struct SingleParticleState {
-  double O;
+  double O, K;
   int parity;
   double energy;
   std::vector<WFComp> componentsHO;
 };
+
+
+/*
+ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON      
+1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE        
+2   ROTATIONAL STATES.  HIRD, B.                                        
+REF. IN COMP. PHYS. COMMUN. 6 (1973) 30                                 
+NILSSON ORBITS                                                
+FOR A PARTICLE IN A WOODS-SAXON POTENTIAL WITH Y(2,0) AND Y(4,0)  
+DEFORMATIONS, AND COUPLED TO CORE ROTATIONAL STATES.              
+                                                                  
+METHOD - MATRIX DIAGONALIZATION.                                  
+   FIRST DIAGONALIZATION IS OF SPHERICAL WOODS-SAXON HAMILTONIAN  
+        WITH HARMONIC OSCILLATOR BASIS.                           
+   SECOND DIAGONALIZATION IS OF DEFORMED HAMILTONIAN WITH         
+        SPHERICAL WOODS-SAXON EIGENSTATES AS BASIS.               
+   THIRD DIAGONALIZATION IS OF BAND MIXING AND CORE HAMILTONIAN   
+        WITH DEFORMED PARTICLE EIGENSTATES AS A BASIS.            
+                                                                  
+REFERENCES:-                                                      
+S.G.NILSSON, 1955 MAT.FYS.MEDD.DAN.VID.SELSK. 29 NO 16.           
+A.K.KERMAN, 1956 MAT.FYS.MEDD.DAN.VID.SELSK. 30 NO 15.            
+K.T.HECHT AND G.R.SATCHLER, NUCLEAR PHYSICS, 32(1962)286          
+W.SCHOLZ AND F.B.MALIK, PHYS.REV., 147(1966)836.                  
+                                                                  
+NOTATION:-                                                        
+ENERGIES IN MEV.  LENGTHS IN FM. MASS IN A.M.U. Z IN ELECTRONIC   
+CHARGE UNITS.                                                     
+V0,R0,A0,V0S = WOODS-SAXON PARAMETERS.                            
+AMU = ATOMIC WEIGHT OF ODD PARTICLE + CORE.                       
+Z = ZERO FOR A NEUTRON STATE; = CORE CHARGE FOR A PROTON STATE.   
+NMAX = MAXIMUM RADIAL QUANTUM NUMBER IN HARMONIC OSCILLATOR BASIS.
+NMAX = ODD;EVEN FOR NEGATIVE;POSITIVE PARITY     NMAX < 14        
+BETA2 = SPHEROIDAL DEFORMATION                                    
+BETA4 = HEXADECAPOLE DEFORMATION.                                 
+ROT = UNIT OF ROTATIONAL ENERGY OF THE CORE.                      
+ROTI(I) = ROTATIONAL ENERGY FOR THIS VALUE OF I ONLY.             
+ROTO(OMEGA) = ROTATIONAL ENERGY FOR THIS OMEGA ONLY.              
+SPIN = MAXIMUM VALUE OF TOTAL SPIN I OF SYSTEM.                   
+ALL EIGENSTATES WITH SPINS UP TO INPUT VALUE OF SPIN ARE FOUND.   
+N = RADIAL QUANTUM NUMBER.                                        
+L = ANGULAR MOMENTUM QUANTUM NUMBER.                              
+LA = LAMBDA = COMPONENT OF L ALONG SYMMETRY AXIS.                 
+IX2 = 2*SIGMA = 2*COMPONENT OF INTRINSIC SPIN ALONG SYMMETRY AXIS.
+JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.                          
+SW(1,NN) = TABLE OF <N',L!F(R)!N,L>                               
+SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.                
+SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      */
 
 inline double V(int n, int l, double x) {
   int m = (n - l) / 2;
@@ -530,6 +579,7 @@ inline std::vector<SingleParticleState> Calculate(double spin, double beta2, dou
     SingleParticleState sps;
     sps.energy = eValsDWS[i];
     sps.O = K3[i];
+    sps.K = K3[i];
     sps.parity = 1 - 2 * (nMax % 2);
     for (int j = 0; j < II; j++) {
       WFComp wfc;

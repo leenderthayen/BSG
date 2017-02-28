@@ -30,11 +30,11 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("NuclearProperties.MotherBeta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the mother nucleus.")
       ("NuclearProperties.MotherBeta4", po::value<double>()->default_value(0.),
-       "Set the octupole deformation beta4 parameter for the mother nucleus.")
+       "Set the hexadecupole deformation beta4 parameter for the mother nucleus.")
       ("NuclearProperties.DaughterBeta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the daughter nucleus.")
       ("NuclearProperties.DaughterBeta4", po::value<double>()->default_value(0.),
-       "Set the octupole deformation beta4 parameter for the daughter nucleus.")
+       "Set the hexadecupole deformation beta4 parameter for the daughter nucleus.")
       ("NuclearProperties.MotherSpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
       ("NuclearProperties.DaughterSpinParity", po::value<int>(),

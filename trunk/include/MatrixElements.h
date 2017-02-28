@@ -2,6 +2,8 @@
 #define MATRIXELEMENTS
 
 #include "gsl/gsl_sf_coupling.h"
+#include "NilssonOrbits.h"
+
 #include <cmath>
 
 namespace MatrixElements {
@@ -103,26 +105,25 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L, in
   return result;
 }
 
-//Here dO stands for double Omega
-//s is +-1 depending of whether it is j=l+-1/2
-struct WFComp {double C; int l, s, dO; };
-
 inline int delta(double x, double y) {
   return (x == y) ? 1 : 0;
 }
 
-inline double CalculateDeformedSPMatrixElement(std::vector<WFComp> initStates, std::vector<WFComp> finalStates, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
+inline double CalculateDeformedSPMatrixElement(nilsson::SingleParticleState spsi, nilsson::SingleParticleState spsf, bool V, int K, int L, int s, double Ji, double Jf, double Ki, double Kf, double R) {
   double result = 0.;
 
   //cout << "Calculating deformed SP ME " << K << " " << L << " " << s << endl;
-
-  for (std::vector<WFComp>::iterator fIt = finalStates.begin(); fIt != finalStates.end(); ++fIt) {
-    for(std::vector<WFComp>::iterator inIt = initStates.begin(); inIt != initStates.end(); ++inIt) {
-      result += (*fIt).C*(*inIt).C*(pow(-1, Jf-Kf+(*fIt).l+(*fIt).s/2.-(*fIt).dO/2.)*
-	gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, -2*Kf, (*fIt).dO-(*inIt).dO, 2*Ki)*
-	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, -(*fIt).dO, (*fIt).dO-(*inIt).dO, (*inIt).dO)
-	+ gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, 2*Kf, -(*fIt).dO-(*inIt).dO, 2*Ki)*
-	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, (*fIt).dO, -(*fIt).dO-(*inIt).dO, (*inIt).dO))*
+  std::vector<nilsson::WFComp> finalStates = spsf.componentsHO;
+  std::vector<nilsson::WFComp> initStates = spsi.componentsHO;
+  int inO = 2 * spsi.O;
+  int fO = 2 * spsf.O;
+  for (std::vector<nilsson::WFComp>::iterator fIt = finalStates.begin(); fIt != finalStates.end(); ++fIt) {
+    for(std::vector<nilsson::WFComp>::iterator inIt = initStates.begin(); inIt != initStates.end(); ++inIt) {
+      result += (*fIt).C*(*inIt).C*(pow(-1, Jf-Kf+(*fIt).l+(*fIt).s/2.-fO/2.)*
+	gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, -2*Kf, fO-inO, 2*Ki)*
+	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, -fO, fO-inO, inO)
+	+ gsl_sf_coupling_3j(2*Jf, 2*K, 2*Ji, 2*Kf, -fO-inO, 2*Ki)*
+	gsl_sf_coupling_3j(2*(*fIt).l+(*fIt).s, 2*K, 2*(*inIt).l+(*inIt).s, fO, -fO-inO, inO))*
 	GetSingleParticleMatrixElement(V, Ji, K, L, s, (*inIt).l, (*fIt).l, (*inIt).s, (*fIt).s, R);
     }
   }

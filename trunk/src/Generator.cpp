@@ -4,7 +4,6 @@
 #include "ChargeDistributions.h"
 #include "Constants.h"
 #include "Utilities.h"
-#include "NilssonOrbits.h"
 #include "MatrixElements.h"
 #include "SpectralFunctions.h"
 
@@ -207,18 +206,7 @@ double Generator::CalculateWeakMagnetism() {
   std::string pot = GetOpt(std::string, Computational.Potential);
   if (boost::iequals(pot, "SHO")) {
     int li, si, lf, sf;
-    std::vector<int> occNumbersInit, occNumbersFinal;
-    if (fDecayType == BETA_MINUS) {
-      occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
-      occNumbersFinal = utilities::GetOccupationNumbers(Z);
-    } else {
-      occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
-      occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
-    }
-    li = occNumbersInit[occNumbersInit.size() - 1 - 2];
-    si = occNumbersInit[occNumbersInit.size() - 1 - 1];
-    lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
-    sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
+    GetSPOrbitalNumbers(li, si, lf, sf);
     if (li == lf) {
       if (si == sf && si > 0) {
         return 1. / gA * (li + 1 + gM);
@@ -227,62 +215,29 @@ double Generator::CalculateWeakMagnetism() {
       }
     }
   } else {
-    nilsson::SingleParticleState spsi;
     nilsson::SingleParticleState spsf;
-    if (boost::iequals(pot, "WS")) {
-      if (fDecayType == BETA_MINUS) {
-        spsf = nilsson::CalculateDeformedState(Z, 0, A, 0.0, 0.0);
-        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, 0.0,
-                                               0.0);
-      } else {
-        spsf = nilsson::CalculateDeformedState(0, A - Z, A, 0.0, 0.0);
-        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, 0.0, 0.0);
-      }
-    } else if (boost::iequals(pot, "DWS")) {
-      if (fDecayType == BETA_MINUS) {
-        spsf = nilsson::CalculateDeformedState(Z, 0, A, daughterBeta2,
-                                               daughterBeta4);
-        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A,
-                                               motherBeta2, motherBeta4);
-      } else {
-        spsf = nilsson::CalculateDeformedState(0, A - Z, A, daughterBeta2,
-                                               daughterBeta4);
-        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A,
-                                               motherBeta2, motherBeta4);
-      }
-    }
+    nilsson::SingleParticleState spsi;
+    GetDeformedStates(spsf, spsi, pot);
 
-    result = -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
-                 electronMasskeV * R / gA *
-                 matrixelements::CalculateDeformedSPMatrixElement(
-                     spsi.componentsHO, spsf.componentsHO, true, 1, 1, 1, spsi.O, spsf.O,
-                     spsi.K, spsf.K, R) /
-                 matrixelements::CalculateDeformedSPMatrixElement(
-                     spsi.componentsHO, spsf.componentsHO, false, 1, 0, 1, spsi.O, spsf.O,
-                     spsi.K, spsf.K, R) +
-             gM / gA;
+    result =
+        -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
+            electronMasskeV * R / gA *
+            MatrixElements::CalculateDeformedSPMatrixElement(
+                spsi, spsf, true, 1, 1, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) /
+            MatrixElements::CalculateDeformedSPMatrixElement(
+                spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) +
+        gM / gA;
   }
   return result;
 }
 
-double Generator::CalculateInducedTensor() { 
+double Generator::CalculateInducedTensor() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
   if (boost::iequals(pot, "SHO")) {
     int li, si, lf, sf;
-    std::vector<int> occNumbersInit, occNumbersFinal;
-    if (fDecayType == BETA_MINUS) {
-      occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
-      occNumbersFinal = utilities::GetOccupationNumbers(Z);
-    } else {
-      occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
-      occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
-    }
-    li = occNumbersInit[occNumbersInit.size() - 1 - 2];
-    si = occNumbersInit[occNumbersInit.size() - 1 - 1];
-    lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
-    sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
-    //TODO change to induced tensor 
+    GetSPOrbitalNumbers(li, si, lf, sf);
+    // TODO change to induced tensor
     if (li == lf) {
       if (si == sf && si > 0) {
         return 1. / gA * (li + 1 + gM);
@@ -291,71 +246,98 @@ double Generator::CalculateInducedTensor() {
       }
     }
   } else {
-    nilsson::SingleParticleState spsi;
     nilsson::SingleParticleState spsf;
-    if (boost::iequals(pot, "WS")) {
-      if (fDecayType == BETA_MINUS) {
-        spsf = nilsson::CalculateDeformedState(Z, 0, A, 0.0, 0.0);
-        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, 0.0,
-                                               0.0);
-      } else {
-        spsf = nilsson::CalculateDeformedState(0, A - Z, A, 0.0, 0.0);
-        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, 0.0, 0.0);
-      }
-    } else if (boost::iequals(pot, "DWS")) {
-      if (fDecayType == BETA_MINUS) {
-        spsf = nilsson::CalculateDeformedState(Z, 0, A, daughterBeta2,
-                                               daughterBeta4);
-        spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A,
-                                               motherBeta2, motherBeta4);
-      } else {
-        spsf = nilsson::CalculateDeformedState(0, A - Z, A, daughterBeta2,
-                                               daughterBeta4);
-        spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A,
-                                               motherBeta2, motherBeta4);
-      }
-    }
+    nilsson::SingleParticleState spsi;
+    GetDeformedStates(spsf, spsi, pot);
 
-    //TODO change to induced tensor
-    result = -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
-                 electronMasskeV * R / gA *
-                 matrixelements::CalculateDeformedSPMatrixElement(
-                     spsi.componentsHO, spsf.componentsHO, true, 1, 1, 0, spsi.O, spsf.O,
-                     spsi.K, spsf.K, R) /
-                 matrixelements::CalculateDeformedSPMatrixElement(
-                     spsi.componentsHO, spsf.componentsHO, false, 1, 0, 1, spsi.O, spsf.O,
-                     spsi.K, spsf.K, R) +
-             gM / gA;
+    // TODO change to induced tensor
+    result =
+        -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
+            electronMasskeV * R / gA *
+            MatrixElements::CalculateDeformedSPMatrixElement(
+                spsi, spsf, true, 1, 1, 0, spsi.O, spsf.O, spsi.K, spsf.K, R) /
+            MatrixElements::CalculateDeformedSPMatrixElement(
+                spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) +
+        gM / gA;
   }
   return result;
-return 0.; 
+  return 0.;
 }
 
 double Generator::CalculateRatioM121() {
-  double ratio = 0.0;
-  if (boost::iequals(GetOpt(std::string, Computational.Potential), "SHO")) {
+  double M121, M101;
+  std::string pot = GetOpt(std::string, Computational.Potential);
+  if (boost::iequals(pot, "SHO")) {
     int li, si, lf, sf;
-    std::vector<int> occNumbersInit, occNumbersFinal;
-    if (fDecayType == BETA_MINUS) {
-      occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
-      occNumbersFinal = utilities::GetOccupationNumbers(Z);
-    } else {
-      occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
-      occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
-    }
-    li = occNumbersInit[occNumbersInit.size() - 1 - 2];
-    si = occNumbersInit[occNumbersInit.size() - 1 - 1];
-    lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
-    sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
-    double M121 = ME::GetSingleParticleMatrixElement(
+    GetSPOrbitalNumbers(li, si, lf, sf);
+    M121 = ME::GetSingleParticleMatrixElement(
         false, std::abs(motherSpinParity) / 2., 1, 2, 1, li, lf, si, sf, R);
-    double M101 = ME::GetSingleParticleMatrixElement(
+    M101 = ME::GetSingleParticleMatrixElement(
         false, std::abs(motherSpinParity) / 2., 1, 0, 1, li, lf, si, sf, R);
 
-    ratio = M121 / M101;
-    fc1 = gA * M101;
+  } else {
+    nilsson::SingleParticleState spsf;
+    nilsson::SingleParticleState spsi;
+    GetDeformedStates(spsf, spsi, pot);
+
+    M121 = ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
+    M101 = ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
   }
-  return ratio;
+  fc1 = gA * M101;
+  
+  return M121/M101;
+}
+
+void Generator::GetSPOrbitalNumbers(int& li, int& si, int& lf, int& sf) {
+  std::vector<int> occNumbersInit, occNumbersFinal;
+  if (fDecayType == BETA_MINUS) {
+    occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
+    occNumbersFinal = utilities::GetOccupationNumbers(Z);
+  } else {
+    occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
+    occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
+  }
+  li = occNumbersInit[occNumbersInit.size() - 1 - 2];
+  si = occNumbersInit[occNumbersInit.size() - 1 - 1];
+  lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
+  sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
+}
+
+void Generator::GetDeformedStates(nilsson::SingleParticleState& spsf,
+                                  nilsson::SingleParticleState& spsi,
+                                  std::string pot) {
+  double V0p = GetOpt(double, Computational.V0proton);
+  double V0n = GetOpt(double, Computational.V0neutron);
+  double A0 = GetOpt(double, Computational.SurfaceThickness);
+  double VSp = GetOpt(double, Computational.V0Sproton);
+  double VSn = GetOpt(double, Computational.V0Sneutron);
+
+  if (boost::iequals(pot, "WS")) {
+    if (fDecayType == BETA_MINUS) {
+      spsf =
+          nilsson::CalculateDeformedState(Z, 0, A, R, 0.0, 0.0, V0p, A0, VSp);
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, R, 0.0,
+                                             0.0, V0n, A0, VSn);
+    } else {
+      spsf = nilsson::CalculateDeformedState(0, A - Z, A, R, 0.0, 0.0, V0n, A0,
+                                             VSn);
+      spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, R, 0.0, 0.0,
+                                             V0p, A0, VSp);
+    }
+  } else if (boost::iequals(pot, "DWS")) {
+    if (fDecayType == BETA_MINUS) {
+      spsf = nilsson::CalculateDeformedState(Z, 0, A, R, daughterBeta2,
+                                             daughterBeta4, V0p, A0, VSp);
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, R,
+                                             motherBeta2, motherBeta4, V0n, A0,
+                                             VSn);
+    } else {
+      spsf = nilsson::CalculateDeformedState(0, A - Z, A, R, daughterBeta2,
+                                             daughterBeta4, V0n, A0, VSn);
+      spsi = nilsson::CalculateDeformedState(
+          Z - fDecayType, 0, A, R, motherBeta2, motherBeta4, V0p, A0, VSp);
+    }
+  }
 }
 
 void Generator::CalculateMatrixElements() {
