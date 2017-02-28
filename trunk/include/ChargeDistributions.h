@@ -10,7 +10,7 @@
 #include "TF1.h"
 #include "TH1.h"
 
-namespace chargedistributions {
+namespace ChargeDistributions {
 
 using std::cout;
 using std::endl;

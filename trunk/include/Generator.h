@@ -34,7 +34,7 @@ class Generator {
   double fb, fc1, fd, ratioM121;
   double gA, gP, gM;
 
-  void GetSPOrbitalNumbers(int&, int&, int&, int&);
+  void GetSPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
   void GetDeformedStates(nilsson::SingleParticleState&, nilsson::SingleParticleState&, std::string);
   double CalculateWeakMagnetism();
   double CalculateInducedTensor();

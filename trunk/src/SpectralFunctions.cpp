@@ -235,15 +235,15 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
 
   double weakR2;
   if (A > 90) {
-    nu = chargedistributions::CalcChargeIndepNu(rms, Z - fBetaType,
+    nu = ChargeDistributions::CalcChargeIndepNu(rms, Z - fBetaType,
                                       A - (Z - fBetaType));
-    weakR2 = chargedistributions::WeakIntegratedRMS(nu, nN, lN, nu, nZ, lZ);
+    weakR2 = ChargeDistributions::WeakIntegratedRMS(nu, nN, lN, nu, nZ, lZ);
   } else {
-    nu = chargedistributions::CalcNu(rms, Z - fBetaType);
+    nu = ChargeDistributions::CalcNu(rms, Z - fBetaType);
     if (fBetaType == BETA_MINUS) {
-      weakR2 = std::pow(chargedistributions::GetRMSHO(nN, lN, nu), 2);
+      weakR2 = std::pow(ChargeDistributions::GetRMSHO(nN, lN, nu), 2);
     } else {
-      weakR2 = std::pow(chargedistributions::GetRMSHO(nZ, lZ, nu), 2);
+      weakR2 = std::pow(ChargeDistributions::GetRMSHO(nZ, lZ, nu), 2);
     }
   }
 
@@ -337,7 +337,7 @@ double SpectralFunctions::RelativisticCorrection(double W, double W0, int Z, int
 }
 
 double SpectralFunctions::DeformationCorrection(double W, double W0, int Z, double R, double beta2, int fBetaType) {
-  double bOverA = chargedistributions::CalcBoverA(beta2);
+  double bOverA = ChargeDistributions::CalcBoverA(beta2);
   double a, b;
 
   a = R * std::sqrt(3. / (bOverA * bOverA + 2.));
@@ -373,7 +373,7 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z, doub
   /*for (int i = 0; i < steps; i++) {
     grid[i] = a + (i + 1.) / (double)steps * (b - a);
     integrAd[i] = std::pow(grid[i], 3.) * Z *
-                   abs(chargedistributions::GetDerivDeformedChargeDist(grid[i], a, b)) *
+                   abs(ChargeDistributions::GetDerivDeformedChargeDist(grid[i], a, b)) *
                    L0Correction(W, grid[i]) * std::pow(grid[i], 2. * (gamma - 1));
     cout << grid[i] << "\t" << integrAd[i] << endl;
   }

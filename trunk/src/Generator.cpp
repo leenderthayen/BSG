@@ -17,6 +17,7 @@
 
 namespace SF = SpectralFunctions;
 namespace ME = MatrixElements;
+namespace CD = ChargeDistributions;
 
 using std::cout;
 using std::endl;
@@ -70,7 +71,7 @@ Generator::Generator() {
 
   CalculateMatrixElements();
 
-  hoFit = chargedistributions::FitHODist(Z, R * std::sqrt(3. / 5.));
+  hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
 }
 
 void Generator::LoadExchangeParameters() {
@@ -205,13 +206,15 @@ double Generator::CalculateWeakMagnetism() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
   if (boost::iequals(pot, "SHO")) {
-    int li, si, lf, sf;
-    GetSPOrbitalNumbers(li, si, lf, sf);
+    int ni, li, si, nf, lf, sf;
+    GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
     if (li == lf) {
       if (si == sf && si > 0) {
         return 1. / gA * (li + 1 + gM);
       } else if (si == sf) {
-        return 1. / gA * (li + 1 - gM);
+        return -1. / gA * (li - gM);
+      } else {
+        return 1. / 2. / gA;
       }
     }
   } else {
@@ -220,11 +223,10 @@ double Generator::CalculateWeakMagnetism() {
     GetDeformedStates(spsf, spsi, pot);
 
     result =
-        -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
-            electronMasskeV * R / gA *
-            MatrixElements::CalculateDeformedSPMatrixElement(
+        -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * R / gA *
+            ME::CalculateDeformedSPMatrixElement(
                 spsi, spsf, true, 1, 1, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) /
-            MatrixElements::CalculateDeformedSPMatrixElement(
+            ME::CalculateDeformedSPMatrixElement(
                 spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) +
         gM / gA;
   }
@@ -235,14 +237,18 @@ double Generator::CalculateInducedTensor() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
   if (boost::iequals(pot, "SHO")) {
-    int li, si, lf, sf;
-    GetSPOrbitalNumbers(li, si, lf, sf);
-    // TODO change to induced tensor
+    int ni, li, si, nf, lf, sf;
+    GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
+    double nu = CD::CalcNu(R, Z);
+    double dE = 2. * nu / nucleonMasskeV * (2 * (ni - nf) + li - lf);
+    double rmsHO = CD::GetRMSHO(ni, li, nu);
     if (li == lf) {
       if (si == sf && si > 0) {
-        return 1. / gA * (li + 1 + gM);
+        return -nucleonMasskeV * dE / (2. * li + 3.) * rmsHO;
       } else if (si == sf) {
-        return 1. / gA * (li + 1 - gM);
+        return nucleonMasskeV * dE / (2. * li - 1.) * rmsHO;
+      } else {
+        return -sf * (2. * li + 1.) / 2. - dE / 2. * rmsHO;
       }
     }
   } else {
@@ -250,26 +256,22 @@ double Generator::CalculateInducedTensor() {
     nilsson::SingleParticleState spsi;
     GetDeformedStates(spsf, spsi, pot);
 
-    // TODO change to induced tensor
     result =
-        -std::sqrt(2. / 3.) * (protonMasskeV + neutronMasskeV) / 2. /
-            electronMasskeV * R / gA *
-            MatrixElements::CalculateDeformedSPMatrixElement(
-                spsi, spsf, true, 1, 1, 0, spsi.O, spsf.O, spsi.K, spsf.K, R) /
-            MatrixElements::CalculateDeformedSPMatrixElement(
-                spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) +
-        gM / gA;
+        2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
+        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 1, 0, spsi.O,
+                                             spsf.O, spsi.K, spsf.K, R) /
+        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1, spsi.O,
+                                             spsf.O, spsi.K, spsf.K, R);
   }
   return result;
-  return 0.;
 }
 
 double Generator::CalculateRatioM121() {
   double M121, M101;
   std::string pot = GetOpt(std::string, Computational.Potential);
   if (boost::iequals(pot, "SHO")) {
-    int li, si, lf, sf;
-    GetSPOrbitalNumbers(li, si, lf, sf);
+    int ni, li, si, nf, lf, sf;
+    GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
     M121 = ME::GetSingleParticleMatrixElement(
         false, std::abs(motherSpinParity) / 2., 1, 2, 1, li, lf, si, sf, R);
     M101 = ME::GetSingleParticleMatrixElement(
@@ -280,15 +282,18 @@ double Generator::CalculateRatioM121() {
     nilsson::SingleParticleState spsi;
     GetDeformedStates(spsf, spsi, pot);
 
-    M121 = ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
-    M101 = ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
+    M121 = ME::CalculateDeformedSPMatrixElement(
+        spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
+    M101 = ME::CalculateDeformedSPMatrixElement(
+        spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
   }
   fc1 = gA * M101;
-  
-  return M121/M101;
+
+  return M121 / M101;
 }
 
-void Generator::GetSPOrbitalNumbers(int& li, int& si, int& lf, int& sf) {
+void Generator::GetSPOrbitalNumbers(int& ni, int& li, int& si, int& nf, int& lf,
+                                    int& sf) {
   std::vector<int> occNumbersInit, occNumbersFinal;
   if (fDecayType == BETA_MINUS) {
     occNumbersInit = utilities::GetOccupationNumbers(A - (Z - fBetaType));
@@ -297,8 +302,10 @@ void Generator::GetSPOrbitalNumbers(int& li, int& si, int& lf, int& sf) {
     occNumbersInit = utilities::GetOccupationNumbers(Z - fBetaType);
     occNumbersFinal = utilities::GetOccupationNumbers(A - Z);
   }
+  ni = occNumbersInit[occNumbersInit.size() - 1 - 3];
   li = occNumbersInit[occNumbersInit.size() - 1 - 2];
   si = occNumbersInit[occNumbersInit.size() - 1 - 1];
+  nf = occNumbersFinal[occNumbersFinal.size() - 1 - 3];
   lf = occNumbersFinal[occNumbersFinal.size() - 1 - 2];
   sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
 }
