@@ -376,11 +376,15 @@ double* Generator::CalculateDecayRate(double W) {
         SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
 
+  cout << "result: " << result << endl;
+
   if (!OptExists(fermi)) {
     result *= SF::FermiFunction(W, Z, R, fBetaType);
     neutrinoResult *= SF::FermiFunction(Wv, Z, R, fBetaType);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(C)) {
     result *= SF::CCorrection(W, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA,
                               gP, fc1, fb, fd, ratioM121);
@@ -388,63 +392,85 @@ double* Generator::CalculateDecayRate(double W) {
         SF::CCorrection(Wv, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP,
                         fc1, fb, fd, ratioM121);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, fBetaType, fDecayType);
     neutrinoResult *=
         SF::RelativisticCorrection(Wv, W0, Z, A, R, fBetaType, fDecayType);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(deformation)) {
     result *=
         SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, daughterBeta4);
     neutrinoResult *=
         SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, daughterBeta4);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(l0)) {
     result *= SF::L0Correction(W, Z, R, fBetaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, fBetaType, aPos, aNeg);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(U)) {
     result *= SF::UCorrection(W, Z, fBetaType);
     neutrinoResult *= SF::UCorrection(Wv, Z, fBetaType);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(Q)) {
     result *= SF::QCorrection(W, W0, Z, A, fBetaType, fDecayType, mixingRatio);
     neutrinoResult *=
         SF::QCorrection(Wv, W0, Z, A, fBetaType, fDecayType, mixingRatio);
   }
 
+   cout << "result: " << result << endl;
+
   if (!OptExists(radiative)) {
     result *= SF::RadiativeCorrection(W, W0, Z, R, fBetaType, gA, gM);
     neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(recoil)) {
     result *= SF::RecoilCorrection(W, W0, A, fDecayType, mixingRatio);
     neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, fDecayType, mixingRatio);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(screening)) {
     result *= SF::AtomicScreeningCorrection(W, Z, fBetaType);
     neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, fBetaType);
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(exchange)) {
     if (fBetaType == BETA_MINUS) {
       result *= SF::AtomicExchangeCorrection(W, exPars);
       neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
     }
   }
+  cout << "result: " << result << endl;
 
+ 
   if (!OptExists(mismatch)) {
     result *= SF::AtomicMismatchCorrection(W, W0, Z, A, fBetaType);
     neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, fBetaType);
   }
+  cout << "result: " << result << endl;
 
+ 
   double fullResult[2] = {result, neutrinoResult};
   return fullResult;
 }
