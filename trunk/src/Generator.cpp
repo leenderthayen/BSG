@@ -26,6 +26,9 @@ Generator::Generator() {
   Z = GetOpt(int, NuclearProperties.DaughterZ);
   A = GetOpt(int, NuclearProperties.DaughterA);
   R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH * std::sqrt(5./3.); 
+  if (R == 0.0) {
+    R = 1.2 * std::pow(A, 1./3.) * 1e-15 / NATLENGTH;
+  }
   motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
   motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
   daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
@@ -220,12 +223,13 @@ double Generator::CalculateWeakMagnetism() {
       }
     }
   } else {
+    double nu = CD::CalcNu(R * std::sqrt(3./5.), Z);
     result =
         -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * R / gA *
             ME::CalculateDeformedSPMatrixElement(
-                spsi, spsf, true, 1, 1, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) /
+                spsi, spsf, true, 1, 1, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu) /
             ME::CalculateDeformedSPMatrixElement(
-                spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R) +
+                spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu) +
         gM / gA;
   }
   return result;
@@ -234,10 +238,10 @@ double Generator::CalculateWeakMagnetism() {
 double Generator::CalculateInducedTensor() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
+  double nu = CD::CalcNu(R * std::sqrt(3./5.), Z);
   if (boost::iequals(pot, "SHO")) {
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
-    double nu = CD::CalcNu(R, Z);
     double dE = 2. * nu / nucleonMasskeV * (2 * (ni - nf) + li - lf);
     double rmsHO = CD::GetRMSHO(ni, li, nu);
     if (li == lf) {
@@ -253,9 +257,9 @@ double Generator::CalculateInducedTensor() {
     result =
         2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
         ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 1, 0, spsi.O,
-                                             spsf.O, spsi.K, spsf.K, R) /
+                                             spsf.O, spsi.K, spsf.K, R, nu) /
         ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1, spsi.O,
-                                             spsf.O, spsi.K, spsf.K, R);
+                                             spsf.O, spsi.K, spsf.K, R, nu);
   }
   return result;
 }
@@ -264,19 +268,20 @@ double Generator::CalculateRatioM121() {
   double M121, M101;
   std::string pot = GetOpt(std::string, Computational.Potential);
   cout << "Potential: " << pot << endl;
+  double nu = CD::CalcNu(R * std::sqrt(3. / 5.), Z);
   if (boost::iequals(pot, "SHO")) {
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
     M121 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 2, 1, li, lf, si, sf, R);
+        false, std::abs(motherSpinParity) / 2., 1, 2, 1, ni, nf, li, lf, si, sf, R, nu);
     M101 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 0, 1, li, lf, si, sf, R);
+        false, std::abs(motherSpinParity) / 2., 1, 0, 1, ni, nf, li, lf, si, sf, R, nu);
 
   } else {
     M121 = ME::CalculateDeformedSPMatrixElement(
-        spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
+        spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu);
     M101 = ME::CalculateDeformedSPMatrixElement(
-        spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
+        spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu);
   }
   cout << "M121: " << M121 << " M101: " << M101 << endl;
   fc1 = gA * M101;

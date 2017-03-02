@@ -19,6 +19,21 @@ inline double GetRMSHO(int n, int l, double nu) {
   return std::sqrt(1. / 4. / nu * (4 * n + 2 * l - 1));
 }
 
+inline double GetRadialMEHO(int nf, int lf, int L, int ni, int li, double nu) {
+  int taui = (lf-li+L) / 2;
+  int tauf = (li-lf+L) / 2;
+  double t = (li+lf+L+1) / 2;
+
+  double first = std::pow(-1, ni+nf)/std::pow(2*nu, L/2.)*std::sqrt(utilities::Factorial(ni-1)*utilities::Factorial(nf-1)/utilities::Factorial(ni+t-taui-1)*utilities::Factorial(nf+t-tauf-1))*utilities::Factorial(taui)*utilities::Factorial(tauf);
+
+  double sum = 0.;
+  for (int s = std::max(ni-taui-1, nf-tauf-1); s <= std::min(ni-1, nf-1); s++) {
+    utilities::Factorial(t+s)/(utilities::Factorial(s)*utilities::Factorial(nf-s-1)*utilities::Factorial(s+taui-ni+1)*utilities::Factorial(s+tauf-nf+1));
+  }
+
+  return first*sum;
+}
+
 inline double RadialHO(int n, int l, double nu, double r) {
   const int k = n - 1;
 

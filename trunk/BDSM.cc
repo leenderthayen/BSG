@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "Generator.h"
 #include "OptionContainer.h"
@@ -23,7 +24,7 @@ void ShowIntro() {
 void TestNilssonMethods() {
   cout << "Testing Nilsson methods" << endl;
 
-  int dim = 2;
+  /*int dim = 2;
   double M[dim*(dim+1)/2] = {1.0, 1.0, 2.0};
 
   std::vector<double> eVals;
@@ -42,7 +43,7 @@ void TestNilssonMethods() {
       cout << eVecs[j*dim+i] << " ";
     }
     cout << endl;
-  }
+  }*/
 
 
   double V0 = 53.0;

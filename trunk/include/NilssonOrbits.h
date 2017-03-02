@@ -594,7 +594,7 @@ inline std::vector<SingleParticleState> Calculate(
       WFComp wfc;
       wfc.n = N[j];
       wfc.l = L[j];
-      wfc.s = (JX2[j] - L[j]*2);
+      wfc.s = (JX2[j] - L[j] * 2);
       if (beta2 == 0 && beta4 == 0) {
         wfc.C = sphExpCoef[i][j];
       } else {
@@ -633,18 +633,22 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
   int index = 0;
   int nrParticles = Z + N;
   for (int i = 0; i < allStates.size(); i++) {
-    if (nrParticles - allStates[index].O+1 > 0) {
+    if (nrParticles - allStates[index].O + 1 > 0) {
       index++;
-      nrParticles -= allStates[index].O+1;
+      nrParticles -= allStates[index].O + 1;
     }
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy
        << endl;
-  cout << "Spin: " << allStates[index].parity* allStates[index].O << "/2 " << endl;
+  cout << "Spin: " << allStates[index].parity* allStates[index].O << "/2 "
+       << endl;
   cout << "N\tL\ts\tC" << endl;
   for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
-    cout << allStates[index].componentsHO[j].n << "\t" << allStates[index].componentsHO[j].l << "\t" << allStates[index].componentsHO[j].s << "/2\t" << allStates[index].componentsHO[j].C << endl;
+    cout << allStates[index].componentsHO[j].n << "\t"
+         << allStates[index].componentsHO[j].l << "\t"
+         << allStates[index].componentsHO[j].s << "/2\t"
+         << allStates[index].componentsHO[j].C << endl;
   }
 
   return allStates[index];
