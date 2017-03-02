@@ -28,6 +28,8 @@ class Generator {
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
 
+  nilsson::SingleParticleState spsf, spsi;
+
   std::vector<std::vector<double> > spectrum;
 
   /// recoil correction form factors

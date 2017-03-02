@@ -23,7 +23,7 @@ using std::endl;
 // s is +-1 depending of whether it is j=l+-1/2
 struct WFComp {
   double C;
-  int l, s;
+  int n, l, s;
 };
 
 struct SingleParticleState {
@@ -33,52 +33,51 @@ struct SingleParticleState {
   std::vector<WFComp> componentsHO;
 };
 
-
 /*
-ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON      
-1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE        
-2   ROTATIONAL STATES.  HIRD, B.                                        
-REF. IN COMP. PHYS. COMMUN. 6 (1973) 30                                 
-NILSSON ORBITS                                                
-FOR A PARTICLE IN A WOODS-SAXON POTENTIAL WITH Y(2,0) AND Y(4,0)  
-DEFORMATIONS, AND COUPLED TO CORE ROTATIONAL STATES.              
-                                                                  
-METHOD - MATRIX DIAGONALIZATION.                                  
-   FIRST DIAGONALIZATION IS OF SPHERICAL WOODS-SAXON HAMILTONIAN  
-        WITH HARMONIC OSCILLATOR BASIS.                           
-   SECOND DIAGONALIZATION IS OF DEFORMED HAMILTONIAN WITH         
-        SPHERICAL WOODS-SAXON EIGENSTATES AS BASIS.               
-   THIRD DIAGONALIZATION IS OF BAND MIXING AND CORE HAMILTONIAN   
-        WITH DEFORMED PARTICLE EIGENSTATES AS A BASIS.            
-                                                                  
-REFERENCES:-                                                      
-S.G.NILSSON, 1955 MAT.FYS.MEDD.DAN.VID.SELSK. 29 NO 16.           
-A.K.KERMAN, 1956 MAT.FYS.MEDD.DAN.VID.SELSK. 30 NO 15.            
-K.T.HECHT AND G.R.SATCHLER, NUCLEAR PHYSICS, 32(1962)286          
-W.SCHOLZ AND F.B.MALIK, PHYS.REV., 147(1966)836.                  
-                                                                  
-NOTATION:-                                                        
-ENERGIES IN MEV.  LENGTHS IN FM. MASS IN A.M.U. Z IN ELECTRONIC   
-CHARGE UNITS.                                                     
-V0,R0,A0,V0S = WOODS-SAXON PARAMETERS.                            
-AMU = ATOMIC WEIGHT OF ODD PARTICLE + CORE.                       
-Z = ZERO FOR A NEUTRON STATE; = CORE CHARGE FOR A PROTON STATE.   
+ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON
+1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE
+2   ROTATIONAL STATES.  HIRD, B.
+REF. IN COMP. PHYS. COMMUN. 6 (1973) 30
+NILSSON ORBITS
+FOR A PARTICLE IN A WOODS-SAXON POTENTIAL WITH Y(2,0) AND Y(4,0)
+DEFORMATIONS, AND COUPLED TO CORE ROTATIONAL STATES.
+
+METHOD - MATRIX DIAGONALIZATION.
+   FIRST DIAGONALIZATION IS OF SPHERICAL WOODS-SAXON HAMILTONIAN
+        WITH HARMONIC OSCILLATOR BASIS.
+   SECOND DIAGONALIZATION IS OF DEFORMED HAMILTONIAN WITH
+        SPHERICAL WOODS-SAXON EIGENSTATES AS BASIS.
+   THIRD DIAGONALIZATION IS OF BAND MIXING AND CORE HAMILTONIAN
+        WITH DEFORMED PARTICLE EIGENSTATES AS A BASIS.
+
+REFERENCES:-
+S.G.NILSSON, 1955 MAT.FYS.MEDD.DAN.VID.SELSK. 29 NO 16.
+A.K.KERMAN, 1956 MAT.FYS.MEDD.DAN.VID.SELSK. 30 NO 15.
+K.T.HECHT AND G.R.SATCHLER, NUCLEAR PHYSICS, 32(1962)286
+W.SCHOLZ AND F.B.MALIK, PHYS.REV., 147(1966)836.
+
+NOTATION:-
+ENERGIES IN MEV.  LENGTHS IN FM. MASS IN A.M.U. Z IN ELECTRONIC
+CHARGE UNITS.
+V0,R0,A0,V0S = WOODS-SAXON PARAMETERS.
+AMU = ATOMIC WEIGHT OF ODD PARTICLE + CORE.
+Z = ZERO FOR A NEUTRON STATE; = CORE CHARGE FOR A PROTON STATE.
 NMAX = MAXIMUM RADIAL QUANTUM NUMBER IN HARMONIC OSCILLATOR BASIS.
-NMAX = ODD;EVEN FOR NEGATIVE;POSITIVE PARITY     NMAX < 14        
-BETA2 = SPHEROIDAL DEFORMATION                                    
-BETA4 = HEXADECAPOLE DEFORMATION.                                 
-ROT = UNIT OF ROTATIONAL ENERGY OF THE CORE.                      
-ROTI(I) = ROTATIONAL ENERGY FOR THIS VALUE OF I ONLY.             
-ROTO(OMEGA) = ROTATIONAL ENERGY FOR THIS OMEGA ONLY.              
-SPIN = MAXIMUM VALUE OF TOTAL SPIN I OF SYSTEM.                   
-ALL EIGENSTATES WITH SPINS UP TO INPUT VALUE OF SPIN ARE FOUND.   
-N = RADIAL QUANTUM NUMBER.                                        
-L = ANGULAR MOMENTUM QUANTUM NUMBER.                              
-LA = LAMBDA = COMPONENT OF L ALONG SYMMETRY AXIS.                 
+NMAX = ODD;EVEN FOR NEGATIVE;POSITIVE PARITY     NMAX < 14
+BETA2 = SPHEROIDAL DEFORMATION
+BETA4 = HEXADECAPOLE DEFORMATION.
+ROT = UNIT OF ROTATIONAL ENERGY OF THE CORE.
+ROTI(I) = ROTATIONAL ENERGY FOR THIS VALUE OF I ONLY.
+ROTO(OMEGA) = ROTATIONAL ENERGY FOR THIS OMEGA ONLY.
+SPIN = MAXIMUM VALUE OF TOTAL SPIN I OF SYSTEM.
+ALL EIGENSTATES WITH SPINS UP TO INPUT VALUE OF SPIN ARE FOUND.
+N = RADIAL QUANTUM NUMBER.
+L = ANGULAR MOMENTUM QUANTUM NUMBER.
+LA = LAMBDA = COMPONENT OF L ALONG SYMMETRY AXIS.
 IX2 = 2*SIGMA = 2*COMPONENT OF INTRINSIC SPIN ALONG SYMMETRY AXIS.
-JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.                          
-SW(1,NN) = TABLE OF <N',L!F(R)!N,L>                               
-SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.                
+JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.
+SW(1,NN) = TABLE OF <N',L!F(R)!N,L>
+SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.
 SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      */
 
 inline double V(int n, int l, double x) {
@@ -265,7 +264,7 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
   gsl_eigen_symmv_workspace* w = gsl_eigen_symmv_alloc(size);
   gsl_eigen_symmv(aNew, eVal, eVec, w);
   gsl_eigen_symmv_free(w);
-  //Sort eigenvalues and eigenvalues according to descending eigenvalue
+  // Sort eigenvalues and eigenvalues according to descending eigenvalue
   for (int i = 0; i < dim; i++) {
     for (int j = i; j < dim; j++) {
       if (gsl_vector_get(eVal, j) > gsl_vector_get(eVal, i)) {
@@ -295,9 +294,9 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
   gsl_matrix_free(eVec);
 }
 
-inline std::vector<SingleParticleState> Calculate(double spin, double beta2, double beta4, double V0,
-                      double R, double A0, double V0S, double A, double Z,
-                      int nMax, bool report = false) {
+inline std::vector<SingleParticleState> Calculate(
+    double spin, double beta2, double beta4, double V0, double R, double A0,
+    double V0S, double A, double Z, int nMax, bool report = false) {
   double SW[2][84] = {};
   double SDW[462] = {};
   int N[NDIM1];
@@ -398,6 +397,8 @@ inline std::vector<SingleParticleState> Calculate(double spin, double beta2, dou
     }
   }
   if (K == 0) {
+    cout << "No harmonic oscillator single particle states below 10 MeV."
+         << endl;
     return states;
   }
 
@@ -427,165 +428,178 @@ inline std::vector<SingleParticleState> Calculate(double spin, double beta2, dou
     }
   }
 
-  int ISX2 = std::abs(2 * spin);
-  int ISPIN = (ISX2 + 1) / 2;
+  if (!(beta2 == 0 && beta4 == 0)) {
+    int ISX2 = std::abs(2 * spin);
+    int ISPIN = (ISX2 + 1) / 2;
 
-  int KK = 0;
-  int KKKK = 0;
-  int IOM = 1;
-  for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
-    IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
-    int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - nMin;
-    int KKK = 0;
-    // Loop over all spherical states with E < 10.0 MeV
-    for (int I = 0; I < K; I++) {
-      LKK[KKK] = LK[I];
-      KN[IIOM - 1][KKK] = I + 1;
-      double X = 0.0;
-      // Loop over the full spherical basis
-      for (int J = 0; J < II; J++) {
-        if (L[J] == LKK[KKK]) {
-          double cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J],
-                                               2 * (LA[J] + IIOM - 1), IX2[J],
-                                               2 * (LA[J] + IIOM - 1) + IX2[J]);
-          double X1 = sphExpCoef[I][J] * cg;
-          cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J] - 2 * IX2[J],
-                                        2 * (LA[J] + IIOM - 1), IX2[J],
-                                        2 * (LA[J] + IIOM - 1) + IX2[J]);
-          if (JX2[J] > IIIOM) {
-            X1 += sphExpCoef[I][J - IX2[J]] * cg;
+    int KK = 0;
+    int KKKK = 0;
+    int IOM = 1;
+    for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
+      IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
+      int IIIOM = 4 * (std::abs(IOM) / 4) + 2 - nMin;
+      int KKK = 0;
+      // Loop over all spherical states with E < 10.0 MeV
+      for (int I = 0; I < K; I++) {
+        LKK[KKK] = LK[I];
+        KN[IIOM - 1][KKK] = I + 1;
+        double X = 0.0;
+        // Loop over the full spherical basis
+        for (int J = 0; J < II; J++) {
+          if (L[J] == LKK[KKK]) {
+            double cg = utilities::ClebschGordan(
+                2 * L[J], 1, JX2[J], 2 * (LA[J] + IIOM - 1), IX2[J],
+                2 * (LA[J] + IIOM - 1) + IX2[J]);
+            double X1 = sphExpCoef[I][J] * cg;
+            cg = utilities::ClebschGordan(2 * L[J], 1, JX2[J] - 2 * IX2[J],
+                                          2 * (LA[J] + IIOM - 1), IX2[J],
+                                          2 * (LA[J] + IIOM - 1) + IX2[J]);
+            if (JX2[J] > IIIOM) {
+              X1 += sphExpCoef[I][J - IX2[J]] * cg;
+            }
+            defExpCoef[KKK][J] = X1;
+            X += X1 * X1;
           }
-          defExpCoef[KKK][J] = X1;
-          X += X1 * X1;
         }
+        if (X < 0.1) {
+          KKK--;
+        }
+        KKK++;
       }
-      if (X < 0.1) {
-        KKK--;
+      KKKK += KKK;
+      if (KKKK > NDIM4) {
+        return states;
       }
-      KKK++;
-    }
-    KKKK += KKK;
-    if (KKKK > NDIM4) {
-      return states;
-    }
-    K1[IIOM - 1] = KKK;
-    if (KKK == 0) {
-      break;
-    }
-    for (int I = 0; I < KKK; I++) {
-      for (int J = 0; J <= I; J++) {
-        B[KK] = 0.0;
-        D[KK] = 0.0;
-        for (int N1 = 0; N1 < II; N1++) {
-          for (int N2 = 0; N2 < II; N2++) {
-            if (!(L[N1] != LKK[I] || L[N2] != LKK[J] ||
-                  (L[N1] - L[N2]) / 5 != 0 || LA[N1] != LA[N2])) {
-              int NI = N[N1] / 2 + 1;
-              int NJ = N[N2] / 2 + 1;
-              int LI = L[N1] / 2 + 1;
-              int LJ = L[N2] / 2 + 1;
-              if (NI < NJ) {
-                int NN = NI;
-                NI = NJ;
-                NJ = NN;
-                NN = LI;
-                LI = LJ;
-                LJ = NN;
+      K1[IIOM - 1] = KKK;
+      if (KKK == 0) {
+        break;
+      }
+      for (int I = 0; I < KKK; I++) {
+        for (int J = 0; J <= I; J++) {
+          B[KK] = 0.0;
+          D[KK] = 0.0;
+          for (int N1 = 0; N1 < II; N1++) {
+            for (int N2 = 0; N2 < II; N2++) {
+              if (!(L[N1] != LKK[I] || L[N2] != LKK[J] ||
+                    (L[N1] - L[N2]) / 5 != 0 || LA[N1] != LA[N2])) {
+                int NI = N[N1] / 2 + 1;
+                int NJ = N[N2] / 2 + 1;
+                int LI = L[N1] / 2 + 1;
+                int LJ = L[N2] / 2 + 1;
+                if (NI < NJ) {
+                  int NN = NI;
+                  NI = NJ;
+                  NJ = NN;
+                  NN = LI;
+                  LI = LJ;
+                  LJ = NN;
+                }
+                int NNP = NI * (NI - 1);
+                NNP = (3 * NNP * NNP + 2 * NNP * (2 * NI - 1)) / 24 +
+                      NI * NJ * (NJ - 1) / 2 + (LI - 1) * NJ + LJ;
+                double X = defExpCoef[I][N1] * SDW[NNP - 1] * defExpCoef[J][N2];
+                int LP = L[N1];
+                int LAP = LA[N1] + IIOM - 1;
+                int LL = L[N2];
+                int LLA = LA[N2] + IIOM - 1;
+                B[KK] +=
+                    X * utilities::SphericalHarmonicME(LP, LAP, 2, 0, LL, LLA);
+                D[KK] +=
+                    X * utilities::SphericalHarmonicME(LP, LAP, 4, 0, LL, LAP);
               }
-              int NNP = NI * (NI - 1);
-              NNP = (3 * NNP * NNP + 2 * NNP * (2 * NI - 1)) / 24 +
-                    NI * NJ * (NJ - 1) / 2 + (LI - 1) * NJ + LJ;
-              double X = defExpCoef[I][N1] * SDW[NNP - 1] * defExpCoef[J][N2];
-              int LP = L[N1];
-              int LAP = LA[N1] + IIOM - 1;
-              int LL = L[N2];
-              int LLA = LA[N2] + IIOM - 1;
-              B[KK] +=
-                  X * utilities::SphericalHarmonicME(LP, LAP, 2, 0, LL, LLA);
-              D[KK] +=
-                  X * utilities::SphericalHarmonicME(LP, LAP, 4, 0, LL, LAP);
             }
           }
-        }
-        KK++;
-      }
-    }
-  }
-
-  K = 0;
-  KK = 0;
-  IOM = 1;
-  for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
-    IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
-    int KKK = K1[IIOM - 1];
-    if (KKK != 0) {
-      int NK = 0;
-      for (int I = 1; I <= KKK; I++) {
-        for (int J = 1; J <= I; J++) {
-          NK++;
-          hamM[NK - 1] = beta2 * B[KK] + beta4 * D[KK];
           KK++;
         }
-        int N0 = KN[IIOM - 1][I - 1];
-        hamM[NK - 1] += eValsWS[N0 - 1];
-      }
-      std::vector<double> eVals;
-      Eigen(hamM, KKK, eVecs, eVals);
-      int N0 = 0;
-      for (int MU = 1; MU <= KKK; MU++) {
-        N0 += MU;
-        K2[K] = IOM;
-        K3[K] = std::abs(IOM);
-        K4[K] = KKK - MU + 1;
-        eValsDWS[K] = eVals[MU - 1];
-        for (int J = 0; J < II; J++) {
-          defExpCoef[K][J] = 0.0;
-          NK = KKK * (MU - 1);
-          for (int NU = 0; NU < KKK; NU++) {
-            int I = KN[IIOM - 1][NU];
-            NK++;
-            defExpCoef[K][J] += eVecs[NK - 1] * sphExpCoef[I - 1][J];
-          }
-        }
-        K++;
       }
     }
-  }
-  if (report) {
-    cout << "Deformed states: No band mixing   Beta2: " << beta2
-         << " Beta4: " << beta4 << endl;
-    for (int KKK = 1; KKK <= K; KKK += 12) {
-      int KKKK = std::min(K, KKK + 11);
-      cout << "Energy (MeV): ";
-      for (int i = KKK; i <= KKKK; i++) {
-        cout << eValsDWS[i - 1] << " ";
+
+    K = 0;
+    KK = 0;
+    IOM = 1;
+    for (int IIOM = 1; IIOM <= ISPIN; IIOM++) {
+      IOM = -IOM - 2 * (int)(std::pow(-1., IIOM));
+      int KKK = K1[IIOM - 1];
+      if (KKK != 0) {
+        int NK = 0;
+        for (int I = 1; I <= KKK; I++) {
+          for (int J = 1; J <= I; J++) {
+            NK++;
+            hamM[NK - 1] = beta2 * B[KK] + beta4 * D[KK];
+            KK++;
+          }
+          int N0 = KN[IIOM - 1][I - 1];
+          hamM[NK - 1] += eValsWS[N0 - 1];
+        }
+        std::vector<double> eVals;
+        Eigen(hamM, KKK, eVecs, eVals);
+        int N0 = 0;
+        for (int MU = 1; MU <= KKK; MU++) {
+          N0 += MU;
+          K2[K] = IOM;
+          K3[K] = std::abs(IOM);
+          K4[K] = KKK - MU + 1;
+          eValsDWS[K] = eVals[MU - 1];
+          for (int J = 0; J < II; J++) {
+            defExpCoef[K][J] = 0.0;
+            NK = KKK * (MU - 1);
+            for (int NU = 0; NU < KKK; NU++) {
+              int I = KN[IIOM - 1][NU];
+              NK++;
+              defExpCoef[K][J] += eVecs[NK - 1] * sphExpCoef[I - 1][J];
+            }
+          }
+          K++;
+        }
       }
-      cout << endl;
-      cout << "*OMEGA |MU> ";
-      for (int i = KKK; i <= KKKK; i++) {
-        cout << K3[i - 1] << "/2|" << K4[i - 1] << "> \t";
-      }
-      cout << endl;
-      for (int j = 1; j <= II; j++) {
-        cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > ";
-        for (int l = KKK; l <= KKKK; l++) {
-          cout << defExpCoef[l - 1][j - 1] << "\t\t";
+    }
+    if (report) {
+      cout << "Deformed states: No band mixing   Beta2: " << beta2
+           << " Beta4: " << beta4 << endl;
+      for (int KKK = 1; KKK <= K; KKK += 12) {
+        int KKKK = std::min(K, KKK + 11);
+        cout << "Energy (MeV): ";
+        for (int i = KKK; i <= KKKK; i++) {
+          cout << eValsDWS[i - 1] << " ";
         }
         cout << endl;
+        cout << "*OMEGA |MU> ";
+        for (int i = KKK; i <= KKKK; i++) {
+          cout << K3[i - 1] << "/2|" << K4[i - 1] << "> \t";
+        }
+        cout << endl;
+        for (int j = 1; j <= II; j++) {
+          cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > ";
+          for (int l = KKK; l <= KKKK; l++) {
+            cout << defExpCoef[l - 1][j - 1] << "\t\t";
+          }
+          cout << endl;
+        }
       }
     }
-  }
+  }  // end of deformation only part
   for (int i = 0; i < K; i++) {
     SingleParticleState sps;
-    sps.energy = eValsDWS[i];
-    sps.O = K3[i];
-    sps.K = K3[i];
+    if (beta2 == 0 && beta4 == 0) {
+      sps.energy = eValsWS[i];
+      sps.O = K3[i];
+      sps.K = K3[i];
+    } else {
+      sps.energy = eValsDWS[i];
+      sps.O = K4[i];
+      sps.K = K4[i];
+    }
     sps.parity = 1 - 2 * (nMax % 2);
     for (int j = 0; j < II; j++) {
       WFComp wfc;
+      wfc.n = N[j];
       wfc.l = L[j];
-      wfc.s = (JX2[j]-L[j]) * 2;
-      wfc.C = defExpCoef[i][j];
+      wfc.s = (JX2[j] - L[j]*2);
+      if (beta2 == 0 && beta4 == 0) {
+        wfc.C = sphExpCoef[i][j];
+      } else {
+        wfc.C = defExpCoef[i][j];
+      }
       sps.componentsHO.push_back(wfc);
     }
     states.push_back(sps);
@@ -593,30 +607,44 @@ inline std::vector<SingleParticleState> Calculate(double spin, double beta2, dou
   return states;
 }
 
-inline bool StateSorter(SingleParticleState const& lhs, SingleParticleState const& rhs) {
+inline bool StateSorter(SingleParticleState const& lhs,
+                        SingleParticleState const& rhs) {
   return lhs.energy < rhs.energy;
 }
 
-inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R, double beta2,
-                                           double beta4, double V0, double A0, double VS) {
-  
-  std::vector<SingleParticleState> evenStates = Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 12);
-  std::vector<SingleParticleState> oddStates = Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 13);
+inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
+                                                  double beta2, double beta4,
+                                                  double V0, double A0,
+                                                  double VS) {
+  std::vector<SingleParticleState> evenStates =
+      Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 12, false);
+  std::vector<SingleParticleState> oddStates =
+      Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 13, false);
 
-  //Join all states
+  // Join all states
   std::vector<SingleParticleState> allStates;
   allStates.reserve(evenStates.size() + oddStates.size());
   allStates.insert(allStates.end(), evenStates.begin(), evenStates.end());
   allStates.insert(allStates.end(), oddStates.begin(), oddStates.end());
-  
-  //Sort all states according to energy
+
+  // Sort all states according to energy
   std::sort(allStates.begin(), allStates.end(), &StateSorter);
 
   int index = 0;
-  if (Z > 0) {
-    index = Z/2;
-  } else {
-    index = N/2;
+  int nrParticles = Z + N;
+  for (int i = 0; i < allStates.size(); i++) {
+    if (nrParticles - allStates[index].O+1 > 0) {
+      index++;
+      nrParticles -= allStates[index].O+1;
+    }
+  }
+
+  cout << "Found single particle state. Energy: " << allStates[index].energy
+       << endl;
+  cout << "Spin: " << allStates[index].parity* allStates[index].O << "/2 " << endl;
+  cout << "N\tL\ts\tC" << endl;
+  for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
+    cout << allStates[index].componentsHO[j].n << "\t" << allStates[index].componentsHO[j].l << "\t" << allStates[index].componentsHO[j].s << "/2\t" << allStates[index].componentsHO[j].C << endl;
   }
 
   return allStates[index];

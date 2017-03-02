@@ -25,7 +25,7 @@ using std::endl;
 Generator::Generator() {
   Z = GetOpt(int, NuclearProperties.DaughterZ);
   A = GetOpt(int, NuclearProperties.DaughterA);
-  R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH;
+  R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH * std::sqrt(5./3.); 
   motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
   motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
   daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
@@ -63,7 +63,7 @@ Generator::Generator() {
   } else {
     W0 = QValue / electronMasskeV - 1.;
   }
-  W0 = W0 - (W0 * W0 - 1) / 2. / A / 1837.4;
+  W0 = W0 - (W0 * W0 - 1) / 2. / A / nucleonMasskeV * electronMasskeV;
 
   LoadExchangeParameters();
 
@@ -206,8 +206,10 @@ double Generator::CalculateWeakMagnetism() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
   if (boost::iequals(pot, "SHO")) {
+    cout << "Weak magnetism SHO" << endl;
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
+    cout << li << " " << si << " " << lf << " " << sf << endl;
     if (li == lf) {
       if (si == sf && si > 0) {
         return 1. / gA * (li + 1 + gM);
@@ -218,10 +220,6 @@ double Generator::CalculateWeakMagnetism() {
       }
     }
   } else {
-    nilsson::SingleParticleState spsf;
-    nilsson::SingleParticleState spsi;
-    GetDeformedStates(spsf, spsi, pot);
-
     result =
         -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * R / gA *
             ME::CalculateDeformedSPMatrixElement(
@@ -252,10 +250,6 @@ double Generator::CalculateInducedTensor() {
       }
     }
   } else {
-    nilsson::SingleParticleState spsf;
-    nilsson::SingleParticleState spsi;
-    GetDeformedStates(spsf, spsi, pot);
-
     result =
         2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
         ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 1, 0, spsi.O,
@@ -269,6 +263,7 @@ double Generator::CalculateInducedTensor() {
 double Generator::CalculateRatioM121() {
   double M121, M101;
   std::string pot = GetOpt(std::string, Computational.Potential);
+  cout << "Potential: " << pot << endl;
   if (boost::iequals(pot, "SHO")) {
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
@@ -278,15 +273,12 @@ double Generator::CalculateRatioM121() {
         false, std::abs(motherSpinParity) / 2., 1, 0, 1, li, lf, si, sf, R);
 
   } else {
-    nilsson::SingleParticleState spsf;
-    nilsson::SingleParticleState spsi;
-    GetDeformedStates(spsf, spsi, pot);
-
     M121 = ME::CalculateDeformedSPMatrixElement(
         spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
     M101 = ME::CalculateDeformedSPMatrixElement(
         spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R);
   }
+  cout << "M121: " << M121 << " M101: " << M101 << endl;
   fc1 = gA * M101;
 
   return M121 / M101;
@@ -319,44 +311,54 @@ void Generator::GetDeformedStates(nilsson::SingleParticleState& spsf,
   double VSp = GetOpt(double, Computational.V0Sproton);
   double VSn = GetOpt(double, Computational.V0Sneutron);
 
+  double r = R * NATLENGTH * 1e15;
+
   if (boost::iequals(pot, "WS")) {
     if (fDecayType == BETA_MINUS) {
       spsf =
-          nilsson::CalculateDeformedState(Z, 0, A, R, 0.0, 0.0, V0p, A0, VSp);
-      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, R, 0.0,
+          nilsson::CalculateDeformedState(Z, 0, A, r, 0.0, 0.0, V0p, A0, VSp);
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, r, 0.0,
                                              0.0, V0n, A0, VSn);
     } else {
-      spsf = nilsson::CalculateDeformedState(0, A - Z, A, R, 0.0, 0.0, V0n, A0,
+      spsf = nilsson::CalculateDeformedState(0, A - Z, A, r, 0.0, 0.0, V0n, A0,
                                              VSn);
-      spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, R, 0.0, 0.0,
+      spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, r, 0.0, 0.0,
                                              V0p, A0, VSp);
     }
   } else if (boost::iequals(pot, "DWS")) {
     if (fDecayType == BETA_MINUS) {
-      spsf = nilsson::CalculateDeformedState(Z, 0, A, R, daughterBeta2,
+      spsf = nilsson::CalculateDeformedState(Z, 0, A, r, daughterBeta2,
                                              daughterBeta4, V0p, A0, VSp);
-      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, R,
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, r,
                                              motherBeta2, motherBeta4, V0n, A0,
                                              VSn);
     } else {
-      spsf = nilsson::CalculateDeformedState(0, A - Z, A, R, daughterBeta2,
+      spsf = nilsson::CalculateDeformedState(0, A - Z, A, r, daughterBeta2,
                                              daughterBeta4, V0n, A0, VSn);
       spsi = nilsson::CalculateDeformedState(
-          Z - fDecayType, 0, A, R, motherBeta2, motherBeta4, V0p, A0, VSp);
+          Z - fDecayType, 0, A, r, motherBeta2, motherBeta4, V0p, A0, VSp);
     }
   }
 }
 
 void Generator::CalculateMatrixElements() {
+  cout << "Calculating matrix elements" << endl;
+  GetDeformedStates(spsf, spsi, GetOpt(std::string, Computational.Potential));
   ratioM121 = CalculateRatioM121();
 
-  double bAc, dAc;
+  cout << "Ratio: " << ratioM121 << endl;
+
+  double bAc = 0, dAc = 0;
   if (!OptExists(weakmagnetism)) {
+    cout << "Calculating Weak Magnetism" << endl;
     bAc = CalculateWeakMagnetism();
   }
   if (!OptExists(inducedtensor)) {
     dAc = CalculateInducedTensor();
   }
+  cout << "Weak magnetism: " << bAc << endl;
+  cout << "Induced tensor: " << dAc << endl;
+  cout << "M121/M101: " << ratioM121 << endl;
 
   fb = bAc * A * fc1;
   fd = dAc * A * fc1;

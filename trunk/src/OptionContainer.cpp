@@ -67,11 +67,11 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("screening,s", "Turn off atomic screening.")
       ("exchange,x", "Turn off atomic exchange.")
       ("mismatch,m", "Turn off the atomic mismatch correction.")
-      ("weakmagnetism,b", po::value<double>()->default_value(0.),
+      ("weakmagnetism,b", po::value<double>(),
        "Specify the b/Ac1 value in the Holstein formalism.")
-      ("inducedtensor,d", po::value<double>()->default_value(0.),
+      ("inducedtensor,d", po::value<double>(),
        "Specify the d/Ac1 value in the Holstein formalism.")
-      ("ratioM121,X", po::value<double>()->default_value(0.),
+      ("ratioM121,X", po::value<double>(),
        "Specify the ratio of matrix elements M121/M101 in the "
        "Behrens-Buhring formalism.")
       ("begin,B", po::value<double>()->default_value(0.),
