@@ -11,6 +11,9 @@
 
 namespace MatrixElements {
 
+using std::cout;
+using std::endl;
+
 namespace CD = ChargeDistributions;
 
 inline int gL(int k) { return (k > 0) ? k : std::abs(k) - 1; }
@@ -24,7 +27,7 @@ inline double sign(double x) { return (x == 0) ? 0 : x / std::abs(x); }
 inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
   int dJi = 2 * jL(ki);
   int dJf = 2 * jL(kf);
-  // cout << "Calc GKLs " << kf << " " << ki << endl;
+  cout << "Calc GKLs " << kf << " " << ki << " " << dJi << " " << dJf << endl;
   double first = std::sqrt((2 * s + 1) * (2 * K + 1) * (2 * gL(kf) + 1) *
                            (2 * gL(ki) + 1) * (dJf + 1) * (dJi + 1));
   std::complex<double> I(0, 1);
@@ -95,14 +98,16 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
       result *= sign(ki) * CalculateGKLs(kf, -ki, K, L, 0) * first +
                 sign(kf) * CalculateGKLs(-kf, ki, K, L, s) * second;
     } else if (s == 1) {
+      cout << "Calculating M1L1: " << L << endl;
       result *= CalculateGKLs(kf, ki, K, L, s);
+      cout << "Found GKLs" << endl;
       result *= CD::GetRadialMEHO(nf, lf, L, ni, li, nu) / std::pow(R, L);
     } else {
       result = 0.0;
     }
   }
 
-  if (V) {
+  /*if (V) {
     if (s == 0) {
       //result *= getGKLs(kL(lf, sf), kL(li, si), Ji, K, L, s, li, lf, si, sf);
     } else if (s == 1) {
@@ -124,12 +129,12 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
       } else {
         result = 0.;
       }
-      /*result *=
+      result *=
       1./((protonMasskeV+neutronMasskeV)/electronMasskeV*R)*(sign(kL(li,
       si))*getGKLs(kL(lf, sf), -kL(li, si), Ji, K, L, s, li, lf, si, sf)
                 + sign(kL(lf, sf))*getGKLs(-kL(lf, sf), kL(li, si), Ji, K, L, s,
       li, lf, si, sf));
-      result *= 3./4.;*/
+      result *= 3./4.;
     }
   } else {
     // result *= getGKLs(kL(lf, sf), kL(li, si), Ji, K, L, s, li, lf, si, sf);
@@ -160,7 +165,7 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
     } else {
       result = 0.;
     }
-  }
+  }*/
   // cout << "Result: " << result << endl;
   return result;
 }
