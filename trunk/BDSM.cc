@@ -4,12 +4,13 @@
 #include "Generator.h"
 #include "OptionContainer.h"
 #include "NilssonOrbits.h"
+#include "ChargeDistributions.h"
 
 using std::cout;
 using std::endl;
 using std::cerr;
 
-double version = 0.10;
+char* version = "0.10";
 char* lastUpdate = "February 24, 2017";
 char* author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
@@ -61,12 +62,16 @@ void TestNilssonMethods() {
   bool report = true;
 
   nilsson::Calculate(spin, beta2, beta4, V0, R, A0, VS, A, Z, nMax, true);
+
+  double nu = 1.;
+  cout << "Adv: " << ChargeDistributions::GetRadialMEHO(1, 0, 2, 1, 0, nu) << endl;;
+  cout << "Normal: " << std::pow(ChargeDistributions::GetRMSHO(1, 0, nu), 2.) << endl;
 }
 
 int main(int argc, char** argv) {
   ShowIntro();
 
-  //TestNilssonMethods();
+  TestNilssonMethods();
   OptionContainer::GetInstance(argc, argv);
 
   if (OptExists(input)) {

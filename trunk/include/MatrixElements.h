@@ -20,14 +20,14 @@ inline int gL(int k) { return (k > 0) ? k : std::abs(k) - 1; }
 
 inline int kL(int l, int s) { return (s > 0) ? -(l + 1) : l; }
 
-inline double jL(int k) { return (k > 0) ? -k - 0.5 : k - 0.5; }
+inline double jL(int k) { return (k < 0) ? -k - 0.5 : k - 0.5; }
 
 inline double sign(double x) { return (x == 0) ? 0 : x / std::abs(x); }
 
 inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
   int dJi = 2 * jL(ki);
   int dJf = 2 * jL(kf);
-  cout << "Calc GKLs " << kf << " " << ki << " " << dJi << " " << dJf << endl;
+  //cout << "Calc GKLs " << kf << " " << ki << " " << dJi << " " << dJf << endl;
   double first = std::sqrt((2 * s + 1) * (2 * K + 1) * (2 * gL(kf) + 1) *
                            (2 * gL(ki) + 1) * (dJf + 1) * (dJi + 1));
   std::complex<double> I(0, 1);
@@ -46,34 +46,36 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s, int ni, int nf, int li,
                                              int lf, int si, int sf, double R,
                                              double nu) {
-  // cout << "Calculating SP ME " << K << " " << L << " " << s << " state: " <<
-  // li << " " << si << " " << lf << " " << sf << endl;
+  //cout << "Calculating SP ME " << K << " " << L << " " << s << " state: " <<
+  //li << " " << si << " " << lf << " " << sf << endl;
   double Mn = nucleonMasskeV / electronMasskeV;
   double result = std::sqrt(2. / (2. * Ji + 1.));
 
   int kf = kL(lf, sf);
-  int ki = kL(li, sf);
+  int ki = kL(li, si);
 
   if (V) {
     if (s == 0) {
       result *= CalculateGKLs(kf, ki, K, L, 0.);
       result *= CD::GetRadialMEHO(nf, lf, K, ni, li, nu) / std::pow(R, K);
     } else if (s == 1) {
-      //TODO check if right energy scale for nu
       double dE = 2. * nu * electronMasskeV / nucleonMasskeV *
                   (2 * (ni - nf) + li - lf);
+      cout << "dE " << dE << endl;
       double first =
           R / 2. / (L + 1.) * dE * CD::GetRadialMEHO(nf, lf, L + 1, ni, li, nu) /
               std::pow(R, L + 1) +
           (kf - ki + 1 + L) * (kf + ki - L) /
               (4. * nucleonMasskeV / electronMasskeV * R) / (L + 1.) *
               CD::GetRadialMEHO(nf, lf, L - 1, ni, li, nu) / std::pow(R, L - 1);
+      cout << "First: " << first;
       double second =
           -R / 2. / (L + 1.) * dE * CD::GetRadialMEHO(nf, lf, L + 1, ni, li, nu) /
               std::pow(R, L + 1) -
           (kf - ki - 1 - L) * (kf + ki - L) /
               (4. * nucleonMasskeV / electronMasskeV * R) / (L + 1.) *
               CD::GetRadialMEHO(nf, lf, L - 1, ni, li, nu) / std::pow(R, L - 1);
+      cout << " second: " << second << endl;
       result *= sign(ki) * CalculateGKLs(kf, -ki, K, L, s) * first +
                 sign(kf) * CalculateGKLs(-kf, ki, K, L, s) * second;
     } else {
@@ -98,9 +100,9 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
       result *= sign(ki) * CalculateGKLs(kf, -ki, K, L, 0) * first +
                 sign(kf) * CalculateGKLs(-kf, ki, K, L, s) * second;
     } else if (s == 1) {
-      cout << "Calculating M1L1: " << L << endl;
+      //cout << "Calculating M1L1: " << L << endl;
       result *= CalculateGKLs(kf, ki, K, L, s);
-      cout << "Found GKLs" << endl;
+      //cout << "Found GKLs" << endl;
       result *= CD::GetRadialMEHO(nf, lf, L, ni, li, nu) / std::pow(R, L);
     } else {
       result = 0.0;

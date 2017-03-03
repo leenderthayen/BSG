@@ -3,6 +3,7 @@
 
 #include "Utilities.h"
 #include "gsl/gsl_sf_laguerre.h"
+#include "gsl/gsl_sf_gamma.h"
 
 #include <complex>
 
@@ -22,14 +23,19 @@ inline double GetRMSHO(int n, int l, double nu) {
 inline double GetRadialMEHO(int nf, int lf, int L, int ni, int li, double nu) {
   int taui = (lf-li+L) / 2;
   int tauf = (li-lf+L) / 2;
-  double t = (li+lf+L+1) / 2;
+  double t = (li+lf+L+1) / 2.;
 
-  double first = std::pow(-1, ni+nf)/std::pow(2*nu, L/2.)*std::sqrt(utilities::Factorial(ni-1)*utilities::Factorial(nf-1)/utilities::Factorial(ni+t-taui-1)*utilities::Factorial(nf+t-tauf-1))*utilities::Factorial(taui)*utilities::Factorial(tauf);
+  double first = std::pow(-1, ni+nf)/std::pow(2*nu, L/2.)*std::sqrt(gsl_sf_gamma(ni)*gsl_sf_gamma(nf)/gsl_sf_gamma(ni+t-taui)/gsl_sf_gamma(nf+t-tauf))*utilities::Factorial(taui)*utilities::Factorial(tauf);
+
+  //cout << "tau_i " << taui << " tau_f " << tauf << " t " << t << endl;
+  //cout << "First: " << first << endl;
 
   double sum = 0.;
-  for (int s = std::max(ni-taui-1, nf-tauf-1); s <= std::min(ni-1, nf-1); s++) {
-    utilities::Factorial(t+s)/(utilities::Factorial(s)*utilities::Factorial(nf-s-1)*utilities::Factorial(s+taui-ni+1)*utilities::Factorial(s+tauf-nf+1));
+  for (int s = std::max(std::max(ni-taui-1, nf-tauf-1), 0); s <= std::min(ni-1, nf-1); s++) {
+    sum += gsl_sf_gamma(t+s+1.)/(utilities::Factorial(s)*utilities::Factorial(ni-s-1)*utilities::Factorial(s+taui-ni+1)*utilities::Factorial(s+tauf-nf+1));
   }
+
+  //cout << "Sum: " << sum << endl;
 
   return first*sum;
 }

@@ -592,7 +592,8 @@ inline std::vector<SingleParticleState> Calculate(
     sps.parity = 1 - 2 * (nMax % 2);
     for (int j = 0; j < II; j++) {
       WFComp wfc;
-      wfc.n = N[j];
+      //spectroscopic quantum number
+      wfc.n = (N[j]-L[j]) / 2 + 1;
       wfc.l = L[j];
       wfc.s = (JX2[j] - L[j] * 2);
       if (beta2 == 0 && beta4 == 0) {
@@ -643,11 +644,11 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
        << endl;
   cout << "Spin: " << allStates[index].parity* allStates[index].O << "/2 "
        << endl;
-  cout << "N\tL\ts\tC" << endl;
+  cout << "Orbital\tC" << endl;
   for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
-    cout << allStates[index].componentsHO[j].n << "\t"
-         << allStates[index].componentsHO[j].l << "\t"
-         << allStates[index].componentsHO[j].s << "/2\t"
+    cout << allStates[index].componentsHO[j].n
+         << utilities::spectroNames[allStates[index].componentsHO[j].l]
+         << allStates[index].componentsHO[j].l * 2 + allStates[index].componentsHO[j].s << "/2\t"
          << allStates[index].componentsHO[j].C << endl;
   }
 
