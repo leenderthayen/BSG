@@ -25,9 +25,10 @@ using std::endl;
 Generator::Generator() {
   Z = GetOpt(int, NuclearProperties.DaughterZ);
   A = GetOpt(int, NuclearProperties.DaughterA);
-  R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH * std::sqrt(5./3.); 
+  R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH *
+      std::sqrt(5. / 3.);
   if (R == 0.0) {
-    R = 1.2 * std::pow(A, 1./3.) * 1e-15 / NATLENGTH;
+    R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATLENGTH;
   }
   motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
   motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
@@ -208,11 +209,12 @@ void Generator::InitializeL0Constants() {
 double Generator::CalculateWeakMagnetism() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
+  double nu = CD::CalcNu(R * std::sqrt(3. / 5.), Z);
   if (boost::iequals(pot, "SHO")) {
-    cout << "Weak magnetism SHO" << endl;
+    //cout << "Weak magnetism SHO" << endl;
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
-    cout << li << " " << si << " " << lf << " " << sf << endl;
+    //cout << li << " " << si << " " << lf << " " << sf << endl;
     if (li == lf) {
       if (si == sf && si > 0) {
         return 1. / gA * (li + 1 + gM);
@@ -222,15 +224,22 @@ double Generator::CalculateWeakMagnetism() {
         return 1. / 2. / gA;
       }
     }
-  } else {
-    double nu = CD::CalcNu(R * std::sqrt(3./5.), Z);
-    result =
-        -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * R / gA *
-            ME::CalculateDeformedSPMatrixElement(
-                spsi, spsf, true, 1, 1, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu) /
-            ME::CalculateDeformedSPMatrixElement(
-                spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu) +
-        gM / gA;
+  } else if (boost::iequals(pot, "WS")) {
+    result = -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * R / gA *
+                 ME::GetSingleParticleMatrixElement(true, std::abs(motherSpinParity)/2., 1, 1, 1, spsi,
+                                                          spsf, R, nu) /
+                 ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity)/2., 1, 0, 1, spsi,
+                                                          spsf, R, nu) +
+             gM / gA;
+  } else if (boost::iequals(pot, "DWS")) {
+    result = -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * R / gA *
+                 ME::CalculateDeformedSPMatrixElement(spsi, spsf, true, 1, 1, 1,
+                                                      spsi.dO, spsf.dO, spsi.dK,
+                                                      spsf.dK, R, nu) /
+                 ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0,
+                                                      1, spsi.dO, spsf.dO, spsi.dK,
+                                                      spsf.dK, R, nu) +
+             gM / gA;
   }
   return result;
 }
@@ -238,7 +247,7 @@ double Generator::CalculateWeakMagnetism() {
 double Generator::CalculateInducedTensor() {
   double result = 0.0;
   std::string pot = GetOpt(std::string, Computational.Potential);
-  double nu = CD::CalcNu(R * std::sqrt(3./5.), Z);
+  double nu = CD::CalcNu(R * std::sqrt(3. / 5.), Z);
   if (boost::iequals(pot, "SHO")) {
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
@@ -253,13 +262,18 @@ double Generator::CalculateInducedTensor() {
         return -sf * (2. * li + 1.) / 2. - dE / 2. * rmsHO;
       }
     }
-  } else {
+  } else if (boost::iequals(pot, "WS")) {
     result =
         2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
-        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 1, 0, spsi.O,
-                                             spsf.O, spsi.K, spsf.K, R, nu) /
-        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1, spsi.O,
-                                             spsf.O, spsi.K, spsf.K, R, nu);
+        ME::GetSingleParticleMatrixElement(
+            false, std::abs(motherSpinParity) / 2., 1, 1, 0, spsi, spsf, R, nu) / ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity), 1, 0, 1, spsi, spsf, R, nu);
+  } else if (boost::iequals(pot, "DWS")) {
+    result =
+        2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
+        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 1, 0, spsi.dO,
+                                             spsf.dO, spsi.dK, spsf.dK, R, nu) /
+        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1, spsi.dO,
+                                             spsf.dO, spsi.dK, spsf.dK, R, nu);
   }
   return result;
 }
@@ -273,15 +287,21 @@ double Generator::CalculateRatioM121() {
     int ni, li, si, nf, lf, sf;
     GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
     M121 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 2, 1, ni, nf, li, lf, si, sf, R, nu);
+        false, std::abs(motherSpinParity) / 2., 1, 2, 1, ni, nf, li, lf, si, sf,
+        R, nu);
     M101 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 0, 1, ni, nf, li, lf, si, sf, R, nu);
-
-  } else {
+        false, std::abs(motherSpinParity) / 2., 1, 0, 1, ni, nf, li, lf, si, sf,
+        R, nu);
+  } else if (boost::iequals(pot, "WS")) {
+    M121 = ME::GetSingleParticleMatrixElement(
+        false, std::abs(motherSpinParity) / 2., 1, 2, 1, spsi, spsf, R, nu);
+    M101 = ME::GetSingleParticleMatrixElement(
+        false, std::abs(motherSpinParity) / 2., 1, 0, 1, spsi, spsf, R, nu);
+  } else if (boost::iequals(pot, "DWS")) {
     M121 = ME::CalculateDeformedSPMatrixElement(
-        spsi, spsf, false, 1, 2, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu);
+        spsi, spsf, false, 1, 2, 1, spsi.dO, spsf.dO, spsi.dK, spsf.dK, R, nu);
     M101 = ME::CalculateDeformedSPMatrixElement(
-        spsi, spsf, false, 1, 0, 1, spsi.O, spsf.O, spsi.K, spsf.K, R, nu);
+        spsi, spsf, false, 1, 0, 1, spsi.dO, spsf.dO, spsi.dK, spsf.dK, R, nu);
   }
   cout << "M121: " << M121 << " M101: " << M101 << endl;
   fc1 = gA * M101;
@@ -307,9 +327,9 @@ void Generator::GetSPOrbitalNumbers(int& ni, int& li, int& si, int& nf, int& lf,
   sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
 }
 
-void Generator::GetDeformedStates(nilsson::SingleParticleState& spsf,
-                                  nilsson::SingleParticleState& spsi,
-                                  std::string pot) {
+void Generator::GetWoodsSaxonSPStates(nilsson::SingleParticleState& spsf,
+                                      nilsson::SingleParticleState& spsi,
+                                      std::string pot) {
   double V0p = GetOpt(double, Computational.V0proton);
   double V0n = GetOpt(double, Computational.V0neutron);
   double A0 = GetOpt(double, Computational.SurfaceThickness);
@@ -319,39 +339,40 @@ void Generator::GetDeformedStates(nilsson::SingleParticleState& spsf,
   double r = R * NATLENGTH * 1e15;
 
   if (boost::iequals(pot, "WS")) {
-    if (fDecayType == BETA_MINUS) {
+    if (fBetaType == BETA_MINUS) {
       spsf =
           nilsson::CalculateDeformedState(Z, 0, A, r, 0.0, 0.0, V0p, A0, VSp);
-      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, r, 0.0,
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fBetaType), A, r, 0.0,
                                              0.0, V0n, A0, VSn);
     } else {
       spsf = nilsson::CalculateDeformedState(0, A - Z, A, r, 0.0, 0.0, V0n, A0,
                                              VSn);
-      spsi = nilsson::CalculateDeformedState(Z - fDecayType, 0, A, r, 0.0, 0.0,
+      spsi = nilsson::CalculateDeformedState(Z - fBetaType, 0, A, r, 0.0, 0.0,
                                              V0p, A0, VSp);
     }
   } else if (boost::iequals(pot, "DWS")) {
-    if (fDecayType == BETA_MINUS) {
+    if (fBetaType == BETA_MINUS) {
       spsf = nilsson::CalculateDeformedState(Z, 0, A, r, daughterBeta2,
                                              daughterBeta4, V0p, A0, VSp);
-      spsi = nilsson::CalculateDeformedState(0, A - (Z - fDecayType), A, r,
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fBetaType), A, r,
                                              motherBeta2, motherBeta4, V0n, A0,
                                              VSn);
     } else {
+      cout << "Final state" << endl;
       spsf = nilsson::CalculateDeformedState(0, A - Z, A, r, daughterBeta2,
                                              daughterBeta4, V0n, A0, VSn);
+      cout << "Initial state: " << endl;
       spsi = nilsson::CalculateDeformedState(
-          Z - fDecayType, 0, A, r, motherBeta2, motherBeta4, V0p, A0, VSp);
+          Z - fBetaType, 0, A, r, motherBeta2, motherBeta4, V0p, A0, VSp);
     }
   }
 }
 
 void Generator::CalculateMatrixElements() {
   cout << "Calculating matrix elements" << endl;
-  GetDeformedStates(spsf, spsi, GetOpt(std::string, Computational.Potential));
+  GetWoodsSaxonSPStates(spsf, spsi,
+                        GetOpt(std::string, Computational.Potential));
   ratioM121 = CalculateRatioM121();
-
-  cout << "Ratio: " << ratioM121 << endl;
 
   double bAc = 0, dAc = 0;
   if (!OptExists(weakmagnetism)) {
@@ -381,15 +402,14 @@ double* Generator::CalculateDecayRate(double W) {
         SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
 
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
   if (!OptExists(fermi)) {
     result *= SF::FermiFunction(W, Z, R, fBetaType);
     neutrinoResult *= SF::FermiFunction(Wv, Z, R, fBetaType);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(C)) {
     result *= SF::CCorrection(W, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA,
                               gP, fc1, fb, fd, ratioM121);
@@ -397,85 +417,75 @@ double* Generator::CalculateDecayRate(double W) {
         SF::CCorrection(Wv, W0, Z, A, R, fBetaType, hoFit, fDecayType, gA, gP,
                         fc1, fb, fd, ratioM121);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, fBetaType, fDecayType);
     neutrinoResult *=
         SF::RelativisticCorrection(Wv, W0, Z, A, R, fBetaType, fDecayType);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(deformation)) {
     result *=
         SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, daughterBeta4);
     neutrinoResult *=
         SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, daughterBeta4);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(l0)) {
     result *= SF::L0Correction(W, Z, R, fBetaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, fBetaType, aPos, aNeg);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(U)) {
     result *= SF::UCorrection(W, Z, fBetaType);
     neutrinoResult *= SF::UCorrection(Wv, Z, fBetaType);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(Q)) {
     result *= SF::QCorrection(W, W0, Z, A, fBetaType, fDecayType, mixingRatio);
     neutrinoResult *=
         SF::QCorrection(Wv, W0, Z, A, fBetaType, fDecayType, mixingRatio);
   }
 
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
   if (!OptExists(radiative)) {
     result *= SF::RadiativeCorrection(W, W0, Z, R, fBetaType, gA, gM);
     neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(recoil)) {
     result *= SF::RecoilCorrection(W, W0, A, fDecayType, mixingRatio);
     neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, fDecayType, mixingRatio);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(screening)) {
     result *= SF::AtomicScreeningCorrection(W, Z, fBetaType);
     neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, fBetaType);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(exchange)) {
     if (fBetaType == BETA_MINUS) {
       result *= SF::AtomicExchangeCorrection(W, exPars);
       neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
     }
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   if (!OptExists(mismatch)) {
     result *= SF::AtomicMismatchCorrection(W, W0, Z, A, fBetaType);
     neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, fBetaType);
   }
-  //cout << "result: " << result << endl;
+  // cout << "result: " << result << endl;
 
- 
   double fullResult[2] = {result, neutrinoResult};
   return fullResult;
 }

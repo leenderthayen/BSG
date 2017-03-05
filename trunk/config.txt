@@ -2,7 +2,7 @@
 Folder=.
 
 [Computational]
-Potential=WS
+Potential=DWS
 V0neutron=53.0
 V0proton=48.0
 V0Sneutron=7.2

@@ -37,7 +37,7 @@ class Generator {
   double gA, gP, gM;
 
   void GetSPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
-  void GetDeformedStates(nilsson::SingleParticleState&, nilsson::SingleParticleState&, std::string);
+  void GetWoodsSaxonSPStates(nilsson::SingleParticleState&, nilsson::SingleParticleState&, std::string);
   double CalculateWeakMagnetism();
   double CalculateInducedTensor();
   double CalculateRatioM121();

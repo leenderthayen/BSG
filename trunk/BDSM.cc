@@ -71,7 +71,7 @@ void TestNilssonMethods() {
 int main(int argc, char** argv) {
   ShowIntro();
 
-  TestNilssonMethods();
+  //TestNilssonMethods();
   OptionContainer::GetInstance(argc, argv);
 
   if (OptExists(input)) {

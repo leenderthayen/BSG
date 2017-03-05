@@ -27,7 +27,7 @@ struct WFComp {
 };
 
 struct SingleParticleState {
-  double O, K;
+  int dO, dK;
   int parity;
   double energy;
   std::vector<WFComp> componentsHO;
@@ -307,23 +307,23 @@ inline std::vector<SingleParticleState> Calculate(
   double defExpCoef[NDIM4][NDIM1];
   double B[NDIM4 * (NDIM4 + 1) / 2];
   double D[NDIM4 * (NDIM4 + 1) / 2];
-  int LA[NDIM1];
-  int IX2[NDIM1];
-  int JX2[NDIM1];
+  int LA[NDIM1] = {};
+  int IX2[NDIM1] = {};
+  int JX2[NDIM1] = {};
   double sphExpCoef[NDIM3][NDIM1] = {};
-  double eValsWS[NDIM3];
-  int LK[NDIM3];
-  int LKK[NDIM3];
-  int KN[7][NDIM3];
-  int K1[7];
-  double eValsDWS[NDIM4];
-  int K2[NDIM4];
-  int K3[NDIM4];
-  int K4[NDIM4];
+  double eValsWS[NDIM3] = {};
+  int LK[NDIM3] = {};
+  int LKK[NDIM3] = {};
+  int KN[7][NDIM3] = {};
+  int K1[7] = {};
+  double eValsDWS[NDIM4] = {};
+  int K2[NDIM4] = {};
+  int K3[NDIM4] = {};
+  int K4[NDIM4] = {};
 
   std::vector<SingleParticleState> states;
 
-  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, report);
+  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, false);
 
   int II = 0;
   int K = 0;
@@ -468,6 +468,7 @@ inline std::vector<SingleParticleState> Calculate(
       }
       KKKK += KKK;
       if (KKKK > NDIM4) {
+        cout << "Problem KKKK > NDIM4" << endl;
         return states;
       }
       K1[IIOM - 1] = KKK;
@@ -582,13 +583,11 @@ inline std::vector<SingleParticleState> Calculate(
     SingleParticleState sps;
     if (beta2 == 0 && beta4 == 0) {
       sps.energy = eValsWS[i];
-      sps.O = K3[i];
-      sps.K = K3[i];
     } else {
       sps.energy = eValsDWS[i];
-      sps.O = K4[i];
-      sps.K = K4[i];
     }
+    sps.dO = K3[i];
+    sps.dK = K3[i];
     sps.parity = 1 - 2 * (nMax % 2);
     for (int j = 0; j < II; j++) {
       WFComp wfc;
@@ -632,17 +631,21 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
   std::sort(allStates.begin(), allStates.end(), &StateSorter);
 
   int index = 0;
+  if (beta2 == 0 && beta4 == 0) {
   int nrParticles = Z + N;
   for (int i = 0; i < allStates.size(); i++) {
-    if (nrParticles - allStates[index].O + 1 > 0) {
+    if (nrParticles - allStates[index].dO + 1 > 0) {
       index++;
-      nrParticles -= allStates[index].O + 1;
+      nrParticles -= allStates[index].dO + 1;
     }
+  }
+  } else {
+    index = (Z+N-1)/2;
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy
        << endl;
-  cout << "Spin: " << allStates[index].parity* allStates[index].O << "/2 "
+  cout << "Spin: " << allStates[index].parity* allStates[index].dO << "/2 "
        << endl;
   cout << "Orbital\tC" << endl;
   for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
