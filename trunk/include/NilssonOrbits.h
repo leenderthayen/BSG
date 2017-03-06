@@ -634,7 +634,7 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
   if (beta2 == 0 && beta4 == 0) {
   int nrParticles = Z + N;
   for (int i = 0; i < allStates.size(); i++) {
-    if (nrParticles - allStates[index].dO + 1 > 0) {
+    if (nrParticles - (allStates[index].dO + 1) > 0) {
       index++;
       nrParticles -= allStates[index].dO + 1;
     }
