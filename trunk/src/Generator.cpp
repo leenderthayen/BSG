@@ -37,6 +37,8 @@ Generator::Generator() {
   motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
   daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
 
+  cout << motherSpinParity << " " << daughterSpinParity << endl;
+
   gA = GetOpt(double, Constants.gA);
   gP = GetOpt(double, Constants.gP);
   gM = GetOpt(double, Constants.gM);
@@ -341,29 +343,29 @@ void Generator::GetWoodsSaxonSPStates(nilsson::SingleParticleState& spsf,
   if (boost::iequals(pot, "WS")) {
     if (fBetaType == BETA_MINUS) {
       spsf =
-          nilsson::CalculateDeformedState(Z, 0, A, r, 0.0, 0.0, V0p, A0, VSp);
-      spsi = nilsson::CalculateDeformedState(0, A - (Z - fBetaType), A, r, 0.0,
+          nilsson::CalculateDeformedState(Z, 0, A, daughterSpinParity, r, 0.0, 0.0, V0p, A0, VSp);
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fBetaType), A, motherSpinParity, r, 0.0,
                                              0.0, V0n, A0, VSn);
     } else {
-      spsf = nilsson::CalculateDeformedState(0, A - Z, A, r, 0.0, 0.0, V0n, A0,
+      spsf = nilsson::CalculateDeformedState(0, A - Z, A, daughterSpinParity, r, 0.0, 0.0, V0n, A0,
                                              VSn);
-      spsi = nilsson::CalculateDeformedState(Z - fBetaType, 0, A, r, 0.0, 0.0,
+      spsi = nilsson::CalculateDeformedState(Z - fBetaType, 0, A, motherSpinParity, r, 0.0, 0.0,
                                              V0p, A0, VSp);
     }
   } else if (boost::iequals(pot, "DWS")) {
     if (fBetaType == BETA_MINUS) {
-      spsf = nilsson::CalculateDeformedState(Z, 0, A, r, daughterBeta2,
+      spsf = nilsson::CalculateDeformedState(Z, 0, A, daughterSpinParity, r, daughterBeta2,
                                              daughterBeta4, V0p, A0, VSp);
-      spsi = nilsson::CalculateDeformedState(0, A - (Z - fBetaType), A, r,
+      spsi = nilsson::CalculateDeformedState(0, A - (Z - fBetaType), A, motherSpinParity, r,
                                              motherBeta2, motherBeta4, V0n, A0,
                                              VSn);
     } else {
       cout << "Final state" << endl;
-      spsf = nilsson::CalculateDeformedState(0, A - Z, A, r, daughterBeta2,
+      spsf = nilsson::CalculateDeformedState(0, A - Z, A, daughterSpinParity, r, daughterBeta2,
                                              daughterBeta4, V0n, A0, VSn);
       cout << "Initial state: " << endl;
       spsi = nilsson::CalculateDeformedState(
-          Z - fBetaType, 0, A, r, motherBeta2, motherBeta4, V0p, A0, VSp);
+          Z - fBetaType, 0, A, motherSpinParity, r, motherBeta2, motherBeta4, V0p, A0, VSp);
     }
   }
 }

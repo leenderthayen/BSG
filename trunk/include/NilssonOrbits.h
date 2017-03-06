@@ -612,7 +612,7 @@ inline bool StateSorter(SingleParticleState const& lhs,
   return lhs.energy < rhs.energy;
 }
 
-inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
+inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ, double R,
                                                   double beta2, double beta4,
                                                   double V0, double A0,
                                                   double VS) {
@@ -641,6 +641,17 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, double R,
   }
   } else {
     index = (Z+N-1)/2;
+    int oldIndex = index;
+    for (int i = 0; i < allStates.size()-oldIndex; i++) {
+      if (allStates[index].dO == dJ) {
+        break;
+      }
+      if (beta2 > 0) {
+        index++;
+      } else {
+        index--;
+      }
+    }
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy
