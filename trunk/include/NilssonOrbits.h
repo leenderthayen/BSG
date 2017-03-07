@@ -591,8 +591,8 @@ inline std::vector<SingleParticleState> Calculate(
     sps.parity = 1 - 2 * (nMax % 2);
     for (int j = 0; j < II; j++) {
       WFComp wfc;
-      //spectroscopic quantum number
-      wfc.n = (N[j]-L[j]) / 2 + 1;
+      // spectroscopic quantum number
+      wfc.n = (N[j] - L[j]) / 2 + 1;
       wfc.l = L[j];
       wfc.s = (JX2[j] - L[j] * 2);
       if (beta2 == 0 && beta4 == 0) {
@@ -612,10 +612,10 @@ inline bool StateSorter(SingleParticleState const& lhs,
   return lhs.energy < rhs.energy;
 }
 
-inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ, double R,
-                                                  double beta2, double beta4,
-                                                  double V0, double A0,
-                                                  double VS) {
+inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ,
+                                                  double R, double beta2,
+                                                  double beta4, double V0,
+                                                  double A0, double VS) {
   std::vector<SingleParticleState> evenStates =
       Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 12, false);
   std::vector<SingleParticleState> oddStates =
@@ -630,27 +630,31 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ, d
   // Sort all states according to energy
   std::sort(allStates.begin(), allStates.end(), &StateSorter);
 
+  /*for (int i = 0; i < allStates.size(); i++) {
+    cout << i + 1 << ": " << allStates[i].parity* allStates[i].dO
+         << "/2 : " << allStates[i].energy << endl;
+  }*/
+
   int index = 0;
   if (beta2 == 0 && beta4 == 0) {
-  int nrParticles = Z + N;
-  for (int i = 0; i < allStates.size(); i++) {
-    if (nrParticles - (allStates[index].dO + 1) > 0) {
-      index++;
-      nrParticles -= allStates[index].dO + 1;
+    int nrParticles = Z + N;
+    //cout << "nrParticles: " << nrParticles << endl;
+    for (int i = 0; i < allStates.size(); i++) {
+      //cout << "nrParticles: " << nrParticles << endl;
+      //cout << "State: " << allStates[index].dO*allStates[index].parity << "/2; particles: " << allStates[index].dO + 1 << endl;
+      if (nrParticles - (allStates[index].dO + 1) > 0) {
+        nrParticles -= allStates[index].dO + 1;
+        index++;
+      }
     }
-  }
   } else {
-    index = (Z+N-1)/2;
-    int oldIndex = index;
-    for (int i = 0; i < allStates.size()-oldIndex; i++) {
-      if (allStates[index].dO == dJ) {
+    index = (Z + N - 1) / 2;
+    for (int i = -std::abs(std::abs(dJ)-allStates[index].dO)/2 - 1; i < std::abs(std::abs(dJ) - allStates[index].dO) / 2 + 1; i++) {
+      if (allStates[index+i].dO * allStates[index+i].parity == dJ) {
+        index += i;
         break;
       }
-      if (beta2 > 0) {
-        index++;
-      } else {
-        index--;
-      }
+      index = std::max(0, std::min(index, (int)(allStates.size()) - 1));
     }
   }
 
@@ -662,7 +666,8 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ, d
   for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
     cout << allStates[index].componentsHO[j].n
          << utilities::spectroNames[allStates[index].componentsHO[j].l]
-         << allStates[index].componentsHO[j].l * 2 + allStates[index].componentsHO[j].s << "/2\t"
+         << allStates[index].componentsHO[j].l * 2 +
+                allStates[index].componentsHO[j].s << "/2\t"
          << allStates[index].componentsHO[j].C << endl;
   }
 
