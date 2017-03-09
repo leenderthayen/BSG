@@ -28,7 +28,7 @@ class Generator {
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
 
-  nilsson::SingleParticleState spsf, spsi;
+  nilsson::NuclearState nsf, nsi;
 
   std::vector<std::vector<double> > spectrum;
 

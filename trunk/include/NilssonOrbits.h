@@ -33,6 +33,20 @@ struct SingleParticleState {
   std::vector<WFComp> componentsHO;
 };
 
+struct NuclearState {
+  int dK;
+  double excitationEnergy;
+  int dJ;
+  int parity;
+  SingleParticleState spsProton, spsNeutron;
+};
+
+struct Nucleus {
+  int Z, N, A;
+  double beta2, beta4;
+  std::vector<NuclearState> states;
+};
+
 /*
 ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON
 1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE
@@ -80,7 +94,8 @@ SW(1,NN) = TABLE OF <N',L!F(R)!N,L>
 SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.
 SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      */
 
-inline double V(int n, int l, double x) {
+inline double
+V(int n, int l, double x) {
   int m = (n - l) / 2;
   double V = 1.0;
   double F = 1.0;
@@ -612,10 +627,9 @@ inline bool StateSorter(SingleParticleState const& lhs,
   return lhs.energy < rhs.energy;
 }
 
-inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ,
-                                                  double R, double beta2,
-                                                  double beta4, double V0,
-                                                  double A0, double VS) {
+inline std::vector<SingleParticleState> GetAllSingleParticleStates(
+    int Z, int N, int A, int dJ, double R, double beta2, double beta4,
+    double V0, double A0, double VS) {
   std::vector<SingleParticleState> evenStates =
       Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 12, false);
   std::vector<SingleParticleState> oddStates =
@@ -630,18 +644,20 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ,
   // Sort all states according to energy
   std::sort(allStates.begin(), allStates.end(), &StateSorter);
 
-  /*for (int i = 0; i < allStates.size(); i++) {
-    cout << i + 1 << ": " << allStates[i].parity* allStates[i].dO
-         << "/2 : " << allStates[i].energy << endl;
-  }*/
+  return allStates;
+}
+
+inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
+                                                    double R, double beta2,
+                                                    double beta4, double V0,
+                                                    double A0, double VS) {
+  std::vector<SingleParticleState> allStates =
+      GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, V0, A0, VS);
 
   int index = 0;
   if (beta2 == 0 && beta4 == 0) {
     int nrParticles = Z + N;
-    //cout << "nrParticles: " << nrParticles << endl;
     for (int i = 0; i < allStates.size(); i++) {
-      //cout << "nrParticles: " << nrParticles << endl;
-      //cout << "State: " << allStates[index].dO*allStates[index].parity << "/2; particles: " << allStates[index].dO + 1 << endl;
       if (nrParticles - (allStates[index].dO + 1) > 0) {
         nrParticles -= allStates[index].dO + 1;
         index++;
@@ -649,8 +665,9 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ,
     }
   } else {
     index = (Z + N - 1) / 2;
-    for (int i = -std::abs(std::abs(dJ)-allStates[index].dO)/2 - 1; i < std::abs(std::abs(dJ) - allStates[index].dO) / 2 + 1; i++) {
-      if (allStates[index+i].dO * allStates[index+i].parity == dJ) {
+    for (int i = -std::abs(std::abs(dJ) - allStates[index].dO) / 2 - 1;
+         i < std::abs(std::abs(dJ) - allStates[index].dO) / 2 + 1; i++) {
+      if (allStates[index + i].dO * allStates[index + i].parity == dJ) {
         index += i;
         break;
       }
@@ -672,6 +689,58 @@ inline SingleParticleState CalculateDeformedState(int Z, int N, int A, int dJ,
   }
 
   return allStates[index];
+}
+
+inline NuclearState CalculateDeformedNuclearState(int Z, int N, int A, int dJ,
+                                                  double R, double beta2,
+                                                  double beta4, double V0,
+                                                  double A0, double VS) {
+  NuclearState ns;
+  ns.spsProton = CalculateDeformedSPState(Z, 0, A, dJ, R, beta2, beta4, V0, A0, VS);
+  ns.spsNeutron = CalculateDeformedSPState(0, N, A, dJ, R, beta2, beta4, V0, A0, VS);
+  // Even nucleus
+  if (A%2 == 0) {
+    //Odd-Odd nucleus
+    if (Z%2 == 0) {
+      //TODO Implement Gallagher coupling rules
+      ns.dK = 0;
+    }
+    //Even-Even nucleus
+    else {
+      ns.dK = 0;
+      ns.excitationEnergy = 0;
+      ns.dJ = dJ;
+    }
+  }
+  //Odd-A nucleus
+  else {
+    //Odd neutron
+    if (Z%2 == 0) {
+      ns.dK = spsN.dO;
+      ns.excitationEnergy = 0;
+      ns.dJ = spsN.dO;
+    }
+    //Odd proton
+    else {
+      ns.dK = spsP.dO;
+      ns.excitationEnergy = 0;
+      ns.dJ = spsP.dO;
+    }
+  }
+  return ns;
+}
+
+inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
+    int Z, int N, int A, int dJ, double R, double beta2, double beta4,
+    double V0, double A0, double VS) {
+  std::vector<NuclearState> spectrum;
+
+  //TODO
+  return spectrum;
+}
+
+inline double CalculateBindingEnergy(int Z, int N, int N, int dJ, double R, double beta2, double beta4, double V0, double A0, double VS) {
+  
 }
 }
 #endif
