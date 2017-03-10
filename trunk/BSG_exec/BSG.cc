@@ -16,7 +16,7 @@ char* author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 void ShowIntro() {
   cout << "**************************************************\n";
-  cout << "                  BDSM v." << version << "\n\n";
+  cout << "                  BSG v." << version << "\n\n";
   cout << "        Last update: " << lastUpdate << endl;
   cout << "      " << author << endl;
   cout << "**************************************************\n\n";

@@ -132,7 +132,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   else {
     po::store(po::parse_config_file(inputStream, transitionOptions), vm);
   }
-  po::store(po::parse_environment(envOptions, "BDSM_"), vm);
+  po::store(po::parse_environment(envOptions, "BSG_"), vm);
   po::notify(vm);
 
   if (vm.count("help")) {
