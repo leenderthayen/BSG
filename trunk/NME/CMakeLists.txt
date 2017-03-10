@@ -1,9 +1,9 @@
 file(GLOB NMEheaders ./include/*.h)
 file(GLOB NMEsrc ./src/*.cpp)
 
-add_library(NME SHARED ${NMEheaders} ${NMEsrc})
+add_library(nme SHARED ${NMEheaders} ${NMEsrc})
  
-set_target_properties(NME PROPERTIES
+set_target_properties(nme PROPERTIES
   PUBLIC_HEADER ${NMEheaders})
  
 install(TARGETS NME
@@ -11,5 +11,5 @@ install(TARGETS NME
   EXPORT BSGTargets
   RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
   LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/_NME"
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/NME"
     COMPONENT dev)
