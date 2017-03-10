@@ -47,12 +47,9 @@ inline int DoubleFactorial(int n) {
 
 inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int two_mb, int two_mc) {
   double result = 0.0;
-  //cout << "Clebsch-Gordan " << two_ja << " " << two_jb << " " << two_jc << endl;
-  //cout << "               " << two_ma << " " << two_mb << " " << two_mc << endl;
   if (two_ja >= 0 && two_jb >= 0 && two_jc >= 0) {
     result = std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1.0)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
   }
-  //cout << "Result: " << result << endl;
   return result;
 }
 
@@ -60,7 +57,6 @@ inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int 
 /*                       M
            < L', LA' | Y  | L, LA >
                          L
-
 */
 inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll, int la) {
   double result = 0.;

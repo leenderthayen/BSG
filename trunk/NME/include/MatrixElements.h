@@ -9,6 +9,7 @@
 #include <cmath>
 #include <complex>
 
+namespace NuclearStructure {
 namespace MatrixElements {
 
 using std::cout;
@@ -197,6 +198,7 @@ inline double CalculateDeformedEvenAMatrixElement(bool V, int K, int L, int s, i
 
 inline double CalculateMatrixElement(bool V, int K, int L, int s, int opt, nilsson::NuclearState nsi, nilsson::NuclearState nsf, bool deformed) {
   
+}
 }
 }
 #endif

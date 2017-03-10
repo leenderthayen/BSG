@@ -15,6 +15,7 @@
 #define NDIM3 35
 #define NDIM4 40
 
+namespace NuclearStructure {
 namespace nilsson {
 
 using std::cout;
@@ -741,6 +742,7 @@ inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
 
 inline double CalculateBindingEnergy(int Z, int N, int N, int dJ, double R, double beta2, double beta4, double V0, double A0, double VS) {
   
+}
 }
 }
 #endif
