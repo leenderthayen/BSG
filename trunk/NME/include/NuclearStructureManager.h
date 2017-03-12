@@ -1,6 +1,9 @@
 #ifndef NUCLEAR_STRUCTURE_MANAGER
 #define NUCLEAR_STRUCTURE_MANAGER
 
+#include <string>
+#include <vector>
+
 namespace NuclearStructure {
 
 // s is +-1 depending of whether it is j=l+-1/2
@@ -21,23 +24,35 @@ struct OneBodyTransition {
   SingleParticleState spsi, spsf;
 };
 
-class NuclearStructureManager {
+struct Nucleus {
+  int Z, A;
+  int dJ;
+  double R;
+  double excitationEnergy;
+  double beta2, beta4;
+};
 
+class NuclearStructureManager {
   public:
-    NuclearStructureManager();
+    NuclearStructureManager() {};
+    NuclearStructureManager(Nucleus, Nucleus);
     ~NuclearStructureManager();
+
+    void SetDaughterNucleus(int, int, int, int, double, double, double, double);
+    void SetMotherNucleus(int, int, int, int, double, double, double, double);
+    void Initialize(std::string);
 
     double CalculateMatrixElement(bool, int, int, int);
     double CalculateWeakMagnetism();
     double CalculateInducedTensor();
-    double CalculateRatioM121();
+
+    void AddOneBodyTransition(double, SingleParticleState, SingleParticleState);
 
   private:
-    int Z, N, A;
-    double beta2, beta4;
-    int dJi, dJf;
+    Nucleus mother, daughter;
+    enum BetaType { BETA_PLUS = -1, BETA_MINUS = 1 };
+    BetaType betaType;
     std::vector<OneBodyTransition> oneBodyTransitions;
-}
-
+};
 }
 #endif
