@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(BSG)
  
-set(BSG_MAJOR_VERSION 0)
-set(BSG_MINOR_VERSION 11)
+set(BSG_VERSION_MAJOR 0)
+set(BSG_VERSION_MINOR 11)
 set(BSG_VERSION
-  ${BSG_MAJOR_VERSION}.${BSG_MINOR_VERSION})
+  ${BSG_VERION_MAJOR}.${BSG_VERSION_MINOR})
  
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR ${PROJECT_BINARY_DIR}/lib CACHE PATH "Installation directory for libraries")
@@ -32,6 +32,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/Utilities")
 find_package(GSL REQUIRED)
 find_package(ROOT REQUIRED)
 find_package(Boost COMPONENTS program_options REQUIRED)
+
+configure_file("${PROJECT_SOURCE_DIR}/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSGConfig.h")
+
+include_directories("${PROJECT_BINARY_DIR}")
+include_directories("${PROJECT_SOURCE_DIR}/NME")
+include_directories("${PROJECT_SOURCE_DIR}/BSG")
  
 # Add sub-directories
 add_subdirectory(NME)

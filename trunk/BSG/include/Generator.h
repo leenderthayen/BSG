@@ -2,8 +2,7 @@
 #define GENERATOR
 
 #include <vector>
-
-#include "NilssonOrbits.h"
+class NuclearStructureManager;
 
 class Generator {
  private:
@@ -28,7 +27,7 @@ class Generator {
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
 
-  nilsson::NuclearState nsf, nsi;
+  NuclearStructureManager* nsm;
 
   std::vector<std::vector<double> > spectrum;
 
@@ -36,20 +35,14 @@ class Generator {
   double fb, fc1, fd, ratioM121;
   double gA, gP, gM;
 
-  void GetSPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
-  void GetWoodsSaxonSPStates(nilsson::SingleParticleState&, nilsson::SingleParticleState&, std::string);
-  double CalculateWeakMagnetism();
-  double CalculateInducedTensor();
-  double CalculateRatioM121();
-  void CalculateMatrixElements();
+  void GetMatrixElements();
 
   void InitializeL0Constants();
   void LoadExchangeParameters();
 
  public:
   Generator();
-  /// nothing is created in the heap, therefore we have an empty destructor
-  ~Generator(){};
+  ~Generator(){ delete nsm; };
 
   std::vector<std::vector<double> > CalculateSpectrum();
   double* CalculateDecayRate(double W);
@@ -57,4 +50,4 @@ class Generator {
 
 };
 
-#endif  // SPECTRUM_H
+#endif

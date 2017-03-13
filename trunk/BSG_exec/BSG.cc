@@ -6,17 +6,18 @@
 #include "NilssonOrbits.h"
 #include "ChargeDistributions.h"
 
+#include "BSGConfig.h"
+
 using std::cout;
 using std::endl;
 using std::cerr;
 
-char* version = "0.10";
 char* lastUpdate = "February 24, 2017";
 char* author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 void ShowIntro() {
   cout << "**************************************************\n";
-  cout << "                  BSG v." << version << "\n\n";
+  cout << "                  BSG v." << BSG_VERSION << "\n\n";
   cout << "        Last update: " << lastUpdate << endl;
   cout << "      " << author << endl;
   cout << "**************************************************\n\n";
