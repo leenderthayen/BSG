@@ -21,6 +21,7 @@ struct SingleParticleState {
 
 struct OneBodyTransition {
   double obdme;
+  int dK;
   SingleParticleState spsi, spsf;
 };
 
