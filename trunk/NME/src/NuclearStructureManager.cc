@@ -10,7 +10,7 @@ namespace NS = NuclearStructure;
 namespace NO = NuclearStructure::nilsson;
 namespace ME = NuclearStructure::MatrixElements;
 
-int Sign (double x) { return (x >= 0.) ? 1 : -1; }
+int sign (double x) { return (x >= 0.) ? 1 : -1; }
 
 NS::NuclearStructureManager::NuclearStructureManager(BetaType bt, NS::Nucleus init, NS::Nucleus fin) {
   betaType = bt;
@@ -31,8 +31,9 @@ void NS::NuclearStructureManager::Initialize(std::string method, std::string pot
   if (boost::iequals(method, "ESP")) {
     SingleParticleState spsi, spsf;
     int dKi, dKf;
-    GetESPStates(spsi, spsf, pot, dKi, dKf);
-    AddOneBodyTransition(1.0, spsi, spsf);
+    double obdme;
+    GetESPStates(spsi, spsf, pot, dKi, dKf, obdme);
+    AddOneBodyTransition(obdme, spsi, spsf);
   }
 }
 
@@ -53,8 +54,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi, Single
     WFComp iW = {1.0, ni, li, si};
     std::vector<WFComp> fComps = {fW};
     std::vector<WFComp> iComps = {iW};
-    spsf = {daughter.dJ, -1, Sign(daughter.dJ), 0.0, fComps};
-    spsi = {mother.dJ, -1, Sign(mother.dJ), 0.0, iComps};
+    spsf = {daughter.dJ, -1, sign(daughter.dJ), 0.0, fComps};
+    spsi = {mother.dJ, -1, sign(mother.dJ), 0.0, iComps};
   } else {
     double dBeta2 = 0.0, dBeta4 = 0.0, mBeta2 = 0.0, mBeta4 = 0.0;
     if (boost::iequals(pot, "DWS")) {
@@ -75,21 +76,33 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi, Single
     }
   }
 
+
   //Set Omega quantum numbers
   if (mother.A%2 == 0) {
     //TODO Implement Gallaghar coupling rules
     if (mother.Z%2 == 0) {
       dKi = 0;
       dKf = spsi.dO + spsf.dO;
-      //TODO
-      obdme = 0.0;
+      if (boost::iequals(pot, "DWS") && mother.Beta2 != 0.0 && daughter.Beta2 != 0.0) {
+        obdme = 0.5*std::sqrt((mother.dJ+1.)*(daughter.dJ+1.)/2./(1.+delta(dKf, 0.0)))*(1+std::pow(-1., (dKf+spsi.dO+spsf.dO)/2.));
+      } else {
+
+      }
     } else {
       dKf = 0;
       dKi = spsi.dO + spsf.dO;
+      if (boost::iequals(pot, "DWS") && mother.Beta2 != 0.0 && daughter.Beta2 != 0.0) {
+        obdme = 0.5*std::sqrt((mother.dJ+1.)*(daughter.dJ+1.)/2./(1.+delta(dKi, 0.0)))*(1+std::pow(-1., daughter.dJ/2.));
+      } else {
+
+      }
     }
   } else {
     dKi = spsi.dO;
     dKf = spsf.dO;
+    if (boost::iequals(pot, "DWS") && mother.Beta2 != 0.0 && daughter.Beta2 != 0.0) {
+      obdme = std::sqrt((mother.dJ+1.)*(daughter.dJ+1.)/(1.+delta(dKi,0))/(1.+delta(dKf,0)));
+    }
   }
 }
 
