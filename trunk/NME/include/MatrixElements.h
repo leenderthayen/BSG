@@ -5,6 +5,7 @@
 #include "NilssonOrbits.h"
 #include "Utilities.h"
 #include "ChargeDistributions.h"
+#include "NuclearUtilities.h"
 
 #include <cmath>
 #include <complex>
@@ -22,10 +23,6 @@ inline int gL(int k) { return (k > 0) ? k : std::abs(k) - 1; }
 inline int kL(int l, int s) { return (s > 0) ? -(l + 1) : l; }
 
 inline double jL(int k) { return (k < 0) ? -k - 0.5 : k - 0.5; }
-
-inline double sign(double x) { return (x == 0) ? 0 : x / std::abs(x); }
-
-inline int delta(double x, double y) { return (x == y) ? 1 : 0; }
 
 inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
   int dJi = 2 * jL(ki);
@@ -113,11 +110,11 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
 
 inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s,
-                                             nilsson::SingleParticleState spsi,
-                                             nilsson::SingleParticleState spsf,
+                                             SingleParticleState spsi,
+                                             SingleParticleState spsf,
                                              double R, double nu) {
-  std::vector<nilsson::WFComp> initComps = spsi.componentsHO;
-  std::vector<nilsson::WFComp> finalComps = spsf.componentsHO;
+  std::vector<WFComp> initComps = spsi.componentsHO;
+  std::vector<WFComp> finalComps = spsf.componentsHO;
 
   double result = 0.0;
 
@@ -134,97 +131,88 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
   return result;
 }
 
-inline double CalculateDeformedSPMatrixElement(
-    int opt, nilsson::SingleParticleState spsi,
-    nilsson::SingleParticleState spsf, bool V, int K, int L, int s, int dJi,
-    int dJf, int dKi, int dKf, double R, double nu) {}
-
-inline double CalculateDeformedOddAMatrixElement(
-    nilsson::SingleParticleState spsi, nilsson::SingleParticleState spsf,
-    bool V, int K, int L, int s, int dJi, int dJf, int dKi, int dKf, double R,
-    double nu) {
+inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleState spsi,
+                                             SingleParticleState spsf,
+                                             bool V, int K, int L, int s,
+                                             int dJi, int dJf, int dKi, int dKf,
+                                             double R, double nu) {
   double result = 0.;
 
-  std::vector<nilsson::WFComp> finalStates = spsf.componentsHO;
-  std::vector<nilsson::WFComp> initStates = spsi.componentsHO;
-  int inO = spsi.dO;
-  int fO = spsf.dO;
-  for (int i = 0; i < finalStates.size(); i++) {
-    nilsson::WFComp fW = finalStates[i];
-    for (int j = 0; j < initStates.size(); j++) {
-      nilsson::WFComp iW = initStates[j];
-      result += fW.C * iW.C *
-                (std::pow(-1., (dJf - dKf + 2 * fW.l + fW.s - fO) / 2.) *
-                     gsl_sf_coupling_3j(dJf, 2 * K, dJi, -dKf, fO - inO, dKi) *
-                     gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s,
-                                        -fO, fO - inO, inO) +
-                 gsl_sf_coupling_3j(dJf, 2 * K, dJi, dKf, -fO - inO, dKi) *
-                     gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s,
-                                        fO, -fO - inO, inO)) *
-                GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
-                                               iW.l, fW.l, iW.s, fW.s, R, nu);
+  // Odd-A transition
+  if (opt == 0) {
+    std::vector<WFComp> finalStates = spsf.componentsHO;
+    std::vector<WFComp> initStates = spsi.componentsHO;
+    int inO = spsi.dO;
+    int fO = spsf.dO;
+    for (int i = 0; i < finalStates.size(); i++) {
+      WFComp fW = finalStates[i];
+      for (int j = 0; j < initStates.size(); j++) {
+        WFComp iW = initStates[j];
+        result +=
+            fW.C * iW.C *
+            (std::pow(-1., (dJf - dKf + 2 * fW.l + fW.s - fO) / 2.) *
+                 gsl_sf_coupling_3j(dJf, 2 * K, dJi, -dKf, fO - inO, dKi) *
+                 gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s,
+                                    -fO, fO - inO, inO) +
+             gsl_sf_coupling_3j(dJf, 2 * K, dJi, dKf, -fO - inO, dKi) *
+                 gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
+                                    -fO - inO, inO)) *
+            GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+                                           iW.l, fW.l, iW.s, fW.s, R, nu);
+      }
+    }
+
+    result *= std::sqrt((dJi + 1.) * (dJf + 1.) / (1. + delta(dKf, 0.)) /
+                        (1. + delta(dKi, 0.)));
+  } else {
+  // Even-A transition
+    double prefact = std::sqrt((dJi + 1.) * (dJf + 1.) / (1. + delta(dKi, 0)) /
+                               (1. + delta(dKf, 0)));
+    std::vector<WFComp> finalStates = spsf.componentsHO;
+    std::vector<WFComp> initStates = spsi.componentsHO;
+    int inO = spsi.dO;
+    int fO = spsf.dO;
+
+    if (opt == 1) {
+      // Odd-Odd ---> Even-Even
+      prefact *= (1 + std::pow(-1., dJf / 2.)) * std::pow(-1., dJi / 2. - K) *
+                 gsl_sf_coupling_3j(dJi, 2 * K, dJf, dKi, -dKi, 0);
+      for (int i = 0; i < finalStates.size(); i++) {
+        WFComp fW = finalStates[i];
+        for (int j = 0; j < initStates.size(); j++) {
+          WFComp iW = initStates[i];
+          result +=
+              iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
+              std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
+              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
+                                 -dKi, inO) *
+              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+                                             iW.l, fW.l, iW.s, fW.s, R, nu);
+        }
+      }
+    // Even-Even ---> Odd-Odd
+    } else if (opt == 2) {
+      prefact *= std::pow(-1., dJi / 2. - K + dKf / 2.) *
+                 gsl_sf_coupling_3j(dJi, 2 * K, dJf, 0, dKf, -dKf) *
+                 (1 + std::pow(-1., (dKf - dJi + fO + inO) / 2.));
+      for (int i = 0; i < finalStates.size(); i++) {
+        WFComp fW = finalStates[i];
+        for (int j = 0; j < initStates.size(); j++) {
+          WFComp iW = initStates[i];
+          result +=
+              iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
+              std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
+              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
+                                 dKf, -inO) *
+              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+                                             iW.l, fW.l, iW.s, fW.s, R, nu);
+        }
+      }
     }
   }
-
-  result *= std::sqrt((dJi + 1.) * (dJf + 1.) / (1. + delta(dKf, 0.)) /
-                      (1. + delta(dKi, 0.)));
-
   return result;
 }
 
-inline double CalculateDeformedEvenAMatrixElement(
-    bool V, int K, int L, int s, int dJi, int dJf, int dKi, int dKf, double R,
-    double nu, nilsson::SingleParticleState spsi,
-    nilsson::SingleParticleState spsf, int opt) {
-  double result = 0.0;
-  double prefact = std::sqrt((dJi + 1.) * (dJf + 1.) / (1. + delta(dKi, 0)) /
-                             (1. + delta(dKf, 0)));
-  std::vector<nilsson::WFComp> finalStates = spsf.componentsHO;
-  std::vector<nilsson::WFComp> initStates = spsi.componentsHO;
-  int inO = spsi.dO;
-  int fO = spsf.dO;
-  // Odd-Odd ---> Even-Even
-  if (opt == 0) {
-    prefact *= (1 + std::pow(-1., dJf / 2.)) * std::pow(-1., dJi / 2. - K) *
-               gsl_sf_coupling_3j(dJi, 2 * K, dJf, dKi, -dKi, 0);
-    for (int i = 0; i < finalStates.size(); i++) {
-      nilsson::WFComp fW = finalStates[i];
-      for (int j = 0; j < initStates.size(); j++) {
-        nilsson::WFComp iW = initStates[i];
-        result +=
-            iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
-            std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
-            gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
-                               -dKi, inO) *
-            GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
-                                           iW.l, fW.l, iW.s, fW.s, R, nu);
-      }
-    }
-  } else {
-    prefact *= std::pow(-1., dJi / 2. - K + dKf / 2.) *
-               gsl_sf_coupling_3j(dJi, 2 * K, dJf, 0, dKf, -dKf) *
-               (1 + std::pow(-1., (dKf - dJi + fO + inO) / 2.));
-    for (int i = 0; i < finalStates.size(); i++) {
-      nilsson::WFComp fW = finalStates[i];
-      for (int j = 0; j < initStates.size(); j++) {
-        nilsson::WFComp iW = initStates[i];
-        result +=
-            iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
-            std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
-            gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
-                               dKf, -inO) *
-            GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
-                                           iW.l, fW.l, iW.s, fW.s, R, nu);
-      }
-    }
-  }
-}
-
-inline double CalculateMatrixElement(bool V, int K, int L, int s, int opt,
-                                     nilsson::NuclearState nsi,
-                                     nilsson::NuclearState nsf, bool deformed) {
-
-}
 }
 }
 #endif

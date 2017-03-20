@@ -30,14 +30,19 @@ endforeach()
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${PROJECT_SOURCE_DIR}/Utilities")
 
 find_package(GSL REQUIRED)
+include_directories(${GSL_INCLUDE_DIRS})
 find_package(ROOT REQUIRED)
+include_directories(${ROOT_INCLUDE_DIRS})
 find_package(Boost COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 configure_file("${PROJECT_SOURCE_DIR}/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSGConfig.h")
 
 include_directories("${PROJECT_BINARY_DIR}")
-include_directories("${PROJECT_SOURCE_DIR}/NME")
-include_directories("${PROJECT_SOURCE_DIR}/BSG")
+include_directories("${PROJECT_SOURCE_DIR}/NME/include")
+include_directories("${PROJECT_SOURCE_DIR}/BSG/include")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
  
 # Add sub-directories
 add_subdirectory(NME)

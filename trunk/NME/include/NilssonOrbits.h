@@ -3,6 +3,7 @@
 
 #include "Utilities.h"
 #include "Constants.h"
+#include "NuclearUtilities.h"
 
 #include <iostream>
 #include <algorithm>
@@ -715,7 +716,7 @@ inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
   return spectrum;
 }*/
 
-inline double CalculateBindingEnergy(int Z, int N, int N, int dJ, double R, double beta2, double beta4, double V0, double A0, double VS) {
+inline double CalculateBindingEnergy(int Z, int N, int dJ, double R, double beta2, double beta4, double V0, double A0, double VS) {
   
 }
 }

@@ -1,16 +1,17 @@
-#include "NuclearStructureManager"
+#include "NuclearStructureManager.h"
 #include "OptionContainer.h"
 #include "Constants.h"
 #include "MatrixElements.h"
+#include "NuclearUtilities.h"
+#include "ChargeDistributions.h"
 
 #include "boost/algorithm/string.hpp"
 #include "gsl/gsl_sf_coupling.h"
 
 namespace NS = NuclearStructure;
-namespace NO = NuclearStructure::nilsson;
-namespace ME = NuclearStructure::MatrixElements;
-
-int sign(double x) { return (x >= 0.) ? 1 : -1; }
+namespace NO = NS::nilsson;
+namespace ME = NS::MatrixElements;
+namespace CD = ChargeDistributions;
 
 NS::NuclearStructureManager::NuclearStructureManager(BetaType bt,
                                                      NS::Nucleus init,
@@ -35,22 +36,24 @@ void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
   mother = {Z, A, dJ, R, excitationEnergy, beta2, beta4};
 }
 
-void NS::NuclearStructureManager::Initialize(std::string method,
-                                             std::string pot) {
+void NS::NuclearStructureManager::Initialize(std::string m,
+                                             std::string p) {
+  method = m;
+  potential = p;
   // Extreme Single particle
   if (boost::iequals(method, "ESP")) {
     SingleParticleState spsi, spsf;
     int dKi, dKf;
     double obdme;
-    GetESPStates(spsi, spsf, pot, dKi, dKf, obdme);
+    GetESPStates(spsi, spsf, potential, dKi, dKf, obdme);
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
   }
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
                                                SingleParticleState& spsf,
-                                               std::string pot, int& dKi,
-                                               int& dKfi, double obdme) {
+                                               std::string potential, int& dKi,
+                                               int& dKf, double& obdme) {
   double V0p = GetOpt(double, Computational.V0proton);
   double V0n = GetOpt(double, Computational.V0neutron);
   double A0 = GetOpt(double, Computational.SurfaceThickness);
@@ -60,35 +63,36 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   double mR = mother.R * NATLENGTH * 1e15;
   double dR = daughter.R * NATLENGTH * 1e15;
 
-  if (boost::iequals(pot, "SHO")) {
+  if (boost::iequals(potential, "SHO")) {
     int ni, li, si, nf, lf, sf;
     GetESPOrbitalNumbers(ni, li, si, nf, lf, sf);
     WFComp fW = {1.0, nf, lf, sf};
     WFComp iW = {1.0, ni, li, si};
     std::vector<WFComp> fComps = {fW};
     std::vector<WFComp> iComps = {iW};
-    spsf = {daughter.dJ, -1, sign(daughter.dJ), 0.0, fComps};
-    spsi = {mother.dJ, -1, sign(mother.dJ), 0.0, iComps};
+    spsf = {daughter.dJ, -1, sign(daughter.dJ), -betaType, 0.0, fComps};
+    spsi = {mother.dJ, -1, sign(mother.dJ), betaType, 0.0, iComps};
   } else {
     double dBeta2 = 0.0, dBeta4 = 0.0, mBeta2 = 0.0, mBeta4 = 0.0;
-    if (boost::iequals(pot, "DWS")) {
-      dBeta2 = daughter.Beta2;
-      dBeta4 = daughter.Beta4;
-      mBeta2 = mother.Beta2;
-      mBeta4 = mother.Beta4;
+    if (boost::iequals(potential, "DWS")) {
+      dBeta2 = daughter.beta2;
+      dBeta4 = daughter.beta4;
+      mBeta2 = mother.beta2;
+      mBeta4 = mother.beta4;
     }
     if (betaType == BETA_MINUS) {
-      spsf = NO::CalculateDeformedSPState(daughter.Z, 0, daughter.A, daughter.dJ,
-                                        dR, dBeta2, dBeta4, V0p, A0, VSp);
+      spsf =
+          NO::CalculateDeformedSPState(daughter.Z, 0, daughter.A, daughter.dJ,
+                                       dR, dBeta2, dBeta4, V0p, A0, VSp);
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
-                                             mother.dJ, mR, mBeta2, mBeta4, V0n,
-                                             A0, VSn);
+                                          mother.dJ, mR, mBeta2, mBeta4, V0n,
+                                          A0, VSn);
     } else {
       spsf = NO::CalculateDeformedSPState(0, daughter.A - daughter.Z,
-                                             daughter.A, daughter.dJ, dR,
-                                             dBeta2, dBeta4, V0n, A0, VSn);
-      spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ,
-                                             mR, mBeta2, mBeta4, V0p, A0, VSp);
+                                          daughter.A, daughter.dJ, dR, dBeta2,
+                                          dBeta4, V0n, A0, VSn);
+      spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
+                                          mBeta2, mBeta4, V0p, A0, VSp);
     }
   }
 
@@ -101,7 +105,7 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       dTi = dT3i + 1;
     }
     if ((daughter.dJ + dT3f) / 2 % 2 == 0) {
-      dTf = Dt3f + 1;
+      dTf = dT3f + 1;
     }
     // TODO Implement Gallaghar coupling rules
     // Even-Even ---> Odd-Odd transition
@@ -109,8 +113,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       dKi = 0;
       dKf = spsi.dO + spsf.dO;
       // Deformed transition
-      if (boost::iequals(pot, "DWS") && mother.Beta2 != 0.0 &&
-          daughter.Beta2 != 0.0) {
+      if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
+          daughter.beta2 != 0.0) {
         obdme = 0.5 * std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) / 2. /
                                 (1. + delta(dKf, 0.0))) *
                 (1 + std::pow(-1., (dKf + spsi.dO + spsf.dO) / 2.));
@@ -119,19 +123,19 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
         obdme =
             std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) * (dTi + 1.) *
                       (dTf + 1.) / 2. /
-                      (1. + delta(2 * spsi.l + spsi.s, 2 * spsf.l + spsf.s))) *
+                      (1. + delta(spsi.dO, spsf.dO))) *
             std::pow(-1., (dTf - dT3f) / 2.) *
             gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, 2 * betaType, dT3i) *
             gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) * 2 *
-            (delta(2 * spsi.l + spsi.s, 2 * spsf.l + spsf.s) -
-             std::pow(-1., spsi.l + spsi.s / 2. + spsf.l + spsf.s / 2.));
+            (delta(spsi.dO, spsf.dO) -
+             std::pow(-1., (spsi.dO + spsf.dO) / 2.));
       }
-    //Odd-Odd ---> Even-Even transition
+      // Odd-Odd ---> Even-Even transition
     } else {
       dKf = 0;
       dKi = spsi.dO + spsf.dO;
-      if (boost::iequals(pot, "DWS") && mother.Beta2 != 0.0 &&
-          daughter.Beta2 != 0.0) {
+      if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
+          daughter.beta2 != 0.0) {
         obdme = 0.5 * std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) / 2. /
                                 (1. + delta(dKi, 0.0))) *
                 (1 + std::pow(-1., daughter.dJ / 2.));
@@ -139,18 +143,18 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
         obdme =
             std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) * (dTi + 1.) *
                       (dTf + 1.) / 2. /
-                      (1. + delta(2 * spsi.l + spsi.s, 2 * spsf.l + spsf.s))) *
+                      (1. + delta(spsi.dO, spsf.dO))) *
             std::pow(-1., (dTf - dT3f) / 2.) *
             gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, 2 * betaType, dT3i) *
             gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) * 2 *
-            (1 + delta(2 * spsi.l + spsi.s, 2 * spsf.l + spsf.s));
+            (1 + delta(spsi.dO, spsi.dO));
       }
     }
   } else {
     dKi = spsi.dO;
     dKf = spsf.dO;
-    if (boost::iequals(pot, "DWS") && mother.Beta2 != 0.0 &&
-        daughter.Beta2 != 0.0) {
+    if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
+        daughter.beta2 != 0.0) {
       obdme = std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) /
                         (1. + delta(dKi, 0)) / (1. + delta(dKf, 0)));
     } else {
@@ -183,12 +187,28 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                                            int s) {
   double result = 0.0;
   double nu = CD::CalcNu(mother.R * std::sqrt(3. / 5.), mother.Z);
+  int opt = 0;
+
+  if (mother.A % 2 == 0) {
+    if (mother.Z % 2 == 1) {
+      opt = 1;
+    } else {
+      opt = 2;
+    }
+  }
 
   for (int i = 0; i < oneBodyTransitions.size(); i++) {
     OneBodyTransition obt = oneBodyTransitions[i];
-    result += obt.obdme * ME::GetSingleParticleMatrixElement(
-                              V, std::abs(mother.dJ) / 2., K, L, s, obt.spsi,
-                              obt.spsf, mother.R, nu);
+    if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
+        daughter.beta2 != 0) {
+      result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(opt,
+                                obt.spsi, obt.spsf, V, K, L, s, mother.dJ,
+                                daughter.dJ, obt.dKi, obt.dKf, mother.R, nu);
+    } else {
+      result += obt.obdme * ME::GetSingleParticleMatrixElement(
+                                V, std::abs(mother.dJ) / 2., K, L, s, obt.spsi,
+                                obt.spsf, mother.R, nu);
+    }
   }
   return result;
 }
@@ -205,7 +225,7 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   return result;
 }
 
-double NuclearStructureManager::CalculateInducedTensor() {
+double NS::NuclearStructureManager::CalculateInducedTensor() {
   double result = 0.0;
 
   double AM110 = CalculateMatrixElement(false, 1, 1, 0);
@@ -215,68 +235,3 @@ double NuclearStructureManager::CalculateInducedTensor() {
            AM110 / AM101;
   return result;
 }
-  /*if (boost::iequals(pot, "SHO")) {
-    int ni, li, si, nf, lf, sf;
-    GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
-    double dE = 2. * nu / nucleonMasskeV * (2 * (ni - nf) + li - lf);
-    double rmsHO = CD::GetRMSHO(ni, li, nu);
-    if (li == lf) {
-      if (si == sf && si > 0) {
-        return -nucleonMasskeV * dE / (2. * li + 3.) * rmsHO;
-      } else if (si == sf) {
-        return nucleonMasskeV * dE / (2. * li - 1.) * rmsHO;
-      } else {
-        return -sf * (2. * li + 1.) / 2. - dE / 2. * rmsHO;
-      }
-    }
-  } else if (boost::iequals(pot, "WS")) {
-    result =
-        2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
-        ME::GetSingleParticleMatrixElement(
-            false, std::abs(motherSpinParity) / 2., 1, 1, 0, spsi, spsf, R, nu)
-  / ME::GetSingleParticleMatrixElement(false, std::abs(motherSpinParity), 1, 0,
-  1, spsi, spsf, R, nu);
-  } else if (boost::iequals(pot, "DWS")) {
-    result =
-        2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * R *
-        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 1, 0,
-  spsi.dO,
-                                             spsf.dO, spsi.dK, spsf.dK, R, nu) /
-        ME::CalculateDeformedSPMatrixElement(spsi, spsf, false, 1, 0, 1,
-  spsi.dO,
-                                             spsf.dO, spsi.dK, spsf.dK, R, nu);
-  }
-  return result;
-}
-
-double NuclearStructureManager::CalculateRatioM121() {
-  double M121, M101;
-
-  std::string pot = GetOpt(std::string, Computational.Potential);
-  cout << "Potential: " << pot << endl;
-  double nu = CD::CalcNu(R * std::sqrt(3. / 5.), Z);
-  if (boost::iequals(pot, "SHO")) {
-    int ni, li, si, nf, lf, sf;
-    GetSPOrbitalNumbers(ni, li, si, nf, lf, sf);
-    M121 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 2, 1, ni, nf, li, lf, si, sf,
-        R, nu);
-    M101 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 0, 1, ni, nf, li, lf, si, sf,
-        R, nu);
-  } else if (boost::iequals(pot, "WS")) {
-    M121 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 2, 1, spsi, spsf, R, nu);
-    M101 = ME::GetSingleParticleMatrixElement(
-        false, std::abs(motherSpinParity) / 2., 1, 0, 1, spsi, spsf, R, nu);
-  } else if (boost::iequals(pot, "DWS")) {
-    M121 = ME::CalculateDeformedSPMatrixElement(
-        spsi, spsf, false, 1, 2, 1, spsi.dO, spsf.dO, spsi.dK, spsf.dK, R, nu);
-    M101 = ME::CalculateDeformedSPMatrixElement(
-        spsi, spsf, false, 1, 0, 1, spsi.dO, spsf.dO, spsi.dK, spsf.dK, R, nu);
-  }
-  cout << "M121: " << M121 << " M101: " << M101 << endl;
-  fc1 = gA * M101;
-
-  return M121 / M101;
-}*/
