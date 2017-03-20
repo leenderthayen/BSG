@@ -15,13 +15,15 @@ struct WFComp {
 struct SingleParticleState {
   int dO, dK;
   int parity;
+  //Proton has isospin -1, neutron has isospin +1
+  int isospin;
   double energy;
   std::vector<WFComp> componentsHO;
 };
 
 struct OneBodyTransition {
   double obdme;
-  int dK;
+  int dKi, dKf;
   SingleParticleState spsi, spsf;
 };
 
@@ -47,7 +49,7 @@ class NuclearStructureManager {
     double CalculateWeakMagnetism();
     double CalculateInducedTensor();
 
-    void AddOneBodyTransition(double, SingleParticleState, SingleParticleState);
+    void AddOneBodyTransition(double, int, int, SingleParticleState, SingleParticleState);
 
   private:
     Nucleus mother, daughter;

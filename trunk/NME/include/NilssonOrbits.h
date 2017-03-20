@@ -21,32 +21,6 @@ namespace nilsson {
 using std::cout;
 using std::endl;
 
-// s is +-1 depending of whether it is j=l+-1/2
-struct WFComp {
-  double C;
-  int n, l, s;
-};
-
-struct SingleParticleState {
-  int dO, dK;
-  int parity;
-  double energy;
-  std::vector<WFComp> componentsHO;
-};
-
-struct NuclearState {
-  int dK;
-  double excitationEnergy;
-  int dJ;
-  int parity;
-  SingleParticleState spsProton, spsNeutron;
-};
-
-struct Nucleus {
-  int Z, N, A;
-  double beta2, beta4;
-  std::vector<NuclearState> states;
-};
 
 /*
 ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON
@@ -656,6 +630,7 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
       GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, V0, A0, VS);
 
   int index = 0;
+  //TODO implement energy-threshold rather than specific index number
   if (beta2 == 0 && beta4 == 0) {
     int nrParticles = Z + N;
     for (int i = 0; i < allStates.size(); i++) {
@@ -692,7 +667,7 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
   return allStates[index];
 }
 
-inline NuclearState CalculateDeformedNuclearState(int Z, int N, int A, int dJ,
+/*inline NuclearState CalculateDeformedNuclearState(int Z, int N, int A, int dJ,
                                                   double R, double beta2,
                                                   double beta4, double V0,
                                                   double A0, double VS) {
@@ -738,7 +713,7 @@ inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
 
   //TODO
   return spectrum;
-}
+}*/
 
 inline double CalculateBindingEnergy(int Z, int N, int N, int dJ, double R, double beta2, double beta4, double V0, double A0, double VS) {
   
