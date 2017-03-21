@@ -17,6 +17,7 @@ class NuclearStructureManager {
     void SetDaughterNucleus(int, int, int, double, double, double, double);
     void SetMotherNucleus(int, int, int, double, double, double, double);
     void Initialize(std::string, std::string);
+    inline void SetBetaType(BetaType bt) { betaType = bt; };
 
     double CalculateMatrixElement(bool, int, int, int);
     double CalculateWeakMagnetism();
@@ -32,6 +33,7 @@ class NuclearStructureManager {
 
     void GetESPStates(SingleParticleState&, SingleParticleState&, std::string, int&, int&, double&);
     void GetESPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
+    double GetESPManyParticleCoupling(int, OneBodyTransition&);
 };
 
 }

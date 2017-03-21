@@ -36,8 +36,7 @@ void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
   mother = {Z, A, dJ, R, excitationEnergy, beta2, beta4};
 }
 
-void NS::NuclearStructureManager::Initialize(std::string m,
-                                             std::string p) {
+void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
   method = m;
   potential = p;
   // Extreme Single particle
@@ -98,69 +97,19 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
 
   // Set Omega quantum numbers
   if (mother.A % 2 == 0) {
-    int dTi, dTf;
-    int dT3i = std::abs(mother.A - 2 * mother.Z);
-    int dT3f = std::abs(daughter.A - 2 * daughter.Z);
-    if ((mother.dJ + dT3i) / 2 % 2 == 0) {
-      dTi = dT3i + 1;
-    }
-    if ((daughter.dJ + dT3f) / 2 % 2 == 0) {
-      dTf = dT3f + 1;
-    }
     // TODO Implement Gallaghar coupling rules
     // Even-Even ---> Odd-Odd transition
     if (mother.Z % 2 == 0) {
       dKi = 0;
       dKf = spsi.dO + spsf.dO;
       // Deformed transition
-      if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
-          daughter.beta2 != 0.0) {
-        obdme = 0.5 * std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) / 2. /
-                                (1. + delta(dKf, 0.0))) *
-                (1 + std::pow(-1., (dKf + spsi.dO + spsf.dO) / 2.));
-        // Spherical transition
-      } else {
-        obdme =
-            std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) * (dTi + 1.) *
-                      (dTf + 1.) / 2. /
-                      (1. + delta(spsi.dO, spsf.dO))) *
-            std::pow(-1., (dTf - dT3f) / 2.) *
-            gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, 2 * betaType, dT3i) *
-            gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) * 2 *
-            (delta(spsi.dO, spsf.dO) -
-             std::pow(-1., (spsi.dO + spsf.dO) / 2.));
-      }
-      // Odd-Odd ---> Even-Even transition
     } else {
       dKf = 0;
       dKi = spsi.dO + spsf.dO;
-      if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
-          daughter.beta2 != 0.0) {
-        obdme = 0.5 * std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) / 2. /
-                                (1. + delta(dKi, 0.0))) *
-                (1 + std::pow(-1., daughter.dJ / 2.));
-      } else {
-        obdme =
-            std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) * (dTi + 1.) *
-                      (dTf + 1.) / 2. /
-                      (1. + delta(spsi.dO, spsf.dO))) *
-            std::pow(-1., (dTf - dT3f) / 2.) *
-            gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, 2 * betaType, dT3i) *
-            gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) * 2 *
-            (1 + delta(spsi.dO, spsi.dO));
-      }
     }
   } else {
     dKi = spsi.dO;
     dKf = spsf.dO;
-    if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
-        daughter.beta2 != 0.0) {
-      obdme = std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) /
-                        (1. + delta(dKi, 0)) / (1. + delta(dKf, 0)));
-    } else {
-      // TODO check
-      obdme = std::sqrt(4. * M_PI / (mother.dJ + 1.));
-    }
   }
 }
 
@@ -183,6 +132,76 @@ void NS::NuclearStructureManager::GetESPOrbitalNumbers(int& ni, int& li,
   sf = occNumbersFinal[occNumbersFinal.size() - 1 - 1];
 }
 
+double NS::NuclearStructureManager::GetESPManyParticleCoupling(
+    int K, OneBodyTransition& obt) {
+  double C = 0.0;
+
+  // TODO Result from Wigner-Eckart in spin space
+
+  if (mother.A % 2 == 0) {
+    int dTi, dTf;
+    int dT3i = std::abs(mother.A - 2 * mother.Z);
+    int dT3f = std::abs(daughter.A - 2 * daughter.Z);
+    if ((mother.dJ + dT3i) / 2 % 2 == 0) {
+      dTi = dT3i + 1;
+    }
+    if ((daughter.dJ + dT3f) / 2 % 2 == 0) {
+      dTf = dT3f + 1;
+    }
+    // Deformed transition
+    if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
+        daughter.beta2 != 0.0) {
+      if (mother.Z % 2 == 0) {
+        C = 0.5 * std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) / 2. /
+                            (1. + delta(obt.dKf, 0.0))) *
+            (1 +
+             std::pow(-1., (obt.dKf + mother.dJ + obt.spsi.dO + obt.spsf.dO) / 2.)) *
+            std::pow(-1., (daughter.dJ + obt.dKf) / 2.) *
+            gsl_sf_coupling_3j(daughter.dJ, 2 * K, mother.dJ, -obt.dKf, obt.dKf,
+                               0);
+      } else {
+        C = 0.5 * std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) / 2. /
+                            (1. + delta(obt.dKi, 0.0))) *
+            (1 + std::pow(-1., daughter.dJ / 2.)) *
+            gsl_sf_coupling_3j(daughter.dJ, 2 * K, mother.dJ, 0, -obt.dKi,
+                               obt.dKi);
+      }
+      // Spherical transition
+    } else {
+      if (mother.Z % 2 == 0) {
+        C = std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) * (dTi + 1.) *
+                      (dTf + 1.) / (1. + delta(obt.spsi.dO, obt.spsf.dO))) *
+            std::pow(-1., (dTf - dT3f) / 2.) *
+            gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, 2 * betaType, dT3i) *
+            gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) *
+            std::pow(-1., K) * 2 * (delta(obt.spsi.dO, obt.spsf.dO) -
+                                    std::pow(-1., (obt.spsi.dO + obt.spsf.dO) / 2.)) *
+            gsl_sf_coupling_6j(obt.spsf.dO, daughter.dJ, obt.spsi.dO, mother.dJ,
+                               obt.spsi.dO, 2 * K);
+      } else {
+        C = std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) * (dTi + 1.) *
+                      (dTf + 1.) / (1. + delta(obt.spsi.dO, obt.spsf.dO))) *
+            std::pow(-1., (dTf - dT3f) / 2.) *
+            gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, 2 * betaType, dT3i) *
+            gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) *
+            std::pow(-1., K) * 2 * (1 + delta(obt.spsi.dO, obt.spsi.dO)) *
+            gsl_sf_coupling_6j(obt.spsf.dO, daughter.dJ, obt.spsf.dO, mother.dJ,
+                               obt.spsi.dO, 2 * K);
+      }
+    }
+  } else {
+    if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
+        daughter.beta2 != 0.0) {
+      C = std::sqrt((mother.dJ + 1.) * (daughter.dJ + 1.) /
+                    (1. + delta(obt.dKi, 0)) / (1. + delta(obt.dKf, 0)));
+    } else {
+      // TODO check
+      C = std::sqrt(4. * M_PI / (mother.dJ + 1.));
+    }
+  }
+  return C;
+}
+
 double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                                            int s) {
   double result = 0.0;
@@ -199,10 +218,13 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
 
   for (int i = 0; i < oneBodyTransitions.size(); i++) {
     OneBodyTransition obt = oneBodyTransitions[i];
+    if (boost::iequals(method, "ESP")) {
+      obt.obdme = GetESPManyParticleCoupling(K, obt);
+    }
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
         daughter.beta2 != 0) {
-      result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(opt,
-                                obt.spsi, obt.spsf, V, K, L, s, mother.dJ,
+      result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
+                                opt, obt.spsi, obt.spsf, V, K, L, s, mother.dJ,
                                 daughter.dJ, obt.dKi, obt.dKf, mother.R, nu);
     } else {
       result += obt.obdme * ME::GetSingleParticleMatrixElement(
@@ -215,6 +237,9 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
 
 double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double result = 0.0;
+
+  double gM = GetOpt(double, Constants.gM);
+  double gA = GetOpt(double, Constants.gA);
 
   double VM111 = CalculateMatrixElement(true, 1, 1, 1);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);

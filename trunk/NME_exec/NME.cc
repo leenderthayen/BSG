@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "NuclearStructureManager.h"
 #include "OptionContainer.h"
@@ -7,9 +8,9 @@ using std::cout;
 using std::endl;
 using std::cerr;
 
-char* version = "0.10";
-char* lastUpdate = "February 24, 2017";
-char* author = "L. Hayen (leendert.hayen@kuleuven.be)";
+std::string version = "0.10";
+std::string lastUpdate = "February 24, 2017";
+std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 void ShowIntro() {
   cout << "**************************************************\n";
@@ -23,14 +24,11 @@ void ShowIntro() {
 int main(int argc, char** argv) {
   ShowIntro();
 
-  /*OptionContainer::GetInstance(argc, argv);
+  OptionContainer::GetInstance(argc, argv);
 
   if (OptExists(input)) {
-    Generator* gen = new Generator();
-    gen->CalculateSpectrum();
-    gen->WriteSpectrumToFile();
-    delete gen;
-  }*/
+    NuclearStructureManager* nsm = new NuclearStructureManager();
+  }
 
   return 0;
 }

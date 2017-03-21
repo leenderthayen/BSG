@@ -1,11 +1,3 @@
-include_directories(${GSL_INCLUDE_DIRS})
-
-include_directories(${ROOT_INCLUDE_DIRS})
-
-include_directories(${Boost_INCLUDE_DIR})
-
-include_directories(${PROJECT_SOURCE_DIR}/include)
-
 file(GLOB sources ${PROJECT_SOURCE_DIR}/BSG/src/*.cc)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/BSG/include/*.h)
 

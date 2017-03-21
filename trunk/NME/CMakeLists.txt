@@ -5,6 +5,7 @@ add_library(nme STATIC ${NMEsrc})
 
 target_link_libraries(nme ${GSL_LIBRARIES})
 target_link_libraries(nme ${ROOT_LIBRARIES})
+target_link_libraries(nme ${Boost_LIBRARIES})
  
 set_target_properties(nme PROPERTIES LINKER_LANGUAGE CXX)
 #set_target_properties(nme PROPERTIES PUBLIC_HEADER ${NMEheaders} LINKER_LANGUAGE CXX)
