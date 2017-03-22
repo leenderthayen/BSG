@@ -166,8 +166,6 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
                         (1. + delta(dKi, 0.)));
   } else {
   // Even-A transition
-    double prefact = std::sqrt((dJi + 1.) * (dJf + 1.) / (1. + delta(dKi, 0)) /
-                               (1. + delta(dKf, 0)));
     std::vector<WFComp> finalStates = spsf.componentsHO;
     std::vector<WFComp> initStates = spsi.componentsHO;
     int inO = spsi.dO;
@@ -175,8 +173,6 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
 
     if (opt == 1) {
       // Odd-Odd ---> Even-Even
-      prefact *= (1 + std::pow(-1., dJf / 2.)) * std::pow(-1., dJi / 2. - K) *
-                 gsl_sf_coupling_3j(dJi, 2 * K, dJf, dKi, -dKi, 0);
       for (int i = 0; i < finalStates.size(); i++) {
         WFComp fW = finalStates[i];
         for (int j = 0; j < initStates.size(); j++) {
@@ -192,18 +188,16 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
       }
     // Even-Even ---> Odd-Odd
     } else if (opt == 2) {
-      prefact *= std::pow(-1., dJi / 2. - K + dKf / 2.) *
-                 gsl_sf_coupling_3j(dJi, 2 * K, dJf, 0, dKf, -dKf) *
-                 (1 + std::pow(-1., (dKf - dJi + fO + inO) / 2.));
+      cout << fO << " " << dKf << " " << inO << endl;
       for (int i = 0; i < finalStates.size(); i++) {
         WFComp fW = finalStates[i];
         for (int j = 0; j < initStates.size(); j++) {
-          WFComp iW = initStates[i];
+          WFComp iW = initStates[j];
           result +=
               iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
               std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
-                                 dKf, -inO) *
+                                 dKf, -inO) * 
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
         }

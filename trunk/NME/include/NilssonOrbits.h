@@ -642,14 +642,14 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
     }
   } else {
     index = (Z + N - 1) / 2;
-    for (int i = -std::abs(std::abs(dJ) - allStates[index].dO) / 2 - 1;
+    /*for (int i = -std::abs(std::abs(dJ) - allStates[index].dO) / 2 - 1;
          i < std::abs(std::abs(dJ) - allStates[index].dO) / 2 + 1; i++) {
       if (allStates[index + i].dO * allStates[index + i].parity == dJ) {
         index += i;
         break;
       }
       index = std::max(0, std::min(index, (int)(allStates.size()) - 1));
-    }
+    }*/
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy

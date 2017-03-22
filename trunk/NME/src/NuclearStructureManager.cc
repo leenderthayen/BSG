@@ -285,6 +285,7 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
     cout << "OBDME: " << obt.obdme << endl;
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
         daughter.beta2 != 0) {
+      cout << "Deformed" << endl;
       result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
                                 opt, obt.spsi, obt.spsf, V, K, L, s, std::abs(mother.dJ),
                                 std::abs(daughter.dJ), obt.dKi, obt.dKf, mother.R, nu);
