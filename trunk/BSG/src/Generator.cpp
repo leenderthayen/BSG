@@ -4,7 +4,7 @@
 #include "ChargeDistributions.h"
 #include "Constants.h"
 #include "Utilities.h"
-#include "NuclearStructureManager.h"
+#include "SpectralFunctions.h"
 
 #include <string>
 #include <iostream>
@@ -16,6 +16,7 @@
 
 namespace SF = SpectralFunctions;
 namespace CD = ChargeDistributions;
+namespace NS = NuclearStructure;
 
 using std::cout;
 using std::endl;
@@ -73,9 +74,9 @@ Generator::Generator() {
   W0 = W0 - (W0 * W0 - 1) / 2. / A / nucleonMasskeV * electronMasskeV;
 
 
-  nsm = new NuclearStructureManager();
+  nsm = new NS::NuclearStructureManager();
   nsm->SetMotherNucleus(Z - fBetaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4);
-  nsm->SetMotherNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4);
+  nsm->SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4);
 
   nsm->Initialize(GetOpt(std::string, Computational.Method), GetOpt(std::string, Computational.Potential));
 
@@ -83,9 +84,13 @@ Generator::Generator() {
 
   InitializeL0Constants();
 
-  CalculateMatrixElements();
+  GetMatrixElements();
 
   hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
+}
+
+Generator::~Generator() {
+  delete nsm;
 }
 
 void Generator::LoadExchangeParameters() {
@@ -218,7 +223,11 @@ void Generator::InitializeL0Constants() {
 
 void Generator::GetMatrixElements() {
   cout << "Calculating matrix elements" << endl;
-  ratioM121 = nsm->CalculateRatioM121();
+  double M101 = nsm->CalculateMatrixElement(false, 1, 0, 1);
+  double M121 = nsm->CalculateMatrixElement(false, 1, 2, 1);
+  ratioM121 = M121/M101;
+
+  fc1 = gA * M101;
 
   double bAc = 0, dAc = 0;
   if (!OptExists(weakmagnetism)) {

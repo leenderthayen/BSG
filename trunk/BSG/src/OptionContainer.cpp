@@ -38,7 +38,11 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("NuclearProperties.MotherSpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
       ("NuclearProperties.DaughterSpinParity", po::value<int>(),
-       "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf");
+       "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf")
+      ("NuclearProperties.MotherExcitationEnergy", po::value<double>()->default_value(0.),
+       "Set the excitation energy of the mother nucleus in MeV")
+      ("NuclearProperties.DaughterExcitationEnergy", po::value<double>()->default_value(0.),
+       "Set the excitation energy of the daughter nucleus in MeV");
 
   std::string configName = "config.txt";
   std::string inputName = "test.ini";
@@ -85,7 +89,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   configOptions.add(spectrumOptions);
   configOptions.add_options()
       ("General.Folder", po::value<std::string>()->default_value("."),
-      "Set the folder name for the results to be placed in.")
+      "Set the folder name for the results to be placed in.");
 
   envOptions.add_options()
       ("ExchangeData",
@@ -103,7 +107,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
               << std::endl;
   }
   else {
-    po::store(po::parse_config_file(configStream, configOptions), vm);
+    po::store(po::parse_config_file(configStream, configOptions, true), vm);
   }
   std::ifstream inputStream(inputName.c_str());
   if (!inputStream.is_open()) {

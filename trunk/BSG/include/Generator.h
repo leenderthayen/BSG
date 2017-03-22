@@ -2,7 +2,7 @@
 #define GENERATOR
 
 #include <vector>
-class NuclearStructureManager;
+#include "NuclearStructureManager.h"
 
 class Generator {
  private:
@@ -22,12 +22,14 @@ class Generator {
   double daughterBeta4;
   double motherBeta2;
   double motherBeta4;
+  double motherExcitationEn;
+  double daughterExcitationEn;
   int motherSpinParity;
   int daughterSpinParity;
   BetaType fBetaType;  ///< type of beta decay, negative or positive
   DecayType fDecayType;
 
-  NuclearStructureManager* nsm;
+  NuclearStructure::NuclearStructureManager* nsm;
 
   std::vector<std::vector<double> > spectrum;
 
@@ -42,7 +44,7 @@ class Generator {
 
  public:
   Generator();
-  ~Generator(){ delete nsm; };
+  ~Generator();  
 
   std::vector<std::vector<double> > CalculateSpectrum();
   double* CalculateDecayRate(double W);

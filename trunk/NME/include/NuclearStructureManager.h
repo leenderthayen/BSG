@@ -10,9 +10,9 @@ namespace NuclearStructure {
 
 class NuclearStructureManager {
   public:
-    NuclearStructureManager() {};
+    NuclearStructureManager();
     NuclearStructureManager(BetaType, Nucleus, Nucleus);
-    ~NuclearStructureManager();
+    ~NuclearStructureManager() {};
 
     void SetDaughterNucleus(int, int, int, double, double, double, double);
     void SetMotherNucleus(int, int, int, double, double, double, double);

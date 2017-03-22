@@ -31,7 +31,15 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("NuclearProperties.MotherSpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
       ("NuclearProperties.DaughterSpinParity", po::value<int>(),
-       "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf");
+       "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf")
+      ("NuclearProperties.MotherIsospin", po::value<int>(),
+       "Set the isospin times 2 and parity of the mother nucleus: [+/-]2Ti")
+      ("NuclearProperties.DaughterIsospin", po::value<int>(),
+       "Set the isospin times 2 and parity of the daughter nucleus: [+/-]2Tf")
+      ("NuclearProperties.MotherExcitationEnergy", po::value<double>()->default_value(0.),
+       "Set the excitation energy of the mother nucleus in MeV")
+      ("NuclearProperties.DaughterExcitationEnergy", po::value<double>()->default_value(0.),
+       "Set the excitation energy of the daughter nucleus in MeV");
 
   std::string configName = "config.txt";
   std::string inputName = "test.ini";
@@ -42,9 +50,16 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("config,c", po::value<std::string>(&configName),
        "Change the configuration file.")
       ("input,i", po::value<std::string>(&inputName),
-       "Specify input file containing transition and nuclear data");
+       "Specify input file containing transition and nuclear data")
+      ("weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")
+      ("inducedtensor,d", "Calculate the induced tensor form factor d/Ac")
+      ("matrixelement,M", po::value<std::string>(),
+       "Calculate the matrix element ^XM_{yyy} written as Xyyy");
 
   configOptions.add_options()
+      ("Computational.Method", po::value<std::string>()->default_value("ESP"),
+       "Set the method to use when calculating matrix elements. "
+       "Defaults to Extreme Single Particle (ESP).")
       ("Computational.Potential", po::value<std::string>()->default_value("SHO"),
        "Set the potential used for the calculation of the matrix elements. SHO:"
        " Spherical Harmonic Oscillator; WS: Woods-Saxon; DWS: Deformed Woods-Saxon")
@@ -65,9 +80,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       ("Constants.gM", po::value<double>()->default_value(4.706),
        "Set the weak magnetism coupling constant.");
 
-  po::options_description cmdOptions;
-  cmdOptions.add(genericOptions);
-  po::store(po::parse_command_line(argc, argv, cmdOptions), vm);
+  po::store(po::parse_command_line(argc, argv, genericOptions), vm);
   po::notify(vm);
 
   std::ifstream configStream(configName.c_str());
@@ -76,7 +89,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
               << std::endl;
   }
   else {
-    po::store(po::parse_config_file(configStream, configOptions), vm);
+    po::store(po::parse_config_file(configStream, configOptions, true), vm);
   }
   std::ifstream inputStream(inputName.c_str());
   if (!inputStream.is_open()) {
@@ -84,7 +97,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
               << std::endl;
   }
   else {
-    po::store(po::parse_config_file(inputStream, transitionOptions), vm);
+    po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
   }
   po::store(po::parse_environment(envOptions, "BSG_"), vm);
   po::notify(vm);
