@@ -136,18 +136,18 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     // Even-Even ---> Odd-Odd transition
     if (mother.Z % 2 == 0) {
       dKi = 0;
-      dKf = spsi.dO + spsf.dO;
+      dKf = std::abs(spsi.dO + spsf.dO);
       // Deformed transition
     } else {
       dKf = 0;
-      dKi = spsi.dO + spsf.dO;
+      dKi = std::abs(spsi.dO + spsf.dO);
     }
   } else {
     dKi = spsi.dO;
     dKf = spsf.dO;
   }
 
-  cout << "Ki: " << dKi/2 << " Kf: " << dKf/2 << endl;
+  //cout << "Ki: " << dKi/2 << " Kf: " << dKf/2 << endl;
 }
 
 void NS::NuclearStructureManager::AddOneBodyTransition(double obdme, int dKi, int dKf, SingleParticleState spsi, SingleParticleState spsf) {
@@ -200,9 +200,9 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
       dTf = dT3f + 1;
     }*/
 
-    cout << "Isospin:" << endl;
+    /*cout << "Isospin:" << endl;
     cout << "Ti: " << dTi/2 << " Tf: " << dTf/2 << endl;
-    cout << "T3: " << dT3i/2 << " T3: " << dT3f/2 << endl;
+    cout << "T3: " << dT3i/2 << " T3: " << dT3f/2 << endl;*/
     // Deformed transition
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
         daughter.beta2 != 0.0) {
@@ -224,7 +224,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     // Spherical transition
     } else {
       if (mother.Z % 2 == 0) {
-        cout << "BetaType: " << betaType << endl;
+        //cout << "BetaType: " << betaType << endl;
         C = std::sqrt((dJi + 1.) * (dJf + 1.) * (dTi + 1.) *
                       (dTf + 1.) / (1. + delta(obt.spsi.dO, obt.spsf.dO))) *
             std::pow(-1., (dTf - dT3f) / 2.) *
@@ -257,7 +257,6 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
       C = std::sqrt(4. * M_PI / (dJi + 1.));
     }
   }
-  cout << "C: " << C << endl;
   return C;
 }
 
@@ -275,17 +274,17 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
     }
   }
 
-  cout << "opt: " << opt << endl;
+  //cout << "opt: " << opt << endl;
 
   for (int i = 0; i < oneBodyTransitions.size(); i++) {
     OneBodyTransition obt = oneBodyTransitions[i];
     if (boost::iequals(method, "ESP")) {
       obt.obdme = GetESPManyParticleCoupling(K, obt);
     }
-    cout << "OBDME: " << obt.obdme << endl;
+    //cout << "OBDME: " << obt.obdme << endl;
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
         daughter.beta2 != 0) {
-      cout << "Deformed" << endl;
+      //cout << "Deformed" << endl;
       result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
                                 opt, obt.spsi, obt.spsf, V, K, L, s, std::abs(mother.dJ),
                                 std::abs(daughter.dJ), obt.dKi, obt.dKf, mother.R, nu);
