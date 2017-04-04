@@ -65,10 +65,14 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        " Spherical Harmonic Oscillator; WS: Woods-Saxon; DWS: Deformed Woods-Saxon")
       ("Computational.SurfaceThickness", po::value<double>()->default_value(0.650),
        "Surface thickness of the Woods-Saxon potential in fm.")
-      ("Computational.V0neutron", po::value<double>()->default_value(53.0),
+      ("Computational.Vneutron", po::value<double>()->default_value(49.6),
        "Set the depth of the Woods-Saxon potential for neutrons in MeV.")
-      ("Computational.V0proton", po::value<double>()->default_value(48.0),
+      ("Computational.Vproton", po::value<double>()->default_value(49.6),
        "Set the depth of the Woods-Saxon potential for protons in MeV.")
+      ("Computational.Xneutron", po::value<double>()->default_value(0.86),
+       "Set the neutron asymmetry parameter in the Woods-Saxon potential")
+      ("Computational.Xproton", po::value<double>()->default_value(0.86),
+       "Set the proton asymmetry parameter in the Woods-Saxon potential")
       ("Computational.V0Sneutron", po::value<double>()->default_value(7.2),
        "Set the magnitude of the spin-orbit potential for neutrons in MeV.")
       ("Computational.V0Sproton", po::value<double>()->default_value(7.2),

@@ -91,11 +91,16 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
                                                SingleParticleState& spsf,
                                                std::string potential, int& dKi,
                                                int& dKf, double& obdme) {
-  double V0p = GetOpt(double, Computational.V0proton);
-  double V0n = GetOpt(double, Computational.V0neutron);
+  double Vp = GetOpt(double, Computational.Vproton);
+  double Vn = GetOpt(double, Computational.Vneutron);
+  double Xn = GetOpt(double, Computational.Xneutron);
+  double Xp = GetOpt(double, Computational.Xproton);
   double A0 = GetOpt(double, Computational.SurfaceThickness);
   double VSp = GetOpt(double, Computational.V0Sproton);
   double VSn = GetOpt(double, Computational.V0Sneutron);
+
+  double V0p = Vp*(1.+Xp*(mother.A-2.*mother.Z)/mother.A);
+  double V0n = Vn*(1.-Xn*(mother.A-2.*mother.Z)/mother.A);
 
   double mR = mother.R * NATLENGTH * 1e15;
   double dR = daughter.R * NATLENGTH * 1e15;
