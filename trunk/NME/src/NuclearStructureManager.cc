@@ -217,7 +217,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
         daughter.beta2 != 0.0) {
       if (mother.Z % 2 == 0) {
-        C = 0.5 * std::sqrt((dJi + 1.) * (dJf + 1.) / 2. /
+        C = 0.5 * std::sqrt((dJi + 1.) * (dJf + 1.) /
                             (1. + delta(obt.dKf, 0.0))) *
             (1 +
              std::pow(-1., (obt.dKf + dJi + obt.spsi.dO + obt.spsf.dO) / 2.)) *
@@ -225,7 +225,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
             gsl_sf_coupling_3j(dJf, 2 * K, dJi, -obt.dKf, obt.dKf,
                                0);
       } else {
-        C = 0.5 * std::sqrt((dJi + 1.) * (dJf + 1.) / 2. /
+        C = 0.5 * std::sqrt((dJi + 1.) * (dJf + 1.) /
                             (1. + delta(obt.dKi, 0.0))) *
             (1 + std::pow(-1., dJf / 2.)) *
             gsl_sf_coupling_3j(dJf, 2 * K, dJi, 0, -obt.dKi,
