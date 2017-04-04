@@ -20,8 +20,10 @@ class Generator {
   double hoFit;
   double daughterBeta2;
   double daughterBeta4;
+  double daughterBeta6;
   double motherBeta2;
   double motherBeta4;
+  double motherBeta6;
   double motherExcitationEn;
   double daughterExcitationEn;
   int motherSpinParity;

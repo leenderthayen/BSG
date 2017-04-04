@@ -31,8 +31,10 @@ Generator::Generator() {
   }
   motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
   motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
+  motherBeta6 = GetOpt(double, NuclearProperties.MotherBeta6);
   daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
   daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
+  daughterBeta6 = GetOpt(double, NuclearProperties.DaughterBeta6);
   motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
   daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
 
@@ -75,8 +77,8 @@ Generator::Generator() {
 
 
   nsm = new NS::NuclearStructureManager();
-  nsm->SetMotherNucleus(Z - fBetaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4);
-  nsm->SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4);
+  nsm->SetMotherNucleus(Z - fBetaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4, motherBeta6);
+  nsm->SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4, daughterBeta6);
 
   nsm->Initialize(GetOpt(std::string, Computational.Method), GetOpt(std::string, Computational.Potential));
 

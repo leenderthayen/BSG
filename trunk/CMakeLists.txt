@@ -37,6 +37,8 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 configure_file("${PROJECT_SOURCE_DIR}/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSGConfig.h")
+configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/NME_exec/config.txt")
+configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/BSG_exec/config.txt")
 
 include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/NME/include")

@@ -39,7 +39,7 @@ struct Nucleus {
   int dJ;
   double R;
   double excitationEnergy;
-  double beta2, beta4;
+  double beta2, beta4, beta6;
 };
 
 }

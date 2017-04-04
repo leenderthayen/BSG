@@ -14,8 +14,8 @@ class NuclearStructureManager {
     NuclearStructureManager(BetaType, Nucleus, Nucleus);
     ~NuclearStructureManager() {};
 
-    void SetDaughterNucleus(int, int, int, double, double, double, double);
-    void SetMotherNucleus(int, int, int, double, double, double, double);
+    void SetDaughterNucleus(int, int, int, double, double, double, double, double);
+    void SetMotherNucleus(int, int, int, double, double, double, double, double);
     void Initialize(std::string, std::string);
     inline void SetBetaType(BetaType bt) { betaType = bt; };
 

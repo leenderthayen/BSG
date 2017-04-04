@@ -286,7 +286,7 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
 }
 
 inline std::vector<SingleParticleState> Calculate(
-    double spin, double beta2, double beta4, double V0, double R, double A0,
+    double spin, double beta2, double beta4, double beta6, double V0, double R, double A0,
     double V0S, double A, double Z, int nMax, bool report = false) {
   double SW[2][84] = {};
   double SDW[462] = {};
@@ -298,6 +298,7 @@ inline std::vector<SingleParticleState> Calculate(
   double defExpCoef[NDIM4][NDIM1];
   double B[NDIM4 * (NDIM4 + 1) / 2];
   double D[NDIM4 * (NDIM4 + 1) / 2];
+  double F[NDIM4 * (NDIM4 + 1) / 2];
   int LA[NDIM1] = {};
   int IX2[NDIM1] = {};
   int JX2[NDIM1] = {};
@@ -419,7 +420,7 @@ inline std::vector<SingleParticleState> Calculate(
     }
   }
 
-  if (!(beta2 == 0 && beta4 == 0)) {
+  if (!(beta2 == 0 && beta4 == 0 && beta6 == 0)) {
     int ISX2 = std::abs(2 * spin);
     int ISPIN = (ISX2 + 1) / 2;
 
@@ -470,6 +471,7 @@ inline std::vector<SingleParticleState> Calculate(
         for (int J = 0; J <= I; J++) {
           B[KK] = 0.0;
           D[KK] = 0.0;
+          F[KK] = 0.0;
           for (int N1 = 0; N1 < II; N1++) {
             for (int N2 = 0; N2 < II; N2++) {
               if (!(L[N1] != LKK[I] || L[N2] != LKK[J] ||
@@ -497,7 +499,9 @@ inline std::vector<SingleParticleState> Calculate(
                 B[KK] +=
                     X * utilities::SphericalHarmonicME(LP, LAP, 2, 0, LL, LLA);
                 D[KK] +=
-                    X * utilities::SphericalHarmonicME(LP, LAP, 4, 0, LL, LAP);
+                    X * utilities::SphericalHarmonicME(LP, LAP, 4, 0, LL, LLA);
+                F[KK] +=
+                    X * utilities::SphericalHarmonicME(LP, LAP, 6, 0, LL, LLA);
               }
             }
           }
@@ -517,7 +521,7 @@ inline std::vector<SingleParticleState> Calculate(
         for (int I = 1; I <= KKK; I++) {
           for (int J = 1; J <= I; J++) {
             NK++;
-            hamM[NK - 1] = beta2 * B[KK] + beta4 * D[KK];
+            hamM[NK - 1] = beta2 * B[KK] + beta4 * D[KK] + beta6 * F[KK];
             KK++;
           }
           int N0 = KN[IIOM - 1][I - 1];
@@ -605,11 +609,11 @@ inline bool StateSorter(SingleParticleState const& lhs,
 
 inline std::vector<SingleParticleState> GetAllSingleParticleStates(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
-    double V0, double A0, double VS) {
+    double beta6, double V0, double A0, double VS) {
   std::vector<SingleParticleState> evenStates =
-      Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 12, false);
+      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12, false);
   std::vector<SingleParticleState> oddStates =
-      Calculate(6.5, beta2, beta4, V0, R, A0, VS, A, Z, 13, false);
+      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 13, false);
 
   // Join all states
   std::vector<SingleParticleState> allStates;
@@ -625,10 +629,11 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
 
 inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
                                                     double R, double beta2,
-                                                    double beta4, double V0,
-                                                    double A0, double VS) {
+                                                    double beta4, double beta6, 
+                                                    double V0, double A0, 
+                                                    double VS) {
   std::vector<SingleParticleState> allStates =
-      GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, V0, A0, VS);
+      GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, beta6, V0, A0, VS);
 
   int index = 0;
   //TODO implement energy-threshold rather than specific index number

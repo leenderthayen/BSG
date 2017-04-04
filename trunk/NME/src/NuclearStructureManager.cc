@@ -26,8 +26,10 @@ NS::NuclearStructureManager::NuclearStructureManager() {
   }
   double motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
   double motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
+  double motherBeta6 = GetOpt(double, NuclearProperties.MotherBeta6);
   double daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
   double daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
+  double daughterBeta6 = GetOpt(double, NuclearProperties.DaughterBeta6);
   int motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
   int daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
  
@@ -42,8 +44,8 @@ NS::NuclearStructureManager::NuclearStructureManager() {
     betaType = BETA_MINUS;
   }
 
-  SetMotherNucleus(Z - betaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4);
-  SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4);
+  SetMotherNucleus(Z - betaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4, motherBeta6);
+  SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4, daughterBeta6);
 
   Initialize(GetOpt(std::string, Computational.Method), GetOpt(std::string, Computational.Potential));
 }
@@ -60,15 +62,16 @@ void NS::NuclearStructureManager::SetDaughterNucleus(int Z, int A, int dJ,
                                                      double R,
                                                      double excitationEnergy,
                                                      double beta2,
-                                                     double beta4) {
-  daughter = {Z, A, dJ, R, excitationEnergy, beta2, beta4};
+                                                     double beta4, double beta6) {
+  daughter = {Z, A, dJ, R, excitationEnergy, beta2, beta4, beta6};
 }
 
 void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
                                                    double R,
                                                    double excitationEnergy,
-                                                   double beta2, double beta4) {
-  mother = {Z, A, dJ, R, excitationEnergy, beta2, beta4};
+                                                   double beta2, double beta4,
+                                                   double beta6) {
+  mother = {Z, A, dJ, R, excitationEnergy, beta2, beta4, beta6};
 }
 
 void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
@@ -107,26 +110,28 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     spsf = {daughter.dJ, -1, sign(daughter.dJ), -betaType, 0.0, fComps};
     spsi = {mother.dJ, -1, sign(mother.dJ), betaType, 0.0, iComps};
   } else {
-    double dBeta2 = 0.0, dBeta4 = 0.0, mBeta2 = 0.0, mBeta4 = 0.0;
+    double dBeta2 = 0.0, dBeta4 = 0.0, dBeta6 = 0.0, mBeta2 = 0.0, mBeta4 = 0.0, mBeta6 = 0.0;
     if (boost::iequals(potential, "DWS")) {
       dBeta2 = daughter.beta2;
       dBeta4 = daughter.beta4;
+      dBeta6 = daughter.beta6;
       mBeta2 = mother.beta2;
       mBeta4 = mother.beta4;
+      mBeta6 = mother.beta6;
     }
     if (betaType == BETA_MINUS) {
       spsf =
           NO::CalculateDeformedSPState(daughter.Z, 0, daughter.A, daughter.dJ,
-                                       dR, dBeta2, dBeta4, V0p, A0, VSp);
+                                       dR, dBeta2, dBeta4, dBeta6, V0p, A0, VSp);
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
-                                          mother.dJ, mR, mBeta2, mBeta4, V0n,
+                                          mother.dJ, mR, mBeta2, mBeta4, mBeta6, V0n,
                                           A0, VSn);
     } else {
       spsf = NO::CalculateDeformedSPState(0, daughter.A - daughter.Z,
                                           daughter.A, daughter.dJ, dR, dBeta2,
-                                          dBeta4, V0n, A0, VSn);
+                                          dBeta4, dBeta6, V0n, A0, VSn);
       spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
-                                          mBeta2, mBeta4, V0p, A0, VSp);
+                                          mBeta2, mBeta4, mBeta6, V0p, A0, VSp);
     }
   }
 
