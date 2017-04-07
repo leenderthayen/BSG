@@ -50,7 +50,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Set the excitation energy of the daughter nucleus in MeV");
 
   std::string configName = "config.txt";
-  std::string inputName = "test.ini";
+  std::string inputName = "";
   genericOptions.add_options()
       ("help,h", "Produce help message")
       ("verbosity,v", po::value<int>()->default_value(1),
@@ -109,8 +109,18 @@ OptionContainer::OptionContainer(int argc, char** argv) {
 
   po::options_description cmdOptions;
   cmdOptions.add(genericOptions).add(spectrumOptions);
-  po::store(po::parse_command_line(argc, argv, cmdOptions), vm);
+  po::store(po::command_line_parser(argc, argv).options(cmdOptions).allow_unregistered().run(), vm);
+  //po::store(po::parse_command_line(argc, argv, cmdOptions), vm);
   po::notify(vm);
+
+  if (vm.count("help")) {
+    cout << transitionOptions << endl;
+    cout << "\n\n***************************************************************\n\n" << endl;
+    cout << genericOptions << endl;
+    cout << spectrumOptions << endl;
+    cout << configOptions << endl;
+    cout << envOptions << endl;
+  } else {
 
   std::ifstream configStream(configName.c_str());
   if (!configStream.is_open()) {
@@ -131,13 +141,6 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   po::store(po::parse_environment(envOptions, "BSG_"), vm);
   po::notify(vm);
 
-  if (vm.count("help")) {
-    cout << transitionOptions << endl;
-    cout << "\n\n***************************************************************\n\n" << endl;
-    cout << genericOptions << endl;
-    cout << spectrumOptions << endl;
-    cout << configOptions << endl;
-    cout << envOptions << endl;
   }
 
   NMEOptions::GetInstance(argc, argv);

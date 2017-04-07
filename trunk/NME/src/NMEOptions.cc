@@ -88,8 +88,16 @@ NMEOptions::NMEOptions(int argc, char** argv) {
       ("Constants.gM", po::value<double>()->default_value(4.706),
        "Set the weak magnetism coupling constant.");
 
-  po::store(po::parse_command_line(argc, argv, genericOptions), vm);
+  po::store(po::command_line_parser(argc, argv).options(genericOptions).allow_unregistered().run(), vm);
+  //po::store(po::parse_command_line(argc, argv, genericOptions), vm);
   po::notify(vm);
+
+  if (vm.count("help")) {
+    cout << transitionOptions << endl;
+    cout << "\n\n***************************************************************\n\n" << endl;
+    cout << genericOptions << endl;
+    cout << configOptions << endl;
+  } else {
 
   std::ifstream configStream(configName.c_str());
   if (!configStream.is_open()) {
@@ -110,10 +118,6 @@ NMEOptions::NMEOptions(int argc, char** argv) {
   po::store(po::parse_environment(envOptions, "BSG_"), vm);
   po::notify(vm);
 
-  if (vm.count("help")) {
-    cout << transitionOptions << endl;
-    cout << "\n\n***************************************************************\n\n" << endl;
-    cout << genericOptions << endl;
-    cout << configOptions << endl;
   }
+
 }
