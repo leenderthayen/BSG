@@ -1,16 +1,16 @@
-#include "OptionContainer.h"
+#include "NMEOptions.h"
 #include <iostream>
 
 using std::cout;
 using std::endl;
 
-po::options_description OptionContainer::genericOptions("Generic options");
-po::options_description OptionContainer::configOptions("Configuration file options");
-po::options_description OptionContainer::transitionOptions("Transition information");
-po::options_description OptionContainer::envOptions("Environment options");
-po::variables_map OptionContainer::vm;
+po::options_description NMEOptions::genericOptions("Generic options");
+po::options_description NMEOptions::configOptions("Configuration file options");
+po::options_description NMEOptions::transitionOptions("Transition information");
+po::options_description NMEOptions::envOptions("Environment options");
+po::variables_map NMEOptions::vm;
 
-OptionContainer::OptionContainer(int argc, char** argv) {
+NMEOptions::NMEOptions(int argc, char** argv) {
   transitionOptions.add_options()
       ("Transition.Process", po::value<std::string>(),
        "Set the decay process: B+, B-")

@@ -1,4 +1,5 @@
 #include "OptionContainer.h"
+#include "NMEOptions.h"
 #include <iostream>
 
 using std::cout;
@@ -93,7 +94,13 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   configOptions.add(spectrumOptions);
   configOptions.add_options()
       ("General.Folder", po::value<std::string>()->default_value("."),
-      "Set the folder name for the results to be placed in.");
+      "Set the folder name for the results to be placed in.")
+      ("Constants.gA", po::value<double>(),
+      "Specify the GT coupling constant, gA")
+      ("Constants.gM", po::value<double>(),
+      "Specify the weak magnetism coupling constant, gM")
+      ("Constants.gP", po::value<double>(),
+      "Specify the induced pseudoscalar coupling constant, gP");
 
   envOptions.add_options()
       ("ExchangeData",
@@ -132,4 +139,6 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     cout << configOptions << endl;
     cout << envOptions << endl;
   }
+
+  NMEOptions::GetInstance(argc, argv);
 }

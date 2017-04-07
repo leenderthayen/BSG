@@ -75,12 +75,7 @@ Generator::Generator() {
   }
   W0 = W0 - (W0 * W0 - 1) / 2. / A / nucleonMasskeV * electronMasskeV;
 
-
   nsm = new NS::NuclearStructureManager();
-  nsm->SetMotherNucleus(Z - fBetaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4, motherBeta6);
-  nsm->SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4, daughterBeta6);
-
-  nsm->Initialize(GetOpt(std::string, Computational.Method), GetOpt(std::string, Computational.Potential));
 
   LoadExchangeParameters();
 

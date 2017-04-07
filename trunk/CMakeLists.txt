@@ -40,7 +40,6 @@ configure_file("${PROJECT_SOURCE_DIR}/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSG
 configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/NME_exec/config.txt")
 configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/BSG_exec/config.txt")
 
-include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/NME/include")
 include_directories("${PROJECT_SOURCE_DIR}/BSG/include")
 
@@ -48,7 +47,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
  
 # Add sub-directories
 add_subdirectory(NME)
+include_directories("${PROJECT_SOURCE_DIR}/BSG/include")
 add_subdirectory(BSG)
+include_directories("${PROJECT_BINARY_DIR}")
 add_subdirectory(BSG_exec)
 add_subdirectory(NME_exec)
  

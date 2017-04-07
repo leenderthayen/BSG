@@ -2,7 +2,7 @@
 #include <string>
 
 #include "NuclearStructureManager.h"
-#include "OptionContainer.h"
+#include "NMEOptions.h"
 
 #include "boost/algorithm/string.hpp"
 
@@ -25,7 +25,7 @@ void ShowIntro() {
 int main(int argc, char** argv) {
   ShowIntro();
 
-  OptionContainer::GetInstance(argc, argv);
+  NMEOptions::GetInstance(argc, argv);
 
   if (OptExists(input)) {
     NuclearStructure::NuclearStructureManager* nsm = new NuclearStructure::NuclearStructureManager();

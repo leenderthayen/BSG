@@ -1,5 +1,5 @@
 #include "NuclearStructureManager.h"
-#include "OptionContainer.h"
+#include "NMEOptions.h"
 #include "Constants.h"
 #include "MatrixElements.h"
 #include "NuclearUtilities.h"

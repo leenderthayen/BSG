@@ -1,7 +1,7 @@
 file(GLOB NMEheaders ${PROJECT_SOURCE_DIR}/NME/include/*.h)
 file(GLOB NMEsrc ${PROJECT_SOURCE_DIR}/NME/src/*.cc)
 
-add_library(nme STATIC ${NMEsrc})
+add_library(nme ${NMEsrc})
 
 target_link_libraries(nme ${GSL_LIBRARIES})
 target_link_libraries(nme ${ROOT_LIBRARIES})
