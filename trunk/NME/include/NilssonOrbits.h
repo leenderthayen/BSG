@@ -631,12 +631,11 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
                                                     double R, double beta2,
                                                     double beta4, double beta6, 
                                                     double V0, double A0, 
-                                                    double VS) {
+                                                    double VS, double threshold) {
   std::vector<SingleParticleState> allStates =
       GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, beta6, V0, A0, VS);
 
   int index = 0;
-  //TODO implement energy-threshold rather than specific index number
   if (beta2 == 0 && beta4 == 0) {
     int nrParticles = Z + N;
     for (int i = 0; i < allStates.size(); i++) {
@@ -647,14 +646,15 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
     }
   } else {
     index = (Z + N - 1) / 2;
-    /*for (int i = -std::abs(std::abs(dJ) - allStates[index].dO) / 2 - 1;
-         i < std::abs(std::abs(dJ) - allStates[index].dO) / 2 + 1; i++) {
-      if (allStates[index + i].dO * allStates[index + i].parity == dJ) {
-        index += i;
-        break;
+    double refEnergy = allStates[index].energy;
+    for (int i = 0; i < allStates.size(); i++) {
+      if (std::abs(refEnergy - allStates[i].energy) <= threshold) {
+        if (allStates[i].dO * allStates[i].parity == dJ) {
+          index = i;
+          break;
+        }
       }
-      index = std::max(0, std::min(index, (int)(allStates.size()) - 1));
-    }*/
+    }
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy

@@ -17,24 +17,24 @@ using std::cout;
 using std::endl;
 
 NS::NuclearStructureManager::NuclearStructureManager() {
-  int Z = GetOpt(int, NuclearProperties.DaughterZ);
-  int A = GetOpt(int, NuclearProperties.DaughterA);
-  double R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH *
+  int Z = GetOpt(int, Daughter.Z);
+  int A = GetOpt(int, Daughter.A);
+  double R = GetOpt(double, Daughter.Radius) * 1e-15 / NATLENGTH *
       std::sqrt(5. / 3.);
   if (R == 0.0) {
     R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATLENGTH;
   }
-  double motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
-  double motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
-  double motherBeta6 = GetOpt(double, NuclearProperties.MotherBeta6);
-  double daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
-  double daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
-  double daughterBeta6 = GetOpt(double, NuclearProperties.DaughterBeta6);
-  int motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
-  int daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
+  double motherBeta2 = GetOpt(double, Mother.Beta2);
+  double motherBeta4 = GetOpt(double, Mother.Beta4);
+  double motherBeta6 = GetOpt(double, Mother.Beta6);
+  double daughterBeta2 = GetOpt(double, Daughter.Beta2);
+  double daughterBeta4 = GetOpt(double, Daughter.Beta4);
+  double daughterBeta6 = GetOpt(double, Daughter.Beta6);
+  int motherSpinParity = GetOpt(int, Mother.SpinParity);
+  int daughterSpinParity = GetOpt(int, Daughter.SpinParity);
  
-  double motherExcitationEn = GetOpt(double, NuclearProperties.MotherExcitationEnergy);
-  double daughterExcitationEn = GetOpt(double, NuclearProperties.DaughterExcitationEnergy);
+  double motherExcitationEn = GetOpt(double, Mother.ExcitationEnergy);
+  double daughterExcitationEn = GetOpt(double, Daughter.ExcitationEnergy);
 
   std::string process = GetOpt(std::string, Transition.Process);
 
@@ -99,6 +99,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   double VSp = GetOpt(double, Computational.V0Sproton);
   double VSn = GetOpt(double, Computational.V0Sneutron);
 
+  double threshold = GetOpt(double, Computational.EnergyMargin);
+
   double V0p = Vp*(1.+Xp*(mother.A-2.*mother.Z)/mother.A);
   double V0n = Vn*(1.-Xn*(mother.A-2.*mother.Z)/mother.A);
 
@@ -127,16 +129,16 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     if (betaType == BETA_MINUS) {
       spsf =
           NO::CalculateDeformedSPState(daughter.Z, 0, daughter.A, daughter.dJ,
-                                       dR, dBeta2, dBeta4, dBeta6, V0p, A0, VSp);
+                                       dR, dBeta2, dBeta4, dBeta6, V0p, A0, VSp, threshold);
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
                                           mother.dJ, mR, mBeta2, mBeta4, mBeta6, V0n,
-                                          A0, VSn);
+                                          A0, VSn, threshold);
     } else {
       spsf = NO::CalculateDeformedSPState(0, daughter.A - daughter.Z,
                                           daughter.A, daughter.dJ, dR, dBeta2,
-                                          dBeta4, dBeta6, V0n, A0, VSn);
+                                          dBeta4, dBeta6, V0n, A0, VSn, threshold);
       spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
-                                          mBeta2, mBeta4, mBeta6, V0p, A0, VSp);
+                                          mBeta2, mBeta4, mBeta6, V0p, A0, VSp, threshold);
     }
   }
 
@@ -197,11 +199,11 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     int dT3f = daughter.A - 2 * daughter.Z;
     int dTi = std::abs(dT3i);
     int dTf = std::abs(dT3f);
-    if (OptExists(NuclearProperties.MotherIsospin)) {
-      dTi = GetOpt(int, NuclearProperties.MotherIsospin);
+    if (OptExists(Mother.Isospin)) {
+      dTi = GetOpt(int, Mother.Isospin);
     }
     if (OptExists(NuclearPropertiesDaughterIsospin)) {
-      dTf = GetOpt(int, NuclearProperties.DaughterIsospin);
+      dTf = GetOpt(int, Daughter.Isospin);
     }
     /*if ((dJi + dT3i) / 2 % 2 == 0) {
       dTi = dT3i + 1;

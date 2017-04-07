@@ -14,35 +14,35 @@ NMEOptions::NMEOptions(int argc, char** argv) {
   transitionOptions.add_options()
       ("Transition.Process", po::value<std::string>(),
        "Set the decay process: B+, B-")
-      ("NuclearProperties.DaughterZ", po::value<int>(),
+      ("Daughter.Z", po::value<int>(),
        "Set the proton number of the daughter nucleus.")
-      ("NuclearProperties.DaughterA", po::value<int>(),
+      ("Daughter.A", po::value<int>(),
        "Set the total number of nucleons of the daughter nucleus.")
-      ("NuclearProperties.DaughterRadius", po::value<double>(),
+      ("Daughter.Radius", po::value<double>(),
        "Set the nuclear radius of the daughter nucleus in fm.")
-      ("NuclearProperties.MotherBeta2", po::value<double>()->default_value(0.),
+      ("Mother.Beta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the mother nucleus.")
-      ("NuclearProperties.MotherBeta4", po::value<double>()->default_value(0.),
+      ("Mother.Beta4", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta4 parameter for the mother nucleus.")
-      ("NuclearProperties.MotherBeta6", po::value<double>()->default_value(0.),
+      ("Mother.Beta6", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta6 parameter for the mother nucleus.")
-      ("NuclearProperties.DaughterBeta2", po::value<double>()->default_value(0.),
+      ("Daughter.Beta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the daughter nucleus.")
-      ("NuclearProperties.DaughterBeta4", po::value<double>()->default_value(0.),
+      ("Daughter.Beta4", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta4 parameter for the daughter nucleus.")
-      ("NuclearProperties.DaughterBeta6", po::value<double>()->default_value(0.),
+      ("Daughter.Beta6", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta6 parameter for the daughter nucleus.")
-      ("NuclearProperties.MotherSpinParity", po::value<int>(),
+      ("Mother.SpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
-      ("NuclearProperties.DaughterSpinParity", po::value<int>(),
+      ("Daughter.SpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf")
-      ("NuclearProperties.MotherIsospin", po::value<int>(),
+      ("Mother.Isospin", po::value<int>(),
        "Set the isospin times 2 and parity of the mother nucleus: [+/-]2Ti")
-      ("NuclearProperties.DaughterIsospin", po::value<int>(),
+      ("Daughter.Isospin", po::value<int>(),
        "Set the isospin times 2 and parity of the daughter nucleus: [+/-]2Tf")
-      ("NuclearProperties.MotherExcitationEnergy", po::value<double>()->default_value(0.),
+      ("Mother.ExcitationEnergy", po::value<double>()->default_value(0.),
        "Set the excitation energy of the mother nucleus in MeV")
-      ("NuclearProperties.DaughterExcitationEnergy", po::value<double>()->default_value(0.),
+      ("Daughter.ExcitationEnergy", po::value<double>()->default_value(0.),
        "Set the excitation energy of the daughter nucleus in MeV");
 
   std::string configName = "config.txt";
@@ -67,6 +67,8 @@ NMEOptions::NMEOptions(int argc, char** argv) {
       ("Computational.Potential", po::value<std::string>()->default_value("SHO"),
        "Set the potential used for the calculation of the matrix elements. SHO:"
        " Spherical Harmonic Oscillator; WS: Woods-Saxon; DWS: Deformed Woods-Saxon")
+      ("Computational.EnergyMargin", po::value<double>()->default_value(0.5),
+       "Set the energy margin in choosing the correct spin state in the ESP method.")
       ("Computational.SurfaceThickness", po::value<double>()->default_value(0.650),
        "Surface thickness of the Woods-Saxon potential in fm.")
       ("Computational.Vneutron", po::value<double>()->default_value(49.6),

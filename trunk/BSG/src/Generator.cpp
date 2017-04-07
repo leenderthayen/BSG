@@ -22,26 +22,26 @@ using std::cout;
 using std::endl;
 
 Generator::Generator() {
-  Z = GetOpt(int, NuclearProperties.DaughterZ);
-  A = GetOpt(int, NuclearProperties.DaughterA);
-  R = GetOpt(double, NuclearProperties.DaughterRadius) * 1e-15 / NATLENGTH *
+  Z = GetOpt(int, Daughter.Z);
+  A = GetOpt(int, Daughter.A);
+  R = GetOpt(double, Daughter.Radius) * 1e-15 / NATLENGTH *
       std::sqrt(5. / 3.);
   if (R == 0.0) {
     R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATLENGTH;
   }
-  motherBeta2 = GetOpt(double, NuclearProperties.MotherBeta2);
-  motherBeta4 = GetOpt(double, NuclearProperties.MotherBeta4);
-  motherBeta6 = GetOpt(double, NuclearProperties.MotherBeta6);
-  daughterBeta2 = GetOpt(double, NuclearProperties.DaughterBeta2);
-  daughterBeta4 = GetOpt(double, NuclearProperties.DaughterBeta4);
-  daughterBeta6 = GetOpt(double, NuclearProperties.DaughterBeta6);
-  motherSpinParity = GetOpt(int, NuclearProperties.MotherSpinParity);
-  daughterSpinParity = GetOpt(int, NuclearProperties.DaughterSpinParity);
+  motherBeta2 = GetOpt(double, Mother.Beta2);
+  motherBeta4 = GetOpt(double, Mother.Beta4);
+  motherBeta6 = GetOpt(double, Mother.Beta6);
+  daughterBeta2 = GetOpt(double, Daughter.Beta2);
+  daughterBeta4 = GetOpt(double, Daughter.Beta4);
+  daughterBeta6 = GetOpt(double, Daughter.Beta6);
+  motherSpinParity = GetOpt(int, Mother.SpinParity);
+  daughterSpinParity = GetOpt(int, Daughter.SpinParity);
 
   cout << motherSpinParity << " " << daughterSpinParity << endl;
 
-  motherExcitationEn = GetOpt(double, NuclearProperties.MotherExcitationEnergy);
-  daughterExcitationEn = GetOpt(double, NuclearProperties.DaughterExcitationEnergy);
+  motherExcitationEn = GetOpt(double, Mother.ExcitationEnergy);
+  daughterExcitationEn = GetOpt(double, Daughter.ExcitationEnergy);
 
   gA = GetOpt(double, Constants.gA);
   gP = GetOpt(double, Constants.gP);

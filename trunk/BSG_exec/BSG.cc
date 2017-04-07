@@ -13,7 +13,7 @@ using std::cout;
 using std::endl;
 using std::cerr;
 
-std::string lastUpdate = "February 24, 2017";
+std::string lastUpdate = "April 7, 2017";
 std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 namespace NO = NuclearStructure::nilsson;

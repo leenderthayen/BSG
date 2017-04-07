@@ -22,31 +22,31 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Set the mixing ratio defined as g_A M_{GT} / M_{F}. Defaults to zero.")
       ("Transition.QValue", po::value<double>(),
        "Set the Q value of the decay in keV.")
-      ("NuclearProperties.DaughterZ", po::value<int>(),
+      ("Daughter.Z", po::value<int>(),
        "Set the proton number of the daughter nucleus.")
-      ("NuclearProperties.DaughterA", po::value<int>(),
+      ("Daughter.A", po::value<int>(),
        "Set the total number of nucleons of the daughter nucleus.")
-      ("NuclearProperties.DaughterRadius", po::value<double>(),
+      ("Daughter.Radius", po::value<double>(),
        "Set the nuclear radius of the daughter nucleus in fm.")
-      ("NuclearProperties.MotherBeta2", po::value<double>()->default_value(0.),
+      ("Mother.Beta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the mother nucleus.")
-      ("NuclearProperties.MotherBeta4", po::value<double>()->default_value(0.),
+      ("Mother.Beta4", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta4 parameter for the mother nucleus.")
-      ("NuclearProperties.MotherBeta6", po::value<double>()->default_value(0.),
+      ("Mother.Beta6", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta6 parameter for the mother nucleus.")
-      ("NuclearProperties.DaughterBeta2", po::value<double>()->default_value(0.),
+      ("Daughter.Beta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the daughter nucleus.")
-      ("NuclearProperties.DaughterBeta4", po::value<double>()->default_value(0.),
+      ("Daughter.Beta4", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta4 parameter for the daughter nucleus.")
-      ("NuclearProperties.DaughterBeta6", po::value<double>()->default_value(0.),
+      ("Daughter.Beta6", po::value<double>()->default_value(0.),
        "Set the hexadecupole deformation beta6 parameter for the daughter nucleus.")
-      ("NuclearProperties.MotherSpinParity", po::value<int>(),
+      ("Mother.SpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
-      ("NuclearProperties.DaughterSpinParity", po::value<int>(),
+      ("Daughter.SpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf")
-      ("NuclearProperties.MotherExcitationEnergy", po::value<double>()->default_value(0.),
+      ("Mother.ExcitationEnergy", po::value<double>()->default_value(0.),
        "Set the excitation energy of the mother nucleus in MeV")
-      ("NuclearProperties.DaughterExcitationEnergy", po::value<double>()->default_value(0.),
+      ("Daughter.ExcitationEnergy", po::value<double>()->default_value(0.),
        "Set the excitation energy of the daughter nucleus in MeV");
 
   std::string configName = "config.txt";
