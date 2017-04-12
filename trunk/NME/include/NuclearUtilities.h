@@ -22,6 +22,9 @@ struct SingleParticleState {
   int dO;
   int dK;
   int parity;
+  int lambda;
+  int nDom;
+  int nZ;
   //Proton has isospin -1, neutron has isospin +1
   int isospin;
   double energy;

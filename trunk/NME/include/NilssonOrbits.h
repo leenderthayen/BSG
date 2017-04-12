@@ -304,6 +304,8 @@ inline std::vector<SingleParticleState> Calculate(
   int JX2[NDIM1] = {};
   double sphExpCoef[NDIM3][NDIM1] = {};
   double eValsWS[NDIM3] = {};
+  int NDOM[NDIM3] = {};
+  int NDOMK[NDIM3] = {};
   int LK[NDIM3] = {};
   int LKK[NDIM3] = {};
   int KN[7][NDIM3] = {};
@@ -378,6 +380,14 @@ inline std::vector<SingleParticleState> Calculate(
           int N0 = (II - NIM) * (i - NI) + J - NIM;
           sphExpCoef[K][J - 1] = eVecs[N0 - 1];
         }
+        NDOM[K] = 0;
+        double max = 0.0;
+        for (int J = NI; J <= II; J++) {
+          if (std::abs(sphExpCoef[K][J-1]) > max) {
+            NDOM[K] = N[J-1];
+            max = std::abs(sphExpCoef[K][J-1]);
+          }
+        }
         K++;
       }
       index++;
@@ -417,6 +427,11 @@ inline std::vector<SingleParticleState> Calculate(
         }
         cout << endl;
       }
+      cout << "Dominant N: ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << NDOM[i-1] << "\t";
+      }
+      cout << endl;
     }
   }
 
@@ -435,6 +450,7 @@ inline std::vector<SingleParticleState> Calculate(
       for (int I = 0; I < K; I++) {
         LKK[KKK] = LK[I];
         KN[IIOM - 1][KKK] = I + 1;
+        NDOMK[KKK] = NDOM[I];
         double X = 0.0;
         // Loop over the full spherical basis
         for (int J = 0; J < II; J++) {
@@ -545,13 +561,21 @@ inline std::vector<SingleParticleState> Calculate(
               defExpCoef[K][J] += eVecs[NK - 1] * sphExpCoef[I - 1][J];
             }
           }
+          NDOMK[K] = 0;
+          double max = 0.0;
+          for (int j = 0; j < II; j++) {
+            if (std::abs(defExpCoef[K][j]) > max) {
+              NDOMK[K] = N[j];
+              max = std::abs(defExpCoef[K][j]);
+            }
+          }
           K++;
         }
       }
     }
     if (report) {
       cout << "Deformed states: No band mixing   Beta2: " << beta2
-           << " Beta4: " << beta4 << endl;
+           << " Beta4: " << beta4 << " Beta6: " << beta6 << endl;
       for (int KKK = 1; KKK <= K; KKK += 12) {
         int KKKK = std::min(K, KKK + 11);
         cout << "Energy (MeV): ";
@@ -565,12 +589,17 @@ inline std::vector<SingleParticleState> Calculate(
         }
         cout << endl;
         for (int j = 1; j <= II; j++) {
-          cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > ";
+          cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > " << LA[j-1] << " ";
           for (int l = KKK; l <= KKKK; l++) {
             cout << defExpCoef[l - 1][j - 1] << "\t\t";
           }
           cout << endl;
         }
+        cout << "Dominant N: ";
+        for (int i = KKK; i <= KKKK; i++) {
+          cout << NDOMK[i-1] << "\t";
+        }
+        cout << endl;
       }
     }
   }  // end of deformation only part
@@ -583,6 +612,27 @@ inline std::vector<SingleParticleState> Calculate(
     }
     sps.dO = K3[i];
     sps.dK = K3[i];
+    sps.nDom = NDOMK[i];
+    int nZ = NDOMK[i] - (K3[i]-1)/2;
+    for (int j = 0; j < K; j++) {
+      if (eValsDWS[j] < sps.energy && NDOMK[j] == NDOMK[i] && K3[j] == K3[i]) {
+        nZ--;
+      }
+    }
+    sps.nZ = nZ;
+    if ((NDOM[i] - nZ)%2 == 0) {
+      if ((K3[i]+1)/2%2 == 0) {
+        sps.lambda = (K3[i]+1)/2;
+      } else {
+        sps.lambda = (K3[i]-1)/2;
+      }
+    } else {
+      if ((K3[i]+1)/2%2 == 0) {
+        sps.lambda = (K3[i]-1)/2;
+      } else {
+        sps.lambda = (K3[i]+1)/2;
+      }
+    }
     sps.parity = 1 - 2 * (nMax % 2);
     for (int j = 0; j < II; j++) {
       WFComp wfc;
@@ -611,7 +661,7 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
     double beta6, double V0, double A0, double VS) {
   std::vector<SingleParticleState> evenStates =
-      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12, false);
+      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12, true);
   std::vector<SingleParticleState> oddStates =
       Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 13, false);
 
@@ -631,7 +681,8 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
                                                     double R, double beta2,
                                                     double beta4, double beta6, 
                                                     double V0, double A0, 
-                                                    double VS, double threshold) {
+                                                    double VS, int dJreq,
+                                                    double threshold) {
   std::vector<SingleParticleState> allStates =
       GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, beta6, V0, A0, VS);
 
@@ -646,24 +697,25 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
     }
   } else {
     index = (Z + N - 1) / 2;
-    /*double refEnergy = allStates[index].energy;
+    double refEnergy = allStates[index].energy;
     index = 0;
     for (int i = 0; i < allStates.size(); i++) {
       if (std::abs(refEnergy - allStates[i].energy) <= threshold) {
-        if (allStates[i].dO * allStates[i].parity == dJ && std::abs(allStates[i].energy-refEnergy) < std::abs(allStates[index].energy-refEnergy)) {
+        if (allStates[i].dO * allStates[i].parity == dJreq && std::abs(allStates[i].energy-refEnergy) < std::abs(allStates[index].energy-refEnergy)) {
           index = i;
         }
       }
     }
     if (index == 0) {
       cout << "ERROR: Couldn't find a correct spin state within the threshold." << endl;
-    }*/
+    }
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy
        << endl;
-  cout << "Spin: " << allStates[index].parity* allStates[index].dO << "/2 "
-       << endl;
+  cout << "Spin: " << allStates[index].parity* allStates[index].dO << "/2 ["
+       << allStates[index].nDom << allStates[index].nZ << allStates[index].lambda 
+       << "]" << endl;
   cout << "Orbital\tC" << endl;
   for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
     cout << allStates[index].componentsHO[j].n

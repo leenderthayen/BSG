@@ -114,8 +114,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     WFComp iW = {1.0, ni, li, si};
     std::vector<WFComp> fComps = {fW};
     std::vector<WFComp> iComps = {iW};
-    spsf = {daughter.dJ, -1, sign(daughter.dJ), -betaType, 0.0, fComps};
-    spsi = {mother.dJ, -1, sign(mother.dJ), betaType, 0.0, iComps};
+    spsf = {daughter.dJ, -1, sign(daughter.dJ), lf, nf, 0, -betaType, 0.0, fComps};
+    spsi = {mother.dJ, -1, sign(mother.dJ), li, ni, 0, betaType, 0.0, iComps};
   } else {
     double dBeta2 = 0.0, dBeta4 = 0.0, dBeta6 = 0.0, mBeta2 = 0.0, mBeta4 = 0.0, mBeta6 = 0.0;
     if (boost::iequals(potential, "DWS")) {
