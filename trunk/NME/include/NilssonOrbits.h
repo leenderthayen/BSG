@@ -315,7 +315,7 @@ inline std::vector<SingleParticleState> Calculate(
 
   std::vector<SingleParticleState> states;
 
-  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, false);
+  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, report);
 
   int II = 0;
   int K = 0;
@@ -646,15 +646,18 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
     }
   } else {
     index = (Z + N - 1) / 2;
-    double refEnergy = allStates[index].energy;
+    /*double refEnergy = allStates[index].energy;
+    index = 0;
     for (int i = 0; i < allStates.size(); i++) {
       if (std::abs(refEnergy - allStates[i].energy) <= threshold) {
-        if (allStates[i].dO * allStates[i].parity == dJ) {
+        if (allStates[i].dO * allStates[i].parity == dJ && std::abs(allStates[i].energy-refEnergy) < std::abs(allStates[index].energy-refEnergy)) {
           index = i;
-          break;
         }
       }
     }
+    if (index == 0) {
+      cout << "ERROR: Couldn't find a correct spin state within the threshold." << endl;
+    }*/
   }
 
   cout << "Found single particle state. Energy: " << allStates[index].energy

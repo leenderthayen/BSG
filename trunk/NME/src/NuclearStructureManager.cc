@@ -127,16 +127,20 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       mBeta6 = mother.beta6;
     }
     if (betaType == BETA_MINUS) {
+      cout << "Proton State: " << endl;
       spsf =
           NO::CalculateDeformedSPState(daughter.Z, 0, daughter.A, daughter.dJ,
                                        dR, dBeta2, dBeta4, dBeta6, V0p, A0, VSp, threshold);
+      cout << "Neutron State: " << endl;
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
                                           mother.dJ, mR, mBeta2, mBeta4, mBeta6, V0n,
                                           A0, VSn, threshold);
     } else {
+      cout << "Neutron State: " << endl;
       spsf = NO::CalculateDeformedSPState(0, daughter.A - daughter.Z,
                                           daughter.A, daughter.dJ, dR, dBeta2,
                                           dBeta4, dBeta6, V0n, A0, VSn, threshold);
+      cout << "Proton State: " << endl;
       spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
                                           mBeta2, mBeta4, mBeta6, V0p, A0, VSp, threshold);
     }
@@ -267,6 +271,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     } else {
       // TODO check
       C = std::sqrt(4. * M_PI / (dJi + 1.));
+      C = 1.;
     }
   }
   return C;

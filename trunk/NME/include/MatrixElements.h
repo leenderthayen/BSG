@@ -194,7 +194,7 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
         for (int j = 0; j < initStates.size(); j++) {
           WFComp iW = initStates[j];
           result +=
-              iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
+              iW.C * fW.C * //std::pow(-1., fW.s / 2. - 0.5) *
               std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
                                  dKf, -inO) * 
