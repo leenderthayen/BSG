@@ -17,12 +17,24 @@ using std::cout;
 using std::endl;
 
 NS::NuclearStructureManager::NuclearStructureManager() {
-  int Z = GetOpt(int, Daughter.Z);
-  int A = GetOpt(int, Daughter.A);
-  double R = GetOpt(double, Daughter.Radius) * 1e-15 / NATLENGTH *
+  int Zd = GetOpt(int, Daughter.Z);
+  int Zm = GetOpt(int, Mother.Z);
+  int Ad = GetOpt(int, Daughter.A);
+  int Am = GetOpt(int, Mother.A);
+
+  if (Ad != Am) {
+    cout << "ERROR: Mother and daughter mass number do not agree." << endl;
+    return;
+  }
+  double Rd = GetOpt(double, Daughter.Radius) * 1e-15 / NATLENGTH *
       std::sqrt(5. / 3.);
-  if (R == 0.0) {
-    R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATLENGTH;
+  double Rm = GetOpt(double, Mother.Radius) * 1e-15 / NATLENGTH * 
+      std::sqrt(5. / 3.);
+  if (Rd == 0.0) {
+    Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATLENGTH;
+  }
+  if (Rm == 0.0) {
+    Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / NATLENGTH;
   }
   double motherBeta2 = GetOpt(double, Mother.Beta2);
   double motherBeta4 = GetOpt(double, Mother.Beta4);
@@ -44,8 +56,13 @@ NS::NuclearStructureManager::NuclearStructureManager() {
     betaType = BETA_MINUS;
   }
 
-  SetMotherNucleus(Z - betaType, A, motherSpinParity, R, motherExcitationEn, motherBeta2, motherBeta4, motherBeta6);
-  SetDaughterNucleus(Z, A, daughterSpinParity, R, daughterExcitationEn, daughterBeta2, daughterBeta4, daughterBeta6);
+  if ((Zd - betaType) != Zm) {
+    cout << "ERROR: Mother and daughter proton numbers cannot be coupled through process " << process << endl;
+    return;
+  }
+
+  SetMotherNucleus(Zm, Am, motherSpinParity, Rd, motherExcitationEn, motherBeta2, motherBeta4, motherBeta6);
+  SetDaughterNucleus(Zd, Ad, daughterSpinParity, Rm, daughterExcitationEn, daughterBeta2, daughterBeta4, daughterBeta6);
 
   Initialize(GetOpt(std::string, Computational.Method), GetOpt(std::string, Computational.Potential));
 }
@@ -99,6 +116,13 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   double VSp = GetOpt(double, Computational.V0Sproton);
   double VSn = GetOpt(double, Computational.V0Sneutron);
 
+  int dJReqIn = mother.dJ;
+  int dJReqFin = daughter.dJ;
+  if (mother.A%2 == 0) {
+    dJReqIn = GetOpt(int, Mother.ForcedSPSpin);
+    dJReqFin = GetOpt(int, Daughter.ForcedSPSpin);
+  }
+
   double threshold = GetOpt(double, Computational.EnergyMargin);
 
   double V0p = Vp*(1.+Xp*(mother.A-2.*mother.Z)/mother.A);
@@ -126,44 +150,60 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       mBeta4 = mother.beta4;
       mBeta6 = mother.beta6;
     }
+    if (!GetOpt(bool, Computational.ForceSpin)) {
+      threshold = 0.0;
+    }
     if (betaType == BETA_MINUS) {
       cout << "Proton State: " << endl;
       spsf =
           NO::CalculateDeformedSPState(daughter.Z, 0, daughter.A, daughter.dJ,
-                                       dR, dBeta2, dBeta4, dBeta6, V0p, A0, VSp, threshold);
+                                       dR, dBeta2, dBeta4, dBeta6, V0p, A0, VSp, dJReqFin, threshold);
       cout << "Neutron State: " << endl;
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
                                           mother.dJ, mR, mBeta2, mBeta4, mBeta6, V0n,
-                                          A0, VSn, threshold);
+                                          A0, VSn, dJReqIn, threshold);
     } else {
       cout << "Neutron State: " << endl;
       spsf = NO::CalculateDeformedSPState(0, daughter.A - daughter.Z,
                                           daughter.A, daughter.dJ, dR, dBeta2,
-                                          dBeta4, dBeta6, V0n, A0, VSn, threshold);
+                                          dBeta4, dBeta6, V0n, A0, VSn, dJReqFin, threshold);
       cout << "Proton State: " << endl;
       spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
-                                          mBeta2, mBeta4, mBeta6, V0p, A0, VSp, threshold);
+                                          mBeta2, mBeta4, mBeta6, V0p, A0, VSp, dJReqIn, threshold);
     }
   }
 
   // Set Omega quantum numbers
   if (mother.A % 2 == 0) {
-    // TODO Implement Gallaghar coupling rules
     // Even-Even ---> Odd-Odd transition
+    int dKc = 0;
+    if ((spsi.dO-spsi.lambda) == (spsf.dO-spsf.lambda)) {
+      dKc = spsi.dO + spsf.dO;
+    } else {
+      dKc = std::abs(spsi.dO - spsf.dO);
+    }
     if (mother.Z % 2 == 0) {
       dKi = 0;
-      dKf = std::abs(spsi.dO + spsf.dO);
-      // Deformed transition
+      dKf = dKc;
     } else {
       dKf = 0;
-      dKi = std::abs(spsi.dO + spsf.dO);
+      dKi = dKc;
     }
   } else {
     dKi = spsi.dO;
     dKf = spsf.dO;
   }
 
-  //cout << "Ki: " << dKi/2 << " Kf: " << dKf/2 << endl;
+  if (dKi != mother.dJ) {
+    cout << "ERROR: Single Particle spin coupling does not match mother spin!" << endl;
+    cout << "Single Particle values. First: " << spsi.dO << "/2  Second: " << spsf.dO << "/2" << endl;
+    cout << "Coupled spin: " << dKi << " Required: " << mother.dJ << endl;
+  }
+  if (dKf != daughter.dJ) {
+    cout << "ERROR: Single Particle spin coupling does not match daughter spin!" << endl;
+    cout << "Single Particle values. First: " << spsi.dO << "/2  Second: " << spsf.dO << "/2" << endl;
+    cout << "Coupled spin: " << dKf << " Required: " << daughter.dJ << endl;
+  }
 }
 
 void NS::NuclearStructureManager::AddOneBodyTransition(double obdme, int dKi, int dKf, SingleParticleState spsi, SingleParticleState spsf) {

@@ -2,9 +2,14 @@
 Folder=.
 
 [Computational]
+Method=ESP
+ForceSpin=True
+EnergyMargin=1
 Potential=DWS
-V0neutron=53.0
-V0proton=48.0
+Vneutron=49.6
+Vproton=49.6
+Xproton=0.86
+Xneutron=0.86
 V0Sneutron=7.2
 V0Sproton=7.2
 

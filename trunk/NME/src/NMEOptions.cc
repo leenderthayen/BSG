@@ -16,10 +16,16 @@ NMEOptions::NMEOptions(int argc, char** argv) {
        "Set the decay process: B+, B-")
       ("Daughter.Z", po::value<int>(),
        "Set the proton number of the daughter nucleus.")
+      ("Mother.Z", po::value<int>(),
+       "Set the proton number of the mother nucleus.")
       ("Daughter.A", po::value<int>(),
        "Set the total number of nucleons of the daughter nucleus.")
+      ("Mother.A", po::value<int>(),
+       "Set the total number of nucleons of the mother nucleus.")
       ("Daughter.Radius", po::value<double>(),
        "Set the nuclear radius of the daughter nucleus in fm.")
+      ("Mother.Radius", po::value<double>(),
+       "Set the nucleus radius of the mother nucleus in fm.")
       ("Mother.Beta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the mother nucleus.")
       ("Mother.Beta4", po::value<double>()->default_value(0.),
@@ -43,7 +49,11 @@ NMEOptions::NMEOptions(int argc, char** argv) {
       ("Mother.ExcitationEnergy", po::value<double>()->default_value(0.),
        "Set the excitation energy of the mother nucleus in MeV")
       ("Daughter.ExcitationEnergy", po::value<double>()->default_value(0.),
-       "Set the excitation energy of the daughter nucleus in MeV");
+       "Set the excitation energy of the daughter nucleus in MeV")
+      ("Mother.ForcedSPSpin", po::value<int>()->default_value(0),
+       "Set the spin of the transforming nucleon when Computational.ForceSpin is turned on.")
+      ("Daughter.ForcedSPSpin", po::value<int>()->default_value(0),
+       "Set the spin of the transforming nucleon when Computational.ForceSpin is turned on.");
 
   std::string configName = "config.txt";
   std::string inputName = "test.ini";
@@ -67,6 +77,8 @@ NMEOptions::NMEOptions(int argc, char** argv) {
       ("Computational.Potential", po::value<std::string>()->default_value("SHO"),
        "Set the potential used for the calculation of the matrix elements. SHO:"
        " Spherical Harmonic Oscillator; WS: Woods-Saxon; DWS: Deformed Woods-Saxon")
+      ("Computational.ForceSpin", po::value<bool>()->default_value(true),
+       "Choose the spin state with the given spin within EnergyMargin")
       ("Computational.EnergyMargin", po::value<double>()->default_value(0.5),
        "Set the energy margin in choosing the correct spin state in the ESP method.")
       ("Computational.SurfaceThickness", po::value<double>()->default_value(0.650),

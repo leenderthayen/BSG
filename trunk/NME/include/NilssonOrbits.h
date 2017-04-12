@@ -661,7 +661,7 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
     double beta6, double V0, double A0, double VS) {
   std::vector<SingleParticleState> evenStates =
-      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12, true);
+      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12, false);
   std::vector<SingleParticleState> oddStates =
       Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 13, false);
 
@@ -687,7 +687,7 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
       GetAllSingleParticleStates(Z, N, A, dJ, R, beta2, beta4, beta6, V0, A0, VS);
 
   int index = 0;
-  if (beta2 == 0 && beta4 == 0) {
+  if (beta2 == 0 && beta4 == 0 && beta6 == 0) {
     int nrParticles = Z + N;
     for (int i = 0; i < allStates.size(); i++) {
       if (nrParticles - (allStates[index].dO + 1) > 0) {
