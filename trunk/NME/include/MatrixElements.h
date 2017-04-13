@@ -131,6 +131,14 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
   return result;
 }
 
+inline double GetCjO(WFComp w, int dO) {
+  if (dO > 0) {
+    return w.C;
+  } else {
+    return std::pow(-1, w.s / 2. - 0.5) * w.C;
+  }
+}
+
 inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleState spsi,
                                              SingleParticleState spsf,
                                              bool V, int K, int L, int s,
@@ -176,14 +184,21 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
       for (int i = 0; i < finalStates.size(); i++) {
         WFComp fW = finalStates[i];
         for (int j = 0; j < initStates.size(); j++) {
-          WFComp iW = initStates[i];
-          result +=
-              iW.C * fW.C * std::pow(-1., fW.s / 2. - 0.5) *
-              std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
-              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
+          WFComp iW = initStates[j];
+          result += GetCjO(fW, -fO)*GetCjO(iW, inO)*std::pow(-1., fW.l + fW.s/2.+fO/2.) * 
+              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
                                  -dKi, inO) *
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
+          /*result +=
+              iW.C * fW.C * //std::pow(-1., fW.s / 2. - 0.5) *
+              std::pow(-1., (2 * fW.l + fW.s + fO) / 2.) *
+              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
+                                 -dKi, -inO) *
+              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+                                             iW.l, fW.l, iW.s, fW.s, R, nu);*/
+          /*cout << 2 * fW.l + fW.s << 2 * K << 2 * iW.l + iW.s << fO << -dKi << inO << endl;
+          cout << gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO, -dKi, inO) << endl;*/
         }
       }
     // Even-Even ---> Odd-Odd
@@ -193,17 +208,23 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
         WFComp fW = finalStates[i];
         for (int j = 0; j < initStates.size(); j++) {
           WFComp iW = initStates[j];
-          result +=
-              iW.C * fW.C * //std::pow(-1., fW.s / 2. - 0.5) *
-              std::pow(-1., (2 * fW.l + fW.s - fO) / 2.) *
+          result += GetCjO(fW, fO)*GetCjO(iW, -inO)*std::pow(-1., fW.l + fW.s/2.-fO/2.) * 
+              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
+                                 dKf, -inO) *
+              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+                                             iW.l, fW.l, iW.s, fW.s, R, nu);
+          /*result +=
+              iW.C * fW.C * std::pow(-1., fW.l + fW.s / 2. - 0.5) *
+              spsf.parity * std::pow(-1., (2 * fW.l + fW.s + fO) / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
                                  dKf, -inO) * 
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
-                                             iW.l, fW.l, iW.s, fW.s, R, nu);
+                                             iW.l, fW.l, iW.s, fW.s, R, nu);*/
         }
       }
     }
   }
+  cout << "Result: " << result << endl;
   return result;
 }
 

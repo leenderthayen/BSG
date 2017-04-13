@@ -173,14 +173,19 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     }
   }
 
+  if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 && daughter.beta2 != 0.0) {
   // Set Omega quantum numbers
   if (mother.A % 2 == 0) {
-    // Even-Even ---> Odd-Odd transition
     int dKc = 0;
     if ((spsi.dO-spsi.lambda) == (spsf.dO-spsf.lambda)) {
       dKc = spsi.dO + spsf.dO;
     } else {
       dKc = std::abs(spsi.dO - spsf.dO);
+      if (spsi.dO > spsf.dO) {
+        spsf.dO *= -1;
+      } else {
+        spsi.dO *= -1;
+      }
     }
     if (mother.Z % 2 == 0) {
       dKi = 0;
@@ -193,13 +198,14 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     dKi = spsi.dO;
     dKf = spsf.dO;
   }
+  }
 
-  if (dKi != mother.dJ) {
+  if (spsf.parity*spsi.parity*dKi != mother.dJ) {
     cout << "ERROR: Single Particle spin coupling does not match mother spin!" << endl;
     cout << "Single Particle values. First: " << spsi.dO << "/2  Second: " << spsf.dO << "/2" << endl;
     cout << "Coupled spin: " << dKi << " Required: " << mother.dJ << endl;
   }
-  if (dKf != daughter.dJ) {
+  if (spsf.parity*spsi.parity*dKf != daughter.dJ) {
     cout << "ERROR: Single Particle spin coupling does not match daughter spin!" << endl;
     cout << "Single Particle values. First: " << spsi.dO << "/2  Second: " << spsf.dO << "/2" << endl;
     cout << "Coupled spin: " << dKf << " Required: " << daughter.dJ << endl;
@@ -265,9 +271,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
       if (mother.Z % 2 == 0) {
         C = 0.5 * std::sqrt((dJi + 1.) * (dJf + 1.) /
                             (1. + delta(obt.dKf, 0.0))) *
-            (1 +
-             std::pow(-1., (obt.dKf + dJi + obt.spsi.dO + obt.spsf.dO) / 2.)) *
-            std::pow(-1., (dJi + obt.dKf) / 2.) *
+            (1 + std::pow(-1., dJi/2.)) * 
             gsl_sf_coupling_3j(dJf, 2 * K, dJi, -obt.dKf, obt.dKf,
                                0);
       } else {

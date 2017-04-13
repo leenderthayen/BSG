@@ -24,10 +24,16 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Set the Q value of the decay in keV.")
       ("Daughter.Z", po::value<int>(),
        "Set the proton number of the daughter nucleus.")
+      ("Mother.Z", po::value<int>(),
+       "Set the proton number of the mother nucleus.")
       ("Daughter.A", po::value<int>(),
        "Set the total number of nucleons of the daughter nucleus.")
+      ("Mother.A", po::value<int>(),
+       "Set the total number of nucleons of the mother nucleus.")
       ("Daughter.Radius", po::value<double>(),
        "Set the nuclear radius of the daughter nucleus in fm.")
+      ("Mother.Radius", po::value<double>(),
+       "Set the nucleus radius of the mother nucleus in fm.")
       ("Mother.Beta2", po::value<double>()->default_value(0.),
        "Set the quadrupole deformation beta2 parameter for the mother nucleus.")
       ("Mother.Beta4", po::value<double>()->default_value(0.),
@@ -44,6 +50,10 @@ OptionContainer::OptionContainer(int argc, char** argv) {
        "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")
       ("Daughter.SpinParity", po::value<int>(),
        "Set the spin times 2 and parity of the daughter nucleus: [+/-]2Jf")
+      ("Mother.Isospin", po::value<int>(),
+       "Set the isospin times 2 and parity of the mother nucleus: [+/-]2Ti")
+      ("Daughter.Isospin", po::value<int>(),
+       "Set the isospin times 2 and parity of the daughter nucleus: [+/-]2Tf")
       ("Mother.ExcitationEnergy", po::value<double>()->default_value(0.),
        "Set the excitation energy of the mother nucleus in MeV")
       ("Daughter.ExcitationEnergy", po::value<double>()->default_value(0.),
@@ -136,7 +146,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
               << std::endl;
   }
   else {
-    po::store(po::parse_config_file(inputStream, transitionOptions), vm);
+    po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
   }
   po::store(po::parse_environment(envOptions, "BSG_"), vm);
   po::notify(vm);
