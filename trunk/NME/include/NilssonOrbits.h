@@ -619,7 +619,7 @@ inline std::vector<SingleParticleState> Calculate(
       }
     }
     sps.nZ = nZ;
-    if ((NDOM[i] - nZ) % 2 == 0) {
+    if ((NDOMK[i] - nZ) % 2 == 0) {
       if ((K3[i] + 1) / 2 % 2 == 0) {
         sps.lambda = (K3[i] + 1) / 2;
       } else {
@@ -733,48 +733,7 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
   return allStates[index];
 }
 
-/*inline NuclearState CalculateDeformedNuclearState(int Z, int N, int A, int dJ,
-                                                  double R, double beta2,
-                                                  double beta4, double V0,
-                                                  double A0, double VS) {
-  NuclearState ns;
-  ns.spsProton = CalculateDeformedSPState(Z, 0, A, dJ, R, beta2, beta4, V0, A0,
-VS);
-  ns.spsNeutron = CalculateDeformedSPState(0, N, A, dJ, R, beta2, beta4, V0, A0,
-VS);
-  // Even nucleus
-  if (A%2 == 0) {
-    //Odd-Odd nucleus
-    if (Z%2 == 0) {
-      //TODO Implement Gallagher coupling rules
-      ns.dK = 0;
-    }
-    //Even-Even nucleus
-    else {
-      ns.dK = 0;
-      ns.excitationEnergy = 0;
-      ns.dJ = dJ;
-    }
-  }
-  //Odd-A nucleus
-  else {
-    //Odd neutron
-    if (Z%2 == 0) {
-      ns.dK = spsN.dO;
-      ns.excitationEnergy = 0;
-      ns.dJ = spsN.dO;
-    }
-    //Odd proton
-    else {
-      ns.dK = spsP.dO;
-      ns.excitationEnergy = 0;
-      ns.dJ = spsP.dO;
-    }
-  }
-  return ns;
-}
-
-inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
+/*inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
     double V0, double A0, double VS) {
   std::vector<NuclearState> spectrum;

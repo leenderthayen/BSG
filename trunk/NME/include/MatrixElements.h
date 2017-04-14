@@ -190,15 +190,6 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
                                  -dKi, inO) *
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
-          /*result +=
-              iW.C * fW.C * //std::pow(-1., fW.s / 2. - 0.5) *
-              std::pow(-1., (2 * fW.l + fW.s + fO) / 2.) *
-              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
-                                 -dKi, -inO) *
-              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
-                                             iW.l, fW.l, iW.s, fW.s, R, nu);*/
-          /*cout << 2 * fW.l + fW.s << 2 * K << 2 * iW.l + iW.s << fO << -dKi << inO << endl;
-          cout << gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO, -dKi, inO) << endl;*/
         }
       }
     // Even-Even ---> Odd-Odd
@@ -213,13 +204,6 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
                                  dKf, -inO) *
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
-          /*result +=
-              iW.C * fW.C * std::pow(-1., fW.l + fW.s / 2. - 0.5) *
-              spsf.parity * std::pow(-1., (2 * fW.l + fW.s + fO) / 2.) *
-              gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
-                                 dKf, -inO) * 
-              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
-                                             iW.l, fW.l, iW.s, fW.s, R, nu);*/
         }
       }
     }

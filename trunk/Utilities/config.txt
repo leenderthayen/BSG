@@ -5,6 +5,7 @@ Folder=.
 Method=ESP
 ForceSpin=True
 EnergyMargin=1
+ReversedGhallagher=True
 Potential=DWS
 Vneutron=49.6
 Vproton=49.6

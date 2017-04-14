@@ -173,11 +173,13 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     }
   }
 
+  bool reversedGhallagher = GetOpt(bool, Computational.ReversedGhallagher);
+
   if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 && daughter.beta2 != 0.0) {
   // Set Omega quantum numbers
   if (mother.A % 2 == 0) {
     int dKc = 0;
-    if ((spsi.dO-spsi.lambda) == (spsf.dO-spsf.lambda)) {
+    if (((spsi.dO-spsi.lambda) == (spsf.dO-spsf.lambda) && !reversedGhallagher) || ((spsi.dO-spsi.lambda) != (spsf.dO-spsf.lambda) && reversedGhallagher)) {
       dKc = spsi.dO + spsf.dO;
     } else {
       dKc = std::abs(spsi.dO - spsf.dO);
@@ -342,10 +344,10 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
     if (boost::iequals(method, "ESP")) {
       obt.obdme = GetESPManyParticleCoupling(K, obt);
     }
-    //cout << "OBDME: " << obt.obdme << endl;
+    cout << "OBDME: " << obt.obdme << endl;
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
         daughter.beta2 != 0) {
-      //cout << "Deformed" << endl;
+      cout << "Deformed" << endl;
       result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
                                 opt, obt.spsi, obt.spsf, V, K, L, s, std::abs(mother.dJ),
                                 std::abs(daughter.dJ), obt.dKi, obt.dKf, mother.R, nu);
