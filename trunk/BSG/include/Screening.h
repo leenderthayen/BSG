@@ -8,7 +8,8 @@ namespace screening {
 //================================================================================
 // Salvat's parameters for the screened potential
 
-inline void PotParam(int Zloc, std::vector<double> &Aby, std::vector<double> &Bby) {
+inline void PotParam(int Zloc, std::vector<double> &Aby,
+                     std::vector<double> &Bby) {
   std::vector<double> Aby_loc, Bby_loc;
 
   Aby.clear();

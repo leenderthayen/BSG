@@ -19,27 +19,28 @@
 using std::cout;
 using std::endl;
 
-double SpectralFunctions::PhaseSpace(double W, double W0, int motherSpinParity, int daughterSpinParity) {
+double SpectralFunctions::PhaseSpace(double W, double W0, int motherSpinParity,
+                                     int daughterSpinParity) {
   double result = std::sqrt(W * W - 1.) * W * std::pow(W0 - W, 2.);
-  //TODO forbidden transitions
+  // TODO forbidden transitions
   return result;
 }
 
-double SpectralFunctions::FermiFunction(double W, int Z, double R, int fBetaType) {
-  double gamma = std::sqrt(1.-std::pow(alpha*Z, 2.));
+double SpectralFunctions::FermiFunction(double W, int Z, double R,
+                                        int betaType) {
+  double gamma = std::sqrt(1. - std::pow(alpha * Z, 2.));
   double p = std::sqrt(W * W - 1.);
   double first = 2. * (gamma + 1.);
   // the second term will be incorporated in the fifth
   // double second = 1/std::pow(gsl_sf_gamma(2*gamma+1),2);
   double third = std::pow(2. * p * R, 2. * (gamma - 1.));
-  double fourth = std::exp(fBetaType * M_PI * alpha * Z * W / p);
+  double fourth = std::exp(betaType * M_PI * alpha * Z * W / p);
 
   // the fifth is a bit tricky
   // we use the complex gamma function from GSL
   gsl_sf_result magn;
   gsl_sf_result phase;
-  gsl_sf_lngamma_complex_e(gamma, fBetaType * alpha * Z * W / p, &magn,
-                           &phase);
+  gsl_sf_lngamma_complex_e(gamma, betaType * alpha * Z * W / p, &magn, &phase);
   // now we have what we wAt in magn.val
 
   // but we incorporate the second term here as well
@@ -49,31 +50,13 @@ double SpectralFunctions::FermiFunction(double W, int Z, double R, int fBetaType
   return result;
 }
 
-double SpectralFunctions::CCorrection(double W, double W0, int Z, int A, double R, int fBetaType, double hoFit, int fDecayType, double gA, double gP, double fc1, double fb, double fd, double ratioM121) {
+double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
+                                      double R, int betaType, double hoFit,
+                                      int decayType, double gA, double gP,
+                                      double fc1, double fb, double fd,
+                                      double ratioM121) {
   double AC0, AC1, ACm1, AC2;
-
-  /*AC0 = -233. * std::pow(alpha * Z, 2) / 630. - (W0 * W0 - 1) * R * R / 5. +
-        fBetaType * 2. * W0 * R * alpha * Z / 35.;
-  AC1 = -fBetaType * 21. * R * alpha * Z / 35.0 + 4.0 / 9.0 * W0 * R * R;
-  ACm1 =
-      -2 / 45. * gamma * W0 * R * R - fBetaType / 70. * gamma * alpha * Z * R;
-  AC2 = -4. / 9. * R * R;*/
-
   double VC0, VC1, VCm1, VC2;
-
-  /*VC0 = -233 * std::pow(alpha * Z, 2.) / 630. - std::pow(W0 * R, 2) / 5. -
-        fBetaType * 6. / 35. * alpha * Z * W0 * R +
-        9./1225.*std::pow(alpha*Z*W0*R, 2.);
-  VC1 = -fBetaType * 13. / 35. * alpha * Z * R + 4. / 15. * W0 * R * R;
-  VCm1 = 2. / 15. * gamma * W0 * R * R +
-         fBetaType / 70. * gamma * alpha * Z * R;
-  VC2 = -4. / 15. * R * R;*/
-
-  /*double A;
-  if (Afit == -1) {
-    double A = utilities::FitHODist(Z, R * std::sqrt(3. / 5.));
-    Afit = A;
-  }*/
 
   double F1111 = 0.757 + 0.0069 * (1 - std::exp(-hoFit / 1.008));
   double F1221 = 0.844 - 0.0182 * (1 - std::exp(-hoFit / 1.1974));
@@ -81,111 +64,57 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A, double 
   double F1211 = -3. / 70;
 
   VC0 = -std::pow(W0 * R, 2.) / 5. -
-        fBetaType * 2. / 9. * alpha * Z * W0 * R * F1111 -
+        betaType * 2. / 9. * alpha * Z * W0 * R * F1111 -
         std::pow(alpha * Z, 2.) / 3. * F1222;
 
   VC1 = 4. / 15. * W0 * R * R -
-        fBetaType * 2. / 3. * alpha * Z * R * (F1221 - F1111 / 3.);
+        betaType * 2. / 3. * alpha * Z * R * (F1221 - F1111 / 3.);
 
-  VCm1 = 2. / 15. * W0 * R * R - fBetaType * alpha * Z * R / 3. * F1211;
+  VCm1 = 2. / 15. * W0 * R * R - betaType * alpha * Z * R / 3. * F1211;
 
   VC2 = -4. / 15. * R * R;
 
   AC0 = -1. / 3. * std::pow(alpha * Z, 2.) * F1222 -
-        1. / 5. * (W0 * W0 - 1) * R * R +
-        fBetaType * 2. / 27. * alpha * Z * W0 * R * F1111 + 11. / 45. * R * R;
+        1. / 5. * (W0 * W0 - 1.) * R * R +
+        betaType * 2. / 27. * alpha * Z * W0 * R * F1111 + 11. / 45. * R * R;
 
   AC1 = 4. / 9. * W0 * R * R -
-        fBetaType * 2. / 3. * alpha * Z * R * (1. / 9. * F1111 + F1221);
+        betaType * 2. / 3. * alpha * Z * R * (1. / 9. * F1111 + F1221);
 
-  ACm1 = -2. / 45. * W0 * R * R + fBetaType * alpha * Z / 3. * F1211;
+  ACm1 = -2. / 45. * W0 * R * R + betaType * alpha * Z * R / 3. * F1211;
 
   AC2 = -4. / 9. * R * R;
 
   double result = 1.;
 
-  if (fDecayType == FERMI) {
+  if (decayType == FERMI) {
     result = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
-  } else if (fDecayType == GAMOW_TELLER) {
+  } else if (decayType == GAMOW_TELLER) {
     result = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
   }
   // TODO
   /*} else if (mixingRatio > 0) {
-    result = 1. +
-           1. / (1 + std::pow(mixingRatio, 2)) *
-               (VC0 + VC1 * W + VCm1 / W + VC2 * W * W) +
-           1. / (1 + std::pow(mixingRatio, -2)) * (AC0 + AC1 * W + ACm1 / W + AC2 * W
-  * W);
   }*/
 
-  result *= CICorrection(W, W0, Z, A, R, fBetaType, fDecayType);
+  result *= CICorrection(W, W0, Z, A, R, betaType, decayType);
 
-  if (fDecayType == GAMOW_TELLER) {
-    /*double M = A * (protonMasskeV + neutronMasskeV) / 2. / electronMasskeV;
-
-    // TODO depends on beta+/- to check from parent or daughter nucleus, not
-    // both parent
-    int nN, lN, sN, nZ, lZ, sZ;
-    vector<int> occNumbersN =
-        utilities::GetOccupationNumbers(A - (Z - fBetaType));
-    nN = occNumbersN[occNumbersN.size() - 1 - 3];
-    lN = occNumbersN[occNumbersN.size() - 1 - 2];
-    sN = occNumbersN[occNumbersN.size() - 1 - 1];
-    vector<int> occNumbersZ = utilities::GetOccupationNumbers(Z - fBetaType);
-    nZ = occNumbersZ[occNumbersZ.size() - 1 - 3];
-    lZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
-    sZ = occNumbersZ[occNumbersZ.size() - 1 - 1];
-
-    // TODO replace <r^2>/R^2 with the HO rms
-    double ratioM121 = 0.;
-    double nu = utilities::CalcNu(std::sqrt(3. / 5.) * R, Z - fBetaType);
-    double rHO = std::pow(utilities::GetRMSHO(nN, lN, nu), 2.);*/
-    /*if (lN == lZ) {
-      double nu = utilities::CalcNu(std::sqrt(3./5.)*R, Z-fBetaType);
-      double rHO = std::pow(utilities::GetRMSHO(nN, lN, nu), 2.);
-      if (sN == sZ) {
-        if (sN == 1) {
-          ratioM121 = - lN*std::sqrt(2)/(2.*lN+3.)*rHO/R/R;
-        }
-        else if (sN == -1) {
-          ratioM121 = - (lN+1.)*std::sqrt(2)/(2.*lN-1.)*rHO/R/R;
-        }
-      }
-      else {
-        ratioM121 = 1./2./std::sqrt(2.)*rHO/R/R;
-      }
-    }*/
-
-    /*utilities::NuclearState nsi =
-        utilities::CalculateDeformedState(Z - fBetaType, A, beta2);
-    utilities::NuclearState nsf =
-        utilities::CalculateDeformedState(Z, A, beta2);
-
-    ratioM121 = utilities::CalculateDeformedSPMatrixElement(
-                    nsi.states, nsf.states, false, 1, 2, 1, nsi.O, nsf.O, nsi.K,
-                    nsf.K, R) /
-                utilities::CalculateDeformedSPMatrixElement(
-                    nsi.states, nsf.states, false, 1, 0, 1, nsi.O, nsf.O, nsi.K,
-                    nsf.K, R);
-
-    ratioM121 *= rHO / R / R;*/
-
-    double M = A * (protonMasskeV + neutronMasskeV) / 2. / electronMasskeV;
+  if (decayType == GAMOW_TELLER) {
+    double M = A * nucleonMasskeV / electronMasskeV;
 
     double x = std::sqrt(2.) / 3. * 10. * ratioM121 -
-               gP / gA * 25. / 3. / std::pow(1837.5 * R, 2.);
+               gP / gA * 25. / 3. / std::pow(nucleonMasskeV / electronMasskeV * R, 2.);
 
     double NSC0 = -1. / 45. * R * R * x +
-                  1. / 3. * W0 / M / fc1 * (-fBetaType * 2. * fb + fd) +
-                  fBetaType * 2. / 5. * alpha * Z / M / R / fc1 *
-                      (fBetaType * 2. * fb + fd) -
-                  fBetaType * 2. / 35. * alpha * Z * W0 * R * x;
+                  1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) +
+                  betaType * 2. / 5. * alpha * Z / M / R / fc1 *
+                      (betaType * 2. * fb + fd) -
+                  betaType * 2. / 35. * alpha * Z * W0 * R * x;
 
-    double NSC1 = fBetaType * 4. / 3. * fb / M / fc1 -
+    double NSC1 = betaType * 4. / 3. * fb / M / fc1 -
                   2. / 45. * W0 * R * R * x +
-                  fBetaType * alpha * Z * R * 2. / 35. * x;
+                  betaType * alpha * Z * R * 2. / 35. * x;
 
-    double NSCm1 = -1. / 3. / M / fc1 * (fBetaType * 2. * fb + fd) +
+    double NSCm1 = -1. / 3. / M / fc1 * (betaType * 2. * fb + fd) +
                    2. / 45. * W0 * R * R * x;
 
     double NSC2 = 2. / 45. * R * R * x;
@@ -197,7 +126,8 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A, double 
   return result;
 }
 
-double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double R, int fBetaType, int fDecayType) {
+double SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
+                                       double R, int betaType, int decayType) {
   double AC0, AC1, AC2, ACm1;
   double VC0, VC1, VC2, VCm1;
 
@@ -206,10 +136,10 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
 
   int nN, lN, nZ, lZ;
   std::vector<int> occNumbersN =
-      utilities::GetOccupationNumbers(A - (Z - fBetaType));
+      utilities::GetOccupationNumbers(A - (Z - betaType));
   nN = occNumbersN[occNumbersN.size() - 1 - 3];
   lN = occNumbersN[occNumbersN.size() - 1 - 2];
-  std::vector<int> occNumbersZ = utilities::GetOccupationNumbers(Z - fBetaType);
+  std::vector<int> occNumbersZ = utilities::GetOccupationNumbers(Z - betaType);
   nZ = occNumbersZ[occNumbersZ.size() - 1 - 3];
   lZ = occNumbersZ[occNumbersZ.size() - 1 - 2];
 
@@ -217,7 +147,7 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
   // occNumbersZ[occNumbersZ.size() - 1] << endl;
 
   double w = (4 * nZ + 2 * lZ - 1) / 5.;
-  double V0 = fBetaType * 3 * alpha * Z / 2. / R;
+  double V0 = betaType * 3 * alpha * Z / 2. / R;
   double e = (sqr(W0 - W) + sqr(W + V0) - 1) / 6.;
 
   double Ap = 1.;
@@ -227,7 +157,7 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
       sum += occNumbersZ[j + 3];
     }
   }
-  Ap = (2. * (Z - fBetaType) / sum - 2.) / 3.;
+  Ap = (2. * (Z - betaType) / sum - 2.) / 3.;
 
   // cout << "Ap: " << Ap << endl;
 
@@ -235,12 +165,12 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
 
   double weakR2;
   if (A > 90) {
-    nu = ChargeDistributions::CalcChargeIndepNu(rms, Z - fBetaType,
-                                      A - (Z - fBetaType));
+    nu = ChargeDistributions::CalcChargeIndepNu(rms, Z - betaType,
+                                                A - (Z - betaType));
     weakR2 = ChargeDistributions::WeakIntegratedRMS(nu, nN, lN, nu, nZ, lZ);
   } else {
-    nu = ChargeDistributions::CalcNu(rms, Z - fBetaType);
-    if (fBetaType == BETA_MINUS) {
+    nu = ChargeDistributions::CalcNu(rms, Z - betaType);
+    if (betaType == BETA_MINUS) {
       weakR2 = std::pow(ChargeDistributions::GetRMSHO(nN, lN, nu), 2);
     } else {
       weakR2 = std::pow(ChargeDistributions::GetRMSHO(nZ, lZ, nu), 2);
@@ -259,13 +189,12 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
   // cout << "rmsW: " << weakR2 << " rmsCh " << 3./5.*R*R << " Delta: " << delta
   // << endl;
 
-  AC0 = alpha * Z / R * (fBetaType * 4. / 3. * W0 - 9 / 2. * alpha * Z / R +
-                          4 * alpha * Z / R * W0 * W0 * delta);
+  AC0 = alpha * Z / R * (betaType * 4. / 3. * W0 - 9 / 2. * alpha * Z / R +
+                         4 * alpha * Z / R * W0 * W0 * delta);
   AC1 = 40 / 9. * W0 +
-        alpha * Z / R *
-            (fBetaType * 16. / 3. * W0 * W0 * delta - fBetaType * 22. / 3. -
-             22 * alpha * Z / R * W0 * delta);
-  AC2 = -40 / 9. - fBetaType * 24 * alpha * Z / R * W0 * delta +
+        alpha * Z / R * (betaType * 16. / 3. * W0 * W0 * delta -
+                         betaType * 22. / 3. - 22 * alpha * Z / R * W0 * delta);
+  AC2 = -40 / 9. - betaType * 24 * alpha * Z / R * W0 * delta +
         27 * std::pow(alpha * Z / R, 2) * delta + 44. / 9. * W0 * W0 * delta;
   ACm1 = -4 / 9. * W0;
 
@@ -273,12 +202,12 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
   cout << "AC0: " << AC0 << " AC1: " << AC1 << " AC2: " << AC2 << " ACm1: " <<
   ACm1 << endl;*/
 
-  VC0 = alpha * Z / R * (-fBetaType * 4 * W0 - 9. / 2. * alpha * Z / R +
-                          4 * alpha * Z / R * W0 * W0 * delta);
+  VC0 = alpha * Z / R * (-betaType * 4 * W0 - 9. / 2. * alpha * Z / R +
+                         4 * alpha * Z / R * W0 * W0 * delta);
   VC1 = 8. / 3. * W0 +
-        alpha * Z / R * (-fBetaType * 16. / 3. * W0 * W0 * delta -
-                          fBetaType * 2 - 2. * alpha * Z / R * W0 * delta);
-  VC2 = -8 / 3. + fBetaType * 8. / 3. * alpha * Z / R * W0 * delta +
+        alpha * Z / R * (-betaType * 16. / 3. * W0 * W0 * delta - betaType * 2 -
+                         2. * alpha * Z / R * W0 * delta);
+  VC2 = -8 / 3. + betaType * 8. / 3. * alpha * Z / R * W0 * delta +
         7. * std::pow(alpha * Z / R, 2) * delta;
   VCm1 = 4. / 3. * W0;
 
@@ -290,9 +219,9 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
   VCm1 = alpha*Z*(2*r2-r2r-0.5*R);
   VC2 = 0.;*/
 
-  if (fDecayType == FERMI) {
+  if (decayType == FERMI) {
     return 1 + delta * (VC0 + VC1 * W + VC2 * W * W + VCm1 / W);
-  } else if (fDecayType == GAMOW_TELLER) {
+  } else if (decayType == GAMOW_TELLER) {
     return 1 + delta * (AC0 + AC1 * W + AC2 * W * W + ACm1 / W);
   } /*else if (mixingRatio > 0) {
     return 1 +
@@ -306,37 +235,45 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A, double
   return 1.;
 }
 
-double SpectralFunctions::RelativisticCorrection(double W, double W0, int Z, int A, double R, int fBetaType, int fDecayType) {
-  if (fDecayType == FERMI) {
-  double Wb = W + fBetaType * 3 * alpha * Z / (2. * R);
-  double pb = std::sqrt(Wb * Wb - 1.);
-  double H2 = -std::pow(pb * R, 2.) / 6.;
-  double D1 = Wb * R / 3.;
-  double D3 = -Wb * R * std::pow(pb * R, 2.) / 30 - fBetaType * alpha * Z / 10.;
-  double d1 = R / 3.;
-  double d3 = -R * std::pow(pb * R, 2.) / 30.;
-  double N1 = (W0 - W) * R / 3.;
-  double N2 = -std::pow((W0 - W) * R, 2.) / 6.;
-  double N3 = std::pow((W0 - W) * R, 3.) / 30;
+double SpectralFunctions::RelativisticCorrection(double W, double W0, int Z,
+                                                 int A, double R, int betaType,
+                                                 int decayType) {
+  if (decayType == FERMI) {
+    double Wb = W + betaType * 3 * alpha * Z / (2. * R);
+    double pb = std::sqrt(Wb * Wb - 1.);
+    double H2 = -std::pow(pb * R, 2.) / 6.;
+    double D1 = Wb * R / 3.;
+    double D3 =
+        -Wb * R * std::pow(pb * R, 2.) / 30 - betaType * alpha * Z / 10.;
+    double d1 = R / 3.;
+    double d3 = -R * std::pow(pb * R, 2.) / 30.;
+    double N1 = (W0 - W) * R / 3.;
+    double N2 = -std::pow((W0 - W) * R, 2.) / 6.;
+    double N3 = std::pow((W0 - W) * R, 3.) / 30;
 
-  double gamma = std::sqrt(1. - std::pow(alpha*Z, 2.));
+    double gamma = std::sqrt(1. - std::pow(alpha * Z, 2.));
 
-  double Vf2, Vf3;
-  double Af2, Af3;
+    double Vf2, Vf3;
+    double Af2, Af3;
 
-  Vf2 = -2. * (D1 + N1) + 2 * gamma / W * d1;
-  Vf3 = -2. * (D3 + N1 * H2 - N2 * D1 - N3) + 2 * gamma / W * (d3 - N2 * d1);
+    Vf2 = -2. * (D1 + N1) + 2 * gamma / W * d1;
+    Vf3 = -2. * (D3 + N1 * H2 - N2 * D1 - N3) + 2 * gamma / W * (d3 - N2 * d1);
 
-  Af2 = 2. / std::sqrt(3) * (D1 + N1) - 2. / std::sqrt(3) * gamma / W * d1;
-  Af3 = 2. * std::sqrt(2. / 3.) * (D1 - N1) - 2. * std::sqrt(2. / 3.) * gamma / W * d1;
+    Af2 = 2. / std::sqrt(3) * (D1 + N1) - 2. / std::sqrt(3) * gamma / W * d1;
+    Af3 = 2. * std::sqrt(2. / 3.) * (D1 - N1) -
+          2. * std::sqrt(2. / 3.) * gamma / W * d1;
 
-  double mismatch = W0 - fBetaType * 2.5 + fBetaType * 6. / 5. * alpha * Z / R;
+    double mismatch = W0 - betaType * 2.5 + betaType * 6. / 5. * alpha * Z / R;
 
-  return 1. - 3. / 10 * R * mismatch * Vf2 - 3. / 28. * R * mismatch * Vf3;
+    return 1. - 3. / 10 * R * mismatch * Vf2 - 3. / 28. * R * mismatch * Vf3;
+  } else {
+    return 1.;
   }
 }
 
-double SpectralFunctions::DeformationCorrection(double W, double W0, int Z, double R, double beta2, int fBetaType) {
+double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
+                                                double R, double beta2,
+                                                int betaType) {
   double bOverA = ChargeDistributions::CalcBoverA(beta2);
   double a, b;
 
@@ -355,8 +292,10 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z, doub
     V0d = 3. * alpha * Z / 2. / a / std::sqrt(1. - bOverA * bOverA) *
           asin(std::sqrt(1 - bOverA * bOverA));
   }
-  double etaS = 1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + fBetaType * V0s, 2.) - 1.);
-  double etaD = 1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + fBetaType * V0d, 2.) - 1.);
+  double etaS =
+      1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + betaType * V0s, 2.) - 1.);
+  double etaD =
+      1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + betaType * V0d, 2.) - 1.);
   double DC0 = (1 - etaD * 3. / 5. * R * R) / (1 - etaS * 3. / 5. * R * R);
 
   // cout << "DC0 " << DC0 << endl;
@@ -365,16 +304,18 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z, doub
   double grid[steps];
   double integrAd[steps];
 
-  double gamma = std::sqrt(1. - std::pow(alpha*Z, 2.));
+  double gamma = std::sqrt(1. - std::pow(alpha * Z, 2.));
 
   double prefact = 4. / 3. * M_PI * std::pow(R, 2. * (1 - gamma));
 
-  //TODO
+  // TODO
   /*for (int i = 0; i < steps; i++) {
     grid[i] = a + (i + 1.) / (double)steps * (b - a);
     integrAd[i] = std::pow(grid[i], 3.) * Z *
-                   abs(ChargeDistributions::GetDerivDeformedChargeDist(grid[i], a, b)) *
-                   L0Correction(W, grid[i]) * std::pow(grid[i], 2. * (gamma - 1));
+                   abs(ChargeDistributions::GetDerivDeformedChargeDist(grid[i],
+  a, b)) *
+                   L0Correction(W, grid[i]) * std::pow(grid[i], 2. * (gamma -
+  1));
     cout << grid[i] << "\t" << integrAd[i] << endl;
   }
 
@@ -388,46 +329,50 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z, doub
   return DC0 * DFS;
 }
 
-double SpectralFunctions::L0Correction(double W, int Z, double r, double fBetaType, double aPos[], double aNeg[]) {
-  double gamma = std::sqrt(1.-std::pow(alpha*Z, 2.));
+double SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
+                                       double aPos[], double aNeg[]) {
+
+  double gamma = std::sqrt(1. - std::pow(alpha * Z, 2.));
   double sum = 0;
   double common = 0;
   double specific = 0;
   for (int i = 1; i < 7; i++) {
-    if (fBetaType == BETA_PLUS)
+    if (betaType == BETA_PLUS)
       sum += aPos[i] * std::pow(W * r, i - 1);
     else
       sum += aNeg[i] * std::pow(W * r, i - 1);
   }
-  common = (1 + 13. / 60. * std::pow(alpha * Z, 2) -
-            fBetaType * W * r * alpha * Z * (41. - 26. * gamma) / 15. /
+  common = 1. + 13. / 60. * std::pow(alpha * Z, 2) -
+            betaType * W * r * alpha * Z * (41. - 26. * gamma) / 15. /
                 (2. * gamma - 1) -
-            fBetaType * alpha * Z * r * gamma * (17. - 2. * gamma) / 30. / W /
+            betaType * alpha * Z * r * gamma * (17. - 2. * gamma) / 30. / W /
                 (2. * gamma - 1) +
-            sum);
-  if (fBetaType == BETA_PLUS)
+            sum;
+  if (betaType == BETA_PLUS)
     specific = aPos[0] * r / W + 0.22 * (r - 0.0164) * std::pow(alpha * Z, 4.5);
   else
     specific = aNeg[0] * r / W + 0.41 * (r - 0.0164) * std::pow(alpha * Z, 4.5);
   return (common + specific) * 2. / (1. + gamma);
 }
 
-double SpectralFunctions::UCorrection(double W, int Z, int fBetaType) {
-  double a0 = -5.6E-5 - fBetaType * 4.94E-5 * Z + 6.23E-8 * std::pow(Z, 2);
-  double a1 = 5.17E-6 + fBetaType * 2.517E-6 * Z + 2.00E-8 * std::pow(Z, 2);
-  double a2 = -9.17e-8 + fBetaType * 5.53E-9 * Z + 1.25E-10 * std::pow(Z, 2);
+double SpectralFunctions::UCorrection(double W, int Z, int betaType) {
+  double a0 = -5.6E-5 - betaType * 4.94E-5 * Z + 6.23E-8 * std::pow(Z, 2);
+  double a1 = 5.17E-6 + betaType * 2.517E-6 * Z + 2.00E-8 * std::pow(Z, 2);
+  double a2 = -9.17e-8 + betaType * 5.53E-9 * Z + 1.25E-10 * std::pow(Z, 2);
 
   double p = std::sqrt(W * W - 1);
 
   return 1 + a0 + a1 * p + a2 * p * p;
 }
 
-double SpectralFunctions::QCorrection(double W, double W0, int Z, int A, int fBetaType, int fDecayType, double mixingRatio) {
+double SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
+                                      int betaType, int decayType,
+                                      double mixingRatio) {
   double a = 0;
 
-  if (fDecayType == FERMI)
+  if (decayType == FERMI)
     a = 1.;
-  else if (fDecayType == GAMOW_TELLER)
+  else if (decayType == GAMOW_TELLER)
     a = -1. / 3.;
   else if (mixingRatio > 0)
     a = (1 - std::pow(mixingRatio, 2.) / 3) / (1 + std::pow(mixingRatio, 2));
@@ -436,10 +381,12 @@ double SpectralFunctions::QCorrection(double W, double W0, int Z, int A, int fBe
 
   double p = std::sqrt(W * W - 1);
 
-  return 1 - fBetaType * M_PI * alpha * Z / M / p * (1 + a * (W0 - W) / 3 / M);
+  return 1 - betaType * M_PI * alpha * Z / M / p * (1 + a * (W0 - W) / 3 / M);
 }
 
-double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z, double R, int fBetaType, double gA, double gM) {
+double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
+                                              double R, int betaType, double gA,
+                                              double gM) {
   // 1st order, based on the 5th Wilkinson article
   double beta = std::sqrt(1.0 - 1.0 / W / W);
 
@@ -447,13 +394,15 @@ double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z, double
              4 * (std::atanh(beta) / beta - 1) *
                  ((W0 - W) / 3 / W - 1.5 + std::log(2 * (W0 - W)));
   g += 4.0 / beta * Spence(2 * beta / (1 + beta)) +
-       std::atanh(beta) / beta * (2 * (1 + beta * beta) +
-                             (W0 - W) * (W0 - W) / 6 / W / W - 4 * std::atanh(beta));
+       std::atanh(beta) / beta *
+           (2 * (1 + beta * beta) + (W0 - W) * (W0 - W) / 6 / W / W -
+            4 * std::atanh(beta));
 
   double O1corr = alpha / 2 / M_PI *
                   (g - 3 * std::log(protonMasskeV / electronMasskeV / 2 / W0));
 
-  double L = 1.026725 * std::pow(1 - 2 * alpha / 3 / M_PI * std::log(2 * W0), 9 / 4.);
+  double L =
+      1.026725 * std::pow(1 - 2 * alpha / 3 / M_PI * std::log(2 * W0), 9 / 4.);
 
   // 2nd order
   double d1f, d2, d3, d14;
@@ -461,11 +410,13 @@ double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z, double
   double lambdaOverM =
       lambda / protonMasskeV * electronMasskeV;  // this is dimensionless
 
-  d14 =
-      std::log(protonMasskeV / electronMasskeV) - 5. / 3. * std::log(2 * W) + 43. / 18.;
+  d14 = std::log(protonMasskeV / electronMasskeV) - 5. / 3. * std::log(2 * W) +
+        43. / 18.;
 
-  d1f = std::log(lambdaOverM) - EulMasConst + 4. / 3. - std::log(std::sqrt(10.0)) -
-        3.0 / M_PI / std::sqrt(10.0) * (0.5 + EulMasConst + std::log(std::sqrt(10) / lambdaOverM));
+  d1f = std::log(lambdaOverM) - EulMasConst + 4. / 3. -
+        std::log(std::sqrt(10.0)) -
+        3.0 / M_PI / std::sqrt(10.0) *
+            (0.5 + EulMasConst + std::log(std::sqrt(10) / lambdaOverM));
 
   d2 = 3.0 / 2.0 / M_PI / std::sqrt(10.0) * lambdaOverM *
        (1 - M_PI / 2 / std::sqrt(10) * lambdaOverM);
@@ -474,18 +425,18 @@ double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z, double
        (EulMasConst - 1 + std::log(std::sqrt(10) / lambdaOverM) +
         M_PI / 4 / std::sqrt(10) * lambdaOverM);
 
-  double O2corr = fBetaType * alpha * alpha * Z * (d14 + d1f + d2 + d3);
+  double O2corr = betaType * alpha * alpha * Z * (d14 + d1f + d2 + d3);
 
   // 3rd order
   double a = 0.5697;
   double b = 4 / 3 / M_PI * (11 / 4. - EulMasConst - M_PI * M_PI / 6);
   double f = std::log(2 * W0) - 5. / 6.;
-  double g2 =
-      0.5 * (std::pow(log(R), 2.) - std::pow(log(2 * W), 2.)) + 5. / 3. * std::log(2 * R * W);
+  double g2 = 0.5 * (std::pow(log(R), 2.) - std::pow(log(2 * W), 2.)) +
+              5. / 3. * std::log(2 * R * W);
 
-  double O3corr =
-      std::pow(alpha, 3) * std::pow(Z, 2) *
-      (a * std::log(lambda / W) + b * f + 4 * M_PI / 3. * g2 - 0.649 * std::log(2 * W0));
+  double O3corr = std::pow(alpha, 3) * std::pow(Z, 2) *
+                  (a * std::log(lambda / W) + b * f + 4 * M_PI / 3. * g2 -
+                   0.649 * std::log(2 * W0));
 
   return (1 + O1corr) * (L + O2corr + O3corr);
 }
@@ -497,21 +448,22 @@ double SpectralFunctions::NeutrinoRadiativeCorrection(double Wv) {
   h += 3 * std::log(protonMasskeV / electronMasskeV) + 23 / 4. +
        8 / beta * Spence(2 * beta / (1 + beta)) +
        8 * (std::atan(beta) / beta - 1) * std::log(2 * Wv * beta) +
-       4 * std::atan(beta) / beta * ((7 + 3 * beta * beta) / 8 - 2 * std::atan(beta));
+       4 * std::atan(beta) / beta *
+           ((7 + 3 * beta * beta) / 8 - 2 * std::atan(beta));
   return 1 + alpha / 2 / M_PI * h;
 }
 
 double SpectralFunctions::Spence(double x) { return -gsl_sf_dilog(x); }
 
-double SpectralFunctions::RecoilCorrection(double W, double W0, int A, int fDecayType, double mixingRatio) {
+double SpectralFunctions::RecoilCorrection(double W, double W0, int A,
+                                           int decayType, double mixingRatio) {
   double Vr0, Vr1, Vr2, Vr3;
   double Ar0, Ar1, Ar2, Ar3;
   double M = A * (protonMasskeV + neutronMasskeV) / 2. /
-                         electronMasskeV;  // in units of electron mass
+             electronMasskeV;  // in units of electron mass
   double M2 = sqr(M);
 
-  Ar0 = -2. * W0 / 3. / M - W0 * W0 / 6. / M2 -
-        77. / 18. / M2;
+  Ar0 = -2. * W0 / 3. / M - W0 * W0 / 6. / M2 - 77. / 18. / M2;
   Ar1 = -2. / 3. / M + 7. * W0 / 9. / M2;
   Ar2 = 10. / 3. / M - 28. * W0 / 9. / M2;
   Ar3 = 88. / 9. / M2;
@@ -521,9 +473,9 @@ double SpectralFunctions::RecoilCorrection(double W, double W0, int A, int fDeca
   Vr2 = 2. / M - 4. * W0 / 3. / M2;
   Vr3 = 16. / 3. / M2;
 
-  if (fDecayType == FERMI) {
+  if (decayType == FERMI) {
     return 1 + Vr0 + Vr1 / W + Vr2 * W + Vr3 * W * W;
-  } else if (fDecayType == GAMOW_TELLER) {
+  } else if (decayType == GAMOW_TELLER) {
     return 1 + Ar0 + Ar1 / W + Ar2 * W + Ar3 * W * W;
   } else if (mixingRatio > 0) {
     return 1 +
@@ -536,26 +488,28 @@ double SpectralFunctions::RecoilCorrection(double W, double W0, int A, int fDeca
   return 1;
 }
 
-double SpectralFunctions::AtomicScreeningCorrection(double W, int Z, int fBetaType) {
+double SpectralFunctions::AtomicScreeningCorrection(double W, int Z,
+                                                    int betaType) {
   std::vector<double> Aby, Bby;
 
-  screening::PotParam(Z - 1 * fBetaType, Aby, Bby);
+  screening::PotParam(Z - 1 * betaType, Aby, Bby);
 
   double l = 2 * (Aby[0] * Bby[0] + Aby[1] * Bby[1] + Aby[2] * Bby[2]);
 
   double p = std::sqrt(W * W - 1);
 
-  double Wt = W - fBetaType * 0.5 * alpha * (Z - fBetaType) * l;
+  double Wt = W - betaType * 0.5 * alpha * (Z - betaType) * l;
 
   std::complex<double> pt;
 
   pt = 0.5 * p +
-       0.5 * std::sqrt(std::complex<double>(p * p - fBetaType * 2 * alpha * Z * Wt * l));
+       0.5 * std::sqrt(std::complex<double>(p * p -
+                                            betaType * 2 * alpha * Z * Wt * l));
 
-  double y = fBetaType * alpha * Z * W / p;
-  std::complex<double> yt = fBetaType * alpha * Z * Wt / pt;
+  double y = betaType * alpha * Z * W / p;
+  std::complex<double> yt = betaType * alpha * Z * Wt / pt;
 
-  double gamma = std::sqrt(1. - pow(alpha*Z, 2.));
+  double gamma = std::sqrt(1. - pow(alpha * Z, 2.));
 
   /*cout << "V: " << W-Wt << endl;
   cout << W << " " << yt.real() << " " << yt.imag() << endl;
@@ -592,9 +546,10 @@ double SpectralFunctions::AtomicExchangeCorrection(double W, double exPars[9]) {
              std::pow(W, exPars[8]);
 }
 
-double SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int Z, int A, int fBetaType) {
-  double dBdZ2 = (44.200 * std::pow(Z - fBetaType, 0.41) +
-                  2.3196E-7 * std::pow(Z - fBetaType, 4.45)) /
+double SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int Z,
+                                                   int A, int betaType) {
+  double dBdZ2 = (44.200 * std::pow(Z - betaType, 0.41) +
+                  2.3196E-7 * std::pow(Z - betaType, 4.45)) /
                  electronMasskeV / 1000.;
 
   double K = -0.872 + 1.270 * std::pow(Z, 0.097) + 9.062E-11 * std::pow(Z, 4.5);

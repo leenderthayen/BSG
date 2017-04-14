@@ -12,24 +12,20 @@ class Generator {
   double aNeg[7];
   double aPos[7];
   double exPars[9];
-  double W0;     ///< total endpoint energy in electron mass
+  double W0;  ///< total endpoint energy in electron mass
   double R;   ///< nuclear radius in natural units
-  double A;  ///< Mass number \f$ A \f$
-  double Z;  ///< number of protons of the daughter nucleus \f$ Z \f$
+  double A;   ///< Mass number \f$ A \f$
+  double Z;   ///< number of protons of the daughter nucleus \f$ Z \f$
   double mixingRatio;
   double hoFit;
   double daughterBeta2;
-  double daughterBeta4;
-  double daughterBeta6;
   double motherBeta2;
-  double motherBeta4;
-  double motherBeta6;
   double motherExcitationEn;
   double daughterExcitationEn;
   int motherSpinParity;
   int daughterSpinParity;
-  BetaType fBetaType;  ///< type of beta decay, negative or positive
-  DecayType fDecayType;
+  BetaType betaType;  ///< type of beta decay, negative or positive
+  DecayType decayType;
 
   NuclearStructure::NuclearStructureManager* nsm;
 
@@ -46,12 +42,11 @@ class Generator {
 
  public:
   Generator();
-  ~Generator();  
+  ~Generator();
 
   std::vector<std::vector<double> > CalculateSpectrum();
   double* CalculateDecayRate(double W);
   void WriteSpectrumToFile();
-
 };
 
 #endif

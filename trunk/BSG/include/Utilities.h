@@ -22,11 +22,12 @@ namespace utilities {
 using std::cout;
 using std::endl;
 
-static int smOccupation[104] = {1, 0, 1, 2, 1, 1, 1, 6,  1, 1, -1, 8, 1, 2, 1, 14,  2, 0, 1, 16,
-                        1, 2, -1, 20, 1, 3, 1, 28, 2, 1, 1, 32, 1, 3, -1, 38, 2, 1, -1, 40,
-                        1, 4, 1, 50, 1, 4, -1, 58, 2, 2, 1, 64, 2, 2, -1, 68, 3, 0, 1, 70,
-                        1, 5, 1, 82,  1, 5, -1, 92,  2, 3, 1, 100, 2, 3, -1, 106, 3, 1, 1, 110,
-                        3, 1, -1, 112, 1, 6, 1, 126, 2, 4, 1, 136, 3, 2, 1, 142, 1, 6, -1, 154};
+static int smOccupation[104] = {
+    1, 0, 1,  2,   1, 1, 1,  6,   1, 1, -1, 8,   1, 2, 1,  14,  2, 0, 1,  16,
+    1, 2, -1, 20,  1, 3, 1,  28,  2, 1, 1,  32,  1, 3, -1, 38,  2, 1, -1, 40,
+    1, 4, 1,  50,  1, 4, -1, 58,  2, 2, 1,  64,  2, 2, -1, 68,  3, 0, 1,  70,
+    1, 5, 1,  82,  1, 5, -1, 92,  2, 3, 1,  100, 2, 3, -1, 106, 3, 1, 1,  110,
+    3, 1, -1, 112, 1, 6, 1,  126, 2, 4, 1,  136, 3, 2, 1,  142, 1, 6, -1, 154};
 static char spectroNames[7] = {'s', 'p', 'd', 'f', 'g', 'h', 'i'};
 
 inline int Factorial(int n) {
@@ -45,10 +46,14 @@ inline int DoubleFactorial(int n) {
   }
 }
 
-inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int two_mb, int two_mc) {
+inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma,
+                            int two_mb, int two_mc) {
   double result = 0.0;
   if (two_ja >= 0 && two_jb >= 0 && two_jc >= 0) {
-    result = std::pow(-1., (two_ja-two_jb+two_mc)/2)*std::sqrt(two_jc+1.0)*gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
+    result =
+        std::pow(-1., (two_ja - two_jb + two_mc) / 2) *
+        std::sqrt(two_jc + 1.0) *
+        gsl_sf_coupling_3j(two_ja, two_jb, two_jc, two_ma, two_mb, -two_mc);
   }
   return result;
 }
@@ -58,14 +63,16 @@ inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma, int 
            < L', LA' | Y  | L, LA >
                          L
 */
-inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll, int la) {
+inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll,
+                                  int la) {
   double result = 0.;
-  if (laP == m+la) {
-    double x = (2.*l+1.)*(2.*ll+1.)/(12.566375*(2.*lP+1.));
-    double cg = ClebschGordan(2*ll, 2*l, 2*lP, 2*la, 2*m, 2*(la+m));
-    result = std::sqrt(x)*cg;
-    cg = ClebschGordan(2*ll, 2*l, 2*lP, 0, 0, 0);
-    result*=cg;
+  if (laP == m + la) {
+    double x = (2. * l + 1.) * (2. * ll + 1.) / (12.566375 * (2. * lP + 1.));
+    double cg =
+        ClebschGordan(2 * ll, 2 * l, 2 * lP, 2 * la, 2 * m, 2 * (la + m));
+    result = std::sqrt(x) * cg;
+    cg = ClebschGordan(2 * ll, 2 * l, 2 * lP, 0, 0, 0);
+    result *= cg;
   }
   return result;
 }
@@ -82,12 +89,11 @@ inline std::vector<int> GetOccupationNumbers(int N) {
       occNumbers.push_back(smOccupation[i + 1]);
       occNumbers.push_back(smOccupation[i + 2]);
       occNumbers.push_back(std::min(N - smOccupation[i - 1],
-                               smOccupation[i + 3] - smOccupation[i - 1]));
+                                    smOccupation[i + 3] - smOccupation[i - 1]));
     }
   }
   return occNumbers;
 }
-
 
 class Lagrange {
  public:

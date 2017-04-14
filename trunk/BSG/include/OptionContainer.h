@@ -8,8 +8,8 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#define GetOpt(a, b) OptionContainer::GetInstance().GetOption< a >( #b )
-#define OptExists(a) OptionContainer::GetInstance().Exists( #a )
+#define GetOpt(a, b) OptionContainer::GetInstance().GetOption<a>(#b)
+#define OptExists(a) OptionContainer::GetInstance().Exists(#a)
 
 namespace po = boost::program_options;
 
@@ -24,12 +24,18 @@ class OptionContainer {
     return vm[name].as<T>();
   }
   bool Exists(std::string name) { return (bool)vm.count(name); }
-  inline static po::options_description GetGenericOptions() { return genericOptions; };
-  inline static po::options_description GetSpectrumOptions() { return spectrumOptions; };
+  inline static po::options_description GetGenericOptions() {
+    return genericOptions;
+  };
+  inline static po::options_description GetSpectrumOptions() {
+    return spectrumOptions;
+  };
   inline static po::options_description GetConfigOptions() {
     return configOptions;
   };
-  inline static po::options_description GetTransitionOptions() { return transitionOptions; };
+  inline static po::options_description GetTransitionOptions() {
+    return transitionOptions;
+  };
   inline static po::options_description GetEnvOptions() { return envOptions; };
 
  private:
