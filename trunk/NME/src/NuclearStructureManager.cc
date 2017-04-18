@@ -264,9 +264,9 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
       dTf = dT3f + 1;
     }*/
 
-    /*cout << "Isospin:" << endl;
+    cout << "Isospin:" << endl;
     cout << "Ti: " << dTi/2 << " Tf: " << dTf/2 << endl;
-    cout << "T3: " << dT3i/2 << " T3: " << dT3f/2 << endl;*/
+    cout << "T3: " << dT3i/2 << " T3: " << dT3f/2 << endl;
     // Deformed transition
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
         daughter.beta2 != 0.0) {
@@ -290,8 +290,8 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
         C = std::sqrt((dJi + 1.) * (dJf + 1.) * (dTi + 1.) *
                       (dTf + 1.) / (1. + delta(obt.spsi.dO, obt.spsf.dO))) *
             std::pow(-1., (dTf - dT3f) / 2.) *
-            gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, -2 * betaType, dT3i) *
-            gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) *
+            gsl_sf_coupling_3j(dTf, 2, dTi, -dT3f, -2 * betaType, dT3i) *
+            gsl_sf_coupling_6j(1, dTf, (dTf+dTi)/2, dTi, 1, 2) * std::sqrt(3. / 2.) *
             std::pow(-1., K) * 2 * (delta(obt.spsi.dO, obt.spsf.dO) -
                                     std::pow(-1., (obt.spsi.dO + obt.spsf.dO) / 2.)) *
             gsl_sf_coupling_6j(obt.spsf.dO, dJf, obt.spsi.dO, dJi,
@@ -300,8 +300,8 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
         C = std::sqrt((dJi + 1.) * (dJf + 1.) * (dTi + 1.) *
                       (dTf + 1.) / (1. + delta(obt.spsi.dO, obt.spsf.dO))) *
             std::pow(-1., (dTf - dT3f) / 2.) *
-            gsl_sf_coupling_3j(dTf, 2, dTi, dT3f, -2 * betaType, dT3i) *
-            gsl_sf_coupling_6j(1, dTf, 1, dTi, 1, 2) * std::sqrt(3. / 2.) *
+            gsl_sf_coupling_3j(dTf, 2, dTi, -dT3f, -2 * betaType, dT3i) *
+            gsl_sf_coupling_6j(1, dTf, (dTf+dTi)/2, dTi, 1, 2) * std::sqrt(3. / 2.) *
             std::pow(-1., K) * 2 * (1 + delta(obt.spsi.dO, obt.spsi.dO)) *
             gsl_sf_coupling_6j(obt.spsf.dO, dJf, obt.spsf.dO, dJi,
                                obt.spsi.dO, 2 * K);
