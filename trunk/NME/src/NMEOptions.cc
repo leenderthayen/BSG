@@ -83,6 +83,8 @@ NMEOptions::NMEOptions(int argc, char** argv) {
        "Set the energy margin in choosing the correct spin state in the ESP method.")
       ("Computational.ReversedGhallagher", po::value<bool>()->default_value(false),
        "Reverse the Ghallagher coupling rules")
+      ("Computational.OverrideSPCoupling", po::value<bool>()->default_value(false),
+       "Override the single particle coupling rules and set the coupled spin to the final state.")
       ("Computational.SurfaceThickness", po::value<double>()->default_value(0.650),
        "Surface thickness of the Woods-Saxon potential in fm.")
       ("Computational.Vneutron", po::value<double>()->default_value(49.6),
