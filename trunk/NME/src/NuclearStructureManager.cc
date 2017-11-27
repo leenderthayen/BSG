@@ -66,9 +66,6 @@ NS::NuclearStructureManager::NuclearStructureManager() {
                    motherBeta2, motherBeta4, motherBeta6);
   SetDaughterNucleus(Zd, Ad, daughterSpinParity, Rm, daughterExcitationEn,
                      daughterBeta2, daughterBeta4, daughterBeta6);
-
-  Initialize(GetOpt(std::string, Computational.Method),
-             GetOpt(std::string, Computational.Potential));
 }
 
 NS::NuclearStructureManager::NuclearStructureManager(BetaType bt,
@@ -77,6 +74,7 @@ NS::NuclearStructureManager::NuclearStructureManager(BetaType bt,
   betaType = bt;
   mother = init;
   daughter = fin;
+  initialized = false;
 }
 
 void NS::NuclearStructureManager::SetDaughterNucleus(int Z, int A, int dJ,
@@ -85,6 +83,7 @@ void NS::NuclearStructureManager::SetDaughterNucleus(int Z, int A, int dJ,
                                                      double beta2, double beta4,
                                                      double beta6) {
   daughter = {Z, A, dJ, R, excitationEnergy, beta2, beta4, beta6};
+  initialized = false;
 }
 
 void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
@@ -93,6 +92,7 @@ void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
                                                    double beta2, double beta4,
                                                    double beta6) {
   mother = {Z, A, dJ, R, excitationEnergy, beta2, beta4, beta6};
+  initialized = false;
 }
 
 void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
@@ -106,6 +106,7 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
     GetESPStates(spsi, spsf, potential, dKi, dKf, obdme);
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
   }
+  initialized = true;
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
@@ -347,6 +348,10 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
 
 double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                                            int s) {
+  if (!initialized ) {
+    Initialize(GetOpt(std::string, Computational.Method),
+               GetOpt(std::string, Computational.Potential));
+  }
   double result = 0.0;
   double nu = CD::CalcNu(mother.R * std::sqrt(3. / 5.), mother.Z);
   int opt = 0;

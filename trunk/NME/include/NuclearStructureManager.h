@@ -31,6 +31,8 @@ class NuclearStructureManager {
     std::vector<OneBodyTransition> oneBodyTransitions;
     std::string method, potential;
 
+    bool initialized = false;
+
     void GetESPStates(SingleParticleState&, SingleParticleState&, std::string, int&, int&, double&);
     void GetESPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
     double GetESPManyParticleCoupling(int, OneBodyTransition&);

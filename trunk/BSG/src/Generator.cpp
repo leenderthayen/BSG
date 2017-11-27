@@ -212,8 +212,9 @@ void Generator::InitializeL0Constants() {
 
 void Generator::GetMatrixElements() {
   cout << "Calculating matrix elements" << endl;
-  double M101 = nsm->CalculateMatrixElement(false, 1, 0, 1);
+  double M101 = 1.0;
   if (!OptExists(ratioM121)) {
+    M101 = nsm->CalculateMatrixElement(false, 1, 0, 1);
     double M121 = nsm->CalculateMatrixElement(false, 1, 2, 1);
     ratioM121 = M121 / M101;
   } else {
