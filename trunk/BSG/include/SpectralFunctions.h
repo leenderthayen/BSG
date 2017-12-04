@@ -8,6 +8,10 @@
 
 #include "Constants.h"
 
+/**
+ * Namespace containing all correction factors to the allowed beta spectrum shape
+ * as described by Hayen et al., Rev. Mod. Phys. XXXXXX
+ */
 namespace SpectralFunctions {
 /// type of beta decay, negative or positive
 enum BetaType { BETA_PLUS = -1, BETA_MINUS = 1 };
@@ -21,11 +25,11 @@ double PhaseSpace(double W, double W0, int motherSpinParity,
  * @param W total energy in units of electron mass
  * @param Z the proton number of the daughter
  * @param R the nuclear radius of the daughter
- * @param betaType the beta type of the transition
+ * @param betaType the BetaType of the transition
  * @return the value
  *
- * The point charge Fermi function @f[ F_0(Z, W) @f]
- * \f[ F(Z,W) = 2(\gamma+1) \Gamma(2\gamma+1)^{-2} (2pR)^{2(\gamma-1)}
+ * The point charge Fermi function @f$ F_0(Z, W) @f$
+ * \f[ F_0(Z,W) = 2(\gamma+1) \Gamma(2\gamma+1)^{-2} (2pR)^{2(\gamma-1)}
  *e^{\pi\alpha Z W /p} |\Gamma(\gamma + i \alpha Z W /p) |^2\f]
  * the last factor \f$ |\Gamma(\gamma + i \alpha Z W /p) |^2 \f$ is calculated
  *using GSL. The GSL function returns the magnitude and phase, and here, as we
@@ -45,15 +49,15 @@ double FermiFunction(double W, int Z, double R, int betaType);
  * @param Z proton number
  * @param A mass number
  * @param R nuclear radius in natural units
- * @param betaType the beta type of the transition
+ * @param betaType the BetaType of the transition
  * @param hoFit the fitted A value for the Modified Gaussian distribution
- * @param decayType the decay type of the transition
+ * @param decayType the DecayType of the transition
  * @param gA the axial vector coupling constant
  * @param gP the induced pseudoscalar coupling constant
- * @param fc1 the c1 form factor as per Holstein (@f[ g_A M_{GT} @f])
+ * @param fc1 the c1 form factor as per Holstein (@f$ g_A M_{GT} @f$)
  * @param fb the b form factor as per Holstein
  * @param fd the d form factor as per Holstein
- * @param ratioM121 the ratio of the @f[^AM_{121}@f] and @f[^AM_{101}@f] matrix elements in the Behrens-Buehring formalism
+ * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
  * @return the value
  *
  * The C correction describing effects of finite nuclear size and induced currents.
@@ -70,8 +74,8 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param Z proton number
  * @param A mass number
  * @param R nuclear radius in natural units
- * @param betaType beta type of the transition
- * @param decayType decay type of the transition
+ * @param betaType BetaType of the transition
+ * @param decayType DecayType of the transition
  */
 double CICorrection(double W, double W0, int Z, int A, double R, int betaType,
                     int decayType);
@@ -85,8 +89,8 @@ double CICorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param Z proton number
  * @param A mass number
  * @param R nuclear radius in natural units
- * @param betaType beta type of the transition
- * @param decayType decay type of the transition
+ * @param betaType BetaType of the transition
+ * @param decayType DecayType of the transition
  */
 double RelativisticCorrection(double W, double W0, int Z, int A, double R,
                               int betaType, int decayType);
@@ -100,20 +104,20 @@ double RelativisticCorrection(double W, double W0, int Z, int A, double R,
  * @param A mass number
  * @param R nuclear radius in natural units
  * @param beta2 quadrupole deformation
- * @param betaType beta type of the transition
+ * @param betaType BetaType of the transition
  */
 double DeformationCorrection(double W, double W0, int Z, double R, double beta2,
                              int betaType);
 
 /**
  * Electrostatic finite size correction to the point charge Fermi function
- * written as @f[L_0(Z, W) @f]
+ * written as @f$L_0(Z, W) @f$
  *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
  * @param r radius in natural units
- * @param betaType beta type of the transition
+ * @param betaType BetaType of the transition
  * @param aPos array of fitted constants for beta+ decay
  * @param aNeg array of fitted constants for beta- decay
  */
@@ -125,7 +129,7 @@ double L0Correction(double W, int Z, double r, int betaType, double aPos[],
  * 
  * @param W electron total energy in units of its rest mass
  * @param Z proton number
- * @param betaType beta type of the transition
+ * @param betaType BetaType of the transition
  */
 double UCorrection(double W, int Z, int betaType);
 
@@ -137,7 +141,7 @@ double UCorrection(double W, int Z, int betaType);
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
  * @param A mass number
- * @param betaType beta type of the transition
+ * @param betaType BetaType of the transition
  * @param decayType decsay type of the transition
  * @double mixingRatio mixing ratio of Fermi versus Gamow-Teller
  */
@@ -145,9 +149,15 @@ double QCorrection(double W, double W0, int Z, int A, int betaType,
                    int decayType, double mixingRatio);
 
 /**
- * @brief Radiative corrections
- * @param W total energy in units of electron mass
- * @return first and second order radiative corrections
+ * The radiative correction up to order @f$ \alpha^3Z^2 @f$ as per Sirlin
+ * 
+ * @param W total electron energy in units of its rest mass
+ * @param W0 total endpoint energy in units of the electron rest mass
+ * @param Z proton number
+ * @param R nuclear radius in natural units
+ * @param betaType BetaType of the transition
+ * @param gA axial vector coupling constant @f$ g_A @f$
+ * @param gM nucleon isovector moment @f$ g_M = 4.706 @f$
  *
  * The first order correction is \f$ \delta_1=\frac{\alpha}{2\pi}g(W_0,W) \f$,
  *where \f$ g \f$ is defined by Sirlin (1967).
@@ -190,7 +200,7 @@ double RecoilCorrection(double W, double W0, int A, int decayType,
  * 
  * @param W electron total energy in units of its rest mass
  * @param Z proton number
- * @param betaType the beta type of the transition
+ * @param betaType the BetaType of the transition
  */
 double AtomicScreeningCorrection(double W, int Z, int betaType);
 
@@ -211,7 +221,7 @@ double AtomicExchangeCorrection(double W, double exPars[9]);
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
  * @param A mass number
- * @param betaType beta type of the transition
+ * @param betaType BetaType of the transition
  */
 double AtomicMismatchCorrection(double W, double W0, int Z, int A,
                                 int betaType);

@@ -18,7 +18,7 @@ class Generator {
   double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
   double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction */
   double W0;  /**< the total electron energy in units of its rest mass */
-  double R;   /**< the nuclear radius in natural units (hbar=c=m_e=1) */
+  double R;   /**< the nuclear radius in natural units (HBAR=c=m_e=1) */
   double A;   /**< Mass number */
   double Z;   /**< the proton number of the daughter nucleus */
   double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */

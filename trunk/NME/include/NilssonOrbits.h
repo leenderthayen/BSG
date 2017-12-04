@@ -17,58 +17,71 @@
 #define NDIM4 40
 
 namespace NuclearStructure {
+/**
+ * This ia a C++ port of the original Fortran IV code from 
+ * Computer Physics Communications 6 (1973) 30
+ * by Hird et al.
+ * 
+ * Here follows the original documentation
+ * 
+ * ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON
+ * 1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE
+ * 2   ROTATIONAL STATES.  HIRD, B.
+ * REF. IN COMP. PHYS. COMMUN. 6 (1973) 30
+ * NILSSON ORBITS
+ * FOR A PARTICLE IN A WOODS-SAXON POTENTIAL WITH Y(2,0) AND Y(4,0)
+ * DEFORMATIONS, AND COUPLED TO CORE ROTATIONAL STATES.
+
+ * METHOD - MATRIX DIAGONALIZATION.
+ *    FIRST DIAGONALIZATION IS OF SPHERICAL WOODS-SAXON HAMILTONIAN
+ *         WITH HARMONIC OSCILLATOR BASIS.
+ *    SECOND DIAGONALIZATION IS OF DEFORMED HAMILTONIAN WITH
+ *         SPHERICAL WOODS-SAXON EIGENSTATES AS BASIS.
+ *    THIRD DIAGONALIZATION IS OF BAND MIXING AND CORE HAMILTONIAN
+ *         WITH DEFORMED PARTICLE EIGENSTATES AS A BASIS.
+ *
+ * REFERENCES:-
+ * S.G.NILSSON, 1955 MAT.FYS.MEDD.DAN.VID.SELSK. 29 NO 16.
+ * A.K.KERMAN, 1956 MAT.FYS.MEDD.DAN.VID.SELSK. 30 NO 15.
+ * K.T.HECHT AND G.R.SATCHLER, NUCLEAR PHYSICS, 32(1962)286
+ * W.SCHOLZ AND F.B.MALIK, PHYS.REV., 147(1966)836.
+
+ * NOTATION:-
+ * ENERGIES IN MEV.  LENGTHS IN FM. MASS IN A.M.U. Z IN ELECTRONIC
+ * CHARGE UNITS.
+ * V0,R0,A0,V0S = WOODS-SAXON PARAMETERS.
+ * AMU = ATOMIC WEIGHT OF ODD PARTICLE + CORE.
+ * Z = ZERO FOR A NEUTRON STATE; = CORE CHARGE FOR A PROTON STATE.
+ * NMAX = MAXIMUM RADIAL QUANTUM NUMBER IN HARMONIC OSCILLATOR BASIS.
+ * NMAX = ODD;EVEN FOR NEGATIVE;POSITIVE PARITY     NMAX < 14
+ * BETA2 = SPHEROIDAL DEFORMATION
+ * BETA4 = HEXADECAPOLE DEFORMATION.
+ * ROT = UNIT OF ROTATIONAL ENERGY OF THE CORE.
+ * ROTI(I) = ROTATIONAL ENERGY FOR THIS VALUE OF I ONLY.
+ * ROTO(OMEGA) = ROTATIONAL ENERGY FOR THIS OMEGA ONLY.
+ * SPIN = MAXIMUM VALUE OF TOTAL SPIN I OF SYSTEM.
+ * ALL EIGENSTATES WITH SPINS UP TO INPUT VALUE OF SPIN ARE FOUND.
+ * N = RADIAL QUANTUM NUMBER.
+ * L = ANGULAR MOMENTUM QUANTUM NUMBER.
+ * LA = LAMBDA = COMPONENT OF L ALONG SYMMETRY AXIS.
+ * IX2 = 2*SIGMA = 2*COMPONENT OF INTRINSIC SPIN ALONG SYMMETRY AXIS.
+ * JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.
+ * SW(1,NN) = TABLE OF <N',L!F(R)!N,L>
+ * SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.
+ * SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      
+ */
 namespace nilsson {
 
 using std::cout;
 using std::endl;
 
-/*
-ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON
-1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE
-2   ROTATIONAL STATES.  HIRD, B.
-REF. IN COMP. PHYS. COMMUN. 6 (1973) 30
-NILSSON ORBITS
-FOR A PARTICLE IN A WOODS-SAXON POTENTIAL WITH Y(2,0) AND Y(4,0)
-DEFORMATIONS, AND COUPLED TO CORE ROTATIONAL STATES.
-
-METHOD - MATRIX DIAGONALIZATION.
-   FIRST DIAGONALIZATION IS OF SPHERICAL WOODS-SAXON HAMILTONIAN
-        WITH HARMONIC OSCILLATOR BASIS.
-   SECOND DIAGONALIZATION IS OF DEFORMED HAMILTONIAN WITH
-        SPHERICAL WOODS-SAXON EIGENSTATES AS BASIS.
-   THIRD DIAGONALIZATION IS OF BAND MIXING AND CORE HAMILTONIAN
-        WITH DEFORMED PARTICLE EIGENSTATES AS A BASIS.
-
-REFERENCES:-
-S.G.NILSSON, 1955 MAT.FYS.MEDD.DAN.VID.SELSK. 29 NO 16.
-A.K.KERMAN, 1956 MAT.FYS.MEDD.DAN.VID.SELSK. 30 NO 15.
-K.T.HECHT AND G.R.SATCHLER, NUCLEAR PHYSICS, 32(1962)286
-W.SCHOLZ AND F.B.MALIK, PHYS.REV., 147(1966)836.
-
-NOTATION:-
-ENERGIES IN MEV.  LENGTHS IN FM. MASS IN A.M.U. Z IN ELECTRONIC
-CHARGE UNITS.
-V0,R0,A0,V0S = WOODS-SAXON PARAMETERS.
-AMU = ATOMIC WEIGHT OF ODD PARTICLE + CORE.
-Z = ZERO FOR A NEUTRON STATE; = CORE CHARGE FOR A PROTON STATE.
-NMAX = MAXIMUM RADIAL QUANTUM NUMBER IN HARMONIC OSCILLATOR BASIS.
-NMAX = ODD;EVEN FOR NEGATIVE;POSITIVE PARITY     NMAX < 14
-BETA2 = SPHEROIDAL DEFORMATION
-BETA4 = HEXADECAPOLE DEFORMATION.
-ROT = UNIT OF ROTATIONAL ENERGY OF THE CORE.
-ROTI(I) = ROTATIONAL ENERGY FOR THIS VALUE OF I ONLY.
-ROTO(OMEGA) = ROTATIONAL ENERGY FOR THIS OMEGA ONLY.
-SPIN = MAXIMUM VALUE OF TOTAL SPIN I OF SYSTEM.
-ALL EIGENSTATES WITH SPINS UP TO INPUT VALUE OF SPIN ARE FOUND.
-N = RADIAL QUANTUM NUMBER.
-L = ANGULAR MOMENTUM QUANTUM NUMBER.
-LA = LAMBDA = COMPONENT OF L ALONG SYMMETRY AXIS.
-IX2 = 2*SIGMA = 2*COMPONENT OF INTRINSIC SPIN ALONG SYMMETRY AXIS.
-JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.
-SW(1,NN) = TABLE OF <N',L!F(R)!N,L>
-SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.
-SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      */
-
+/**
+ * Value of harmonic oscillator function at radius x
+ * 
+ * @param n principal quantum number
+ * @param l orbital quantum number
+ * @param x radius in atomic units
+ */
 inline double V(int n, int l, double x) {
   int m = (n - l) / 2;
   double V = 1.0;
@@ -86,6 +99,12 @@ inline double V(int n, int l, double x) {
   return V;
 }
 
+/**
+ * Calculate the normalization constant for a harmonic oscillator wave function
+ * 
+ * @param n principal quantum number
+ * @param l orbital quantum number
+ */
 inline double VNORM(int n, int l) {
   int minus = (n - l) / 2;
   double eMinus = 1 + 4 * (minus / 2) - 2 * minus;
@@ -108,6 +127,20 @@ inline double VNORM(int n, int l) {
   return vNorm;
 }
 
+/**
+ * Calculate the radial integrals for all harmonic oscillator functions in a Woods-Saxon potential
+ * 
+ * @param V0 depth of the Woods-Saxon potential
+ * @param R nuclear radius
+ * @param A0 
+ * @param V0S strength of the pion exchange term
+ * @param A mass number
+ * @param Z proton number
+ * @param nMax maximum number of oscillator shells
+ * @param SW array containing values for radial integrals in Woods-Saxon potential
+ * @param SDW array containing values for radial integrals in deformed Woods-Saxon potential
+ * @param report boolean to determine whether or not to print results
+ */
 inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
                        double Z, int nMax, double SW[2][84], double SDW[462],
                        bool report = false) {
@@ -119,7 +152,7 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
   int N = NDX / 4 - 2;
   double AO = A0;
   // Compton wavelength of the pion=  1.4133 fm
-  double pionComp = hbar / pionMasskeV / speedOfLight;
+  double pionComp = HBAR / PION_MASS_KEV / SPEED_OF_LIGHT;
   pionComp = 1.4133;
   double VOS = V0S * pionComp * pionComp;
   double TWONU = 0.154666 * std::sqrt(V0) / R;
@@ -230,6 +263,16 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
 
 // Calculate eigenvalues & vectors for a real symmetric FORTRAN matrix A, only
 // upper half of A is used
+/**
+ * Calculate the eigen values and eigen vectors of a matrix
+ * only the upper half of A is used by default
+ * 
+ * @param A pointer to an array containing the matrix elements in symmetric FORTRAN style
+ * @param dim dimension of the matrix
+ * @param eVecs pointer to an array in which to place the eigenvectors
+ * @param eVals reference to a vector in which to put the eigenvalues
+ * @param onlyUpper boolean to say whether only the upper part was given
+ */
 inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
                   bool onlyUpper = true) {
   gsl_matrix* aNew = gsl_matrix_alloc(dim, dim);
@@ -283,6 +326,24 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
   gsl_matrix_free(eVec);
 }
 
+/**
+ * Calculate the single particle eigenstates of the Woods-Saxon potential
+ * Will calculate the deformed case when deformation parameters are non-zero
+ * 
+ * @param spin nuclear spin
+ * @param beta2 quadrupole deformation
+ * @param beta4 hexadecupole deformation
+ * @param beta6 beta6 deformation
+ * @param V0 depth of the Woods-Saxon potential
+ * @param R nuclear radius in atomic units
+ * @param A0 
+ * @param V0S strength of the pion-spin-exchange
+ * @param A mass number
+ * @param Z proton number
+ * @param nMax maximum number of oscillator shells
+ * @param report boolean to decide whether to print to stdout
+ * @returns vector a SingleParticleState objects of all bound eigenstates in the potential
+ */
 inline std::vector<SingleParticleState> Calculate(
     double spin, double beta2, double beta4, double beta6, double V0, double R,
     double A0, double V0S, double A, double Z, int nMax, bool report = false) {
@@ -651,11 +712,34 @@ inline std::vector<SingleParticleState> Calculate(
   return states;
 }
 
+/**
+ * Custom sort function to compare to SingleParticleState objects.
+ * Sorts on energy of the state, checks whether lhs < rhs
+ * 
+ * @param lhs left-hand side
+ * @param rhs right-hand side
+ */
 inline bool StateSorter(SingleParticleState const& lhs,
                         SingleParticleState const& rhs) {
   return lhs.energy < rhs.energy;
 }
 
+/**
+ * Get a sorted vector of all bound Single particle states, even and odd parity
+ * 
+ * @param Z proton number
+ * @param N neutron number
+ * @param A mass number
+ * @param dJ double of nuclear spin
+ * @param R nuclear radius in atomic units
+ * @param beta2 quadrupole deformation
+ * @param beta4 hexadecupole deformation
+ * @param beta6 beta6 deformation
+ * @param V0 depth of the Woods-Saxon potential
+ * @param A0
+ * @param VS strength of the pion-exchange
+ * @returns vector of all bound single particle states, sorted for increasing energy
+ */
 inline std::vector<SingleParticleState> GetAllSingleParticleStates(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
     double beta6, double V0, double A0, double VS) {
@@ -676,6 +760,27 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
   return allStates;
 }
 
+/**
+ * Search for the deformation single particle state corresponding to a certain spin
+ * within a certain energy threshold of the calculated ones
+ * 
+ * @param Z proton number
+ * @param N neutron number
+ * @param A mass number
+ * @param dJ double of nuclear spin
+ * @param R nuclear radius in atomic units
+ * @param beta2 quadrupole deformation
+ * @param beta4 hexadecupole deformation
+ * @param beta6 beta6 deformation
+ * @param V0 depth of the Woods-Saxon potential
+ * @param A0
+ * @param VS strength of the pion-exchange
+ * @param dJreq double of the required spin
+ * @param threshold maximum energy difference between the calculated state with
+ *     the correct spin and that proposed as the one at the Fermi surface
+ * @returns SingleParticleState object. If the correct state is not found, it returns
+ *     the first SingleParticleState
+ */
 inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
                                                     double R, double beta2,
                                                     double beta4, double beta6,
@@ -733,18 +838,6 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
   return allStates[index];
 }
 
-/*inline std::vector<NuclearState> CalculateDeformedSPSpectrum(
-    int Z, int N, int A, int dJ, double R, double beta2, double beta4,
-    double V0, double A0, double VS) {
-  std::vector<NuclearState> spectrum;
-
-  //TODO
-  return spectrum;
-}*/
-
-inline double CalculateBindingEnergy(int Z, int N, int dJ, double R,
-                                     double beta2, double beta4, double V0,
-                                     double A0, double VS) {}
 }
 }
 #endif

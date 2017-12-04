@@ -11,6 +11,11 @@
 #include "TF1.h"
 #include "TH1.h"
 
+/**
+ * Namespace containing all kinds of utility functions related to 
+ * charge distributions, typically those with harmonic oscillator
+ * functions 
+*/
 namespace ChargeDistributions {
 
 using std::cout;

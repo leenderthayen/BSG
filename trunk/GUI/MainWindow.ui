@@ -355,7 +355,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Spin in units of hbar</string>
+        <string>Spin in units of HBAR</string>
        </property>
        <property name="decimals">
         <number>1</number>
@@ -677,7 +677,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Spin in units of hbar</string>
+        <string>Spin in units of HBAR</string>
        </property>
        <property name="decimals">
         <number>1</number>

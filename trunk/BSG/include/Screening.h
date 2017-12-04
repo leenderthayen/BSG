@@ -956,7 +956,7 @@ inline void PotParam(int Zloc, std::vector<double> &Aby,
   }
 
   // Parameters are in atomic units, thus conversion in natural units
-  for (int i = 0; i < (int)Bby_loc.size(); i++) Bby_loc[i] = Bby_loc[i] * alpha;
+  for (int i = 0; i < (int)Bby_loc.size(); i++) Bby_loc[i] = Bby_loc[i] * ALPHA;
 
   // Parameters are put in the global std::vectors for the required nucleus
   for (int i = 0; i < (int)Aby_loc.size(); i++) {

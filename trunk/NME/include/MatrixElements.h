@@ -11,6 +11,10 @@
 #include <complex>
 
 namespace NuclearStructure {
+/**
+ * Namespace collecting all kinds of functiosn related to single particle matrix
+ * elements and angular momentum coupling
+ */
 namespace MatrixElements {
 
 using std::cout;
@@ -90,7 +94,7 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s, int ni, int nf, int li,
                                              int lf, int si, int sf, double R,
                                              double nu) {
-  double Mn = nucleonMasskeV / electronMasskeV;
+  double Mn = NUCLEON_MASS_KEV / ELECTRON_MASS_KEV;
   double result = std::sqrt(2. / (2. * Ji + 1.));
 
   int kf = kL(lf, sf);
@@ -101,21 +105,21 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
       result *= CalculateGKLs(kf, ki, K, L, 0.);
       result *= CD::GetRadialMEHO(nf, lf, K, ni, li, nu) / std::pow(R, K);
     } else if (s == 1) {
-      double dE = 2. * nu * electronMasskeV / nucleonMasskeV *
+      double dE = 2. * nu * ELECTRON_MASS_KEV / NUCLEON_MASS_KEV *
                   (2 * (ni - nf) + li - lf);
       double first =
           R / 2. / (L + 1.) * dE *
               CD::GetRadialMEHO(nf, lf, L + 1, ni, li, nu) /
               std::pow(R, L + 1) +
           (kf - ki + 1 + L) * (kf + ki - L) /
-              (4. * nucleonMasskeV / electronMasskeV * R) / (L + 1.) *
+              (4. * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * R) / (L + 1.) *
               CD::GetRadialMEHO(nf, lf, L - 1, ni, li, nu) / std::pow(R, L - 1);
       double second =
           -R / 2. / (L + 1.) * dE *
               CD::GetRadialMEHO(nf, lf, L + 1, ni, li, nu) /
               std::pow(R, L + 1) -
           (kf - ki - 1 - L) * (kf + ki - L) /
-              (4. * nucleonMasskeV / electronMasskeV * R) / (L + 1.) *
+              (4. * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * R) / (L + 1.) *
               CD::GetRadialMEHO(nf, lf, L - 1, ni, li, nu) / std::pow(R, L - 1);
       result *= sign(ki) * CalculateGKLs(kf, -ki, K, L, s) * first +
                 sign(kf) * CalculateGKLs(-kf, ki, K, L, s) * second;
@@ -124,21 +128,21 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
     }
   } else {
     if (s == 0) {
-      double dE = 2. * nu * electronMasskeV / nucleonMasskeV *
+      double dE = 2. * nu * ELECTRON_MASS_KEV / NUCLEON_MASS_KEV *
                   (2 * (ni - nf) + li - lf);
       double first =
           R / 2. / (K + 1.) * dE *
               CD::GetRadialMEHO(nf, lf, K + 1, ni, li, nu) /
               std::pow(R, K + 1) +
           (kf - ki + 1 + K) * (kf + ki - K) /
-              (4. * nucleonMasskeV / electronMasskeV * R) / (K + 1.) *
+              (4. * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * R) / (K + 1.) *
               CD::GetRadialMEHO(nf, lf, K - 1, ni, li, nu) / std::pow(R, K - 1);
       double second =
           -R / 2. / (K + 1.) * dE *
               CD::GetRadialMEHO(nf, lf, K + 1, ni, li, nu) /
               std::pow(R, K + 1) -
           (kf - ki - 1 - K) * (kf + ki - K) /
-              (4. * nucleonMasskeV / electronMasskeV * R) / (K + 1.) *
+              (4. * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * R) / (K + 1.) *
               CD::GetRadialMEHO(nf, lf, K - 1, ni, li, nu) / std::pow(R, K - 1);
       result *= sign(ki) * CalculateGKLs(kf, -ki, K, L, 0) * first +
                 sign(kf) * CalculateGKLs(-kf, ki, K, L, s) * second;

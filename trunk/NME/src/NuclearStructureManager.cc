@@ -27,14 +27,14 @@ NS::NuclearStructureManager::NuclearStructureManager() {
     return;
   }
   double Rd =
-      GetOpt(double, Daughter.Radius) * 1e-15 / NATLENGTH * std::sqrt(5. / 3.);
+      GetOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   double Rm =
-      GetOpt(double, Mother.Radius) * 1e-15 / NATLENGTH * std::sqrt(5. / 3.);
+      GetOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   if (Rd == 0.0) {
-    Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATLENGTH;
+    Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
   if (Rm == 0.0) {
-    Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / NATLENGTH;
+    Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
   double motherBeta2 = GetOpt(double, Mother.Beta2);
   double motherBeta4 = GetOpt(double, Mother.Beta4);
@@ -133,8 +133,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   double V0p = Vp * (1. + Xp * (mother.A - 2. * mother.Z) / mother.A);
   double V0n = Vn * (1. - Xn * (mother.A - 2. * mother.Z) / mother.A);
 
-  double mR = mother.R * NATLENGTH * 1e15;
-  double dR = daughter.R * NATLENGTH * 1e15;
+  double mR = mother.R * NATURAL_LENGTH * 1e15;
+  double dR = daughter.R * NATURAL_LENGTH * 1e15;
 
   if (boost::iequals(potential, "SHO")) {
     int ni, li, si, nf, lf, sf;
@@ -399,7 +399,7 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
 
   // cout << "AM101: " << AM101 << " VM111: " << VM111 << endl;
 
-  result = -std::sqrt(2. / 3.) * nucleonMasskeV / electronMasskeV * mother.R /
+  result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * mother.R /
                gA * VM111 / AM101 +
            gM / gA;
   return result;
@@ -411,7 +411,7 @@ double NS::NuclearStructureManager::CalculateInducedTensor() {
   double AM110 = CalculateMatrixElement(false, 1, 1, 0);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);
 
-  result = 2. / std::sqrt(3.) * nucleonMasskeV / electronMasskeV * mother.R *
+  result = 2. / std::sqrt(3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * mother.R *
            AM110 / AM101;
   return result;
 }

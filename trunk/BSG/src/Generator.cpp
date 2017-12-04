@@ -24,9 +24,9 @@ using std::endl;
 Generator::Generator() {
   Z = GetOpt(int, Daughter.Z);
   A = GetOpt(int, Daughter.A);
-  R = GetOpt(double, Daughter.Radius) * 1e-15 / NATLENGTH * std::sqrt(5. / 3.);
+  R = GetOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   if (R == 0.0) {
-    R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATLENGTH;
+    R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
   motherBeta2 = GetOpt(double, Mother.Beta2);
   daughterBeta2 = GetOpt(double, Daughter.Beta2);
@@ -62,11 +62,11 @@ Generator::Generator() {
   double QValue = GetOpt(double, Transition.QValue);
 
   if (betaType == BETA_MINUS) {
-    W0 = QValue / electronMasskeV + 1.;
+    W0 = QValue / ELECTRON_MASS_KEV + 1.;
   } else {
-    W0 = QValue / electronMasskeV - 1.;
+    W0 = QValue / ELECTRON_MASS_KEV - 1.;
   }
-  W0 = W0 - (W0 * W0 - 1) / 2. / A / nucleonMasskeV * electronMasskeV;
+  W0 = W0 - (W0 * W0 - 1) / 2. / A / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;
 
   nsm = new NS::NuclearStructureManager();
 
@@ -204,8 +204,8 @@ void Generator::InitializeL0Constants() {
     aPos[i] = 0;
     aNeg[i] = 0;
     for (int j = 0; j < 6; j++) {
-      aNeg[i] += bNeg[i][j] * std::pow(alpha * Z, j + 1);
-      aPos[i] += bPos[i][j] * std::pow(alpha * Z, j + 1);
+      aNeg[i] += bNeg[i][j] * std::pow(ALPHA * Z, j + 1);
+      aPos[i] += bPos[i][j] * std::pow(ALPHA * Z, j + 1);
     }
   }
 }
@@ -349,12 +349,12 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
   double endEn = GetOpt(double, end);
   double stepEn = GetOpt(double, step);
 
-  double beginW = beginEn / electronMasskeV + 1.;
-  double endW = endEn / electronMasskeV + 1.;
+  double beginW = beginEn / ELECTRON_MASS_KEV + 1.;
+  double endW = endEn / ELECTRON_MASS_KEV + 1.;
   if (endEn == 0.0) {
     endW = W0;
   }
-  double stepW = stepEn / electronMasskeV;
+  double stepW = stepEn / ELECTRON_MASS_KEV;
 
   double currentW = beginW;
   while (currentW <= endW) {

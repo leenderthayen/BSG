@@ -31,8 +31,10 @@ enum BetaType { BETA_PLUS = -1, BETA_MINUS = 1 };
  * s is +-1 depending on whether it is j=l+-1/2
  */
 struct WFComp {
-  double C;
-  int n, l, s;
+  double C; /**< Amplitude of the state */
+  int n; /**< principal quantum number */
+  int l; /**< orbital quantum number */
+  int s; /**< spin projection along z, +- 1 */
 };
 
 /**
@@ -41,16 +43,15 @@ struct WFComp {
  * in the case of deformation, excitation energy, and Nilsson quantum numbers
  */
 struct SingleParticleState {
-  int dO;
-  int dK;
-  int parity;
-  int lambda;
-  int nDom;
-  int nZ;
-  //Proton has isospin -1, neutron has isospin +1
-  int isospin;
-  double energy;
-  std::vector<WFComp> componentsHO;
+  int dO; /**< double of @f$ \Omega @f$ */
+  int dK; /**< double of K */
+  int parity; /**< parity of selected state, +- 1 */
+  int lambda; /**< @f$ \Lambda @f$ value */
+  int nDom; /**< dominant radial quantum number */
+  int nZ; /**< nZ quantum number in Nilsson state */
+  int isospin; /**< isospin of state. Proton has isospin -1, neutron has isospin +1 */
+  double energy; /**< energy of the state */
+  std::vector<WFComp> componentsHO; /**< vector containing the individual WFComp components */
 };
 
 /**
@@ -58,20 +59,25 @@ struct SingleParticleState {
  * a certain strength given by external input
  */
 struct OneBodyTransition {
-  double obdme;
-  int dKi, dKf;
-  SingleParticleState spsi, spsf;
+  double obdme; /**< one body density matrix element */
+  int dKi; /**< double of @f$ K_i @f$ */
+  int dKf; /**< double of @f$ K_f @f$ */
+  SingleParticleState spsi; /**< initial single particle state */
+  SingleParticleState spsf; /**< final single particle state */
 };
 
 /***
  * Struct representing a nuclear state
  */
 struct Nucleus {
-  int Z, A;
-  int dJ;
-  double R;
-  double excitationEnergy;
-  double beta2, beta4, beta6;
+  int Z; /**< proton number */
+  int A; /**< mass number */
+  int dJ; /**< double of nuclear spin */
+  double R; /**< nuclear radius in natural units */
+  double excitationEnergy; /**< excitation energy in keV */
+  double beta2; /**< @f$ \beta_2 @f$ quadrupole deformation */
+  double beta4; /**< @f$ \beta_4 @f$ hexadecupole deformation */
+  double beta6; /**< @f$ \beta_6 @f$ deformation */
 };
 
 }
