@@ -22,14 +22,32 @@ namespace utilities {
 using std::cout;
 using std::endl;
 
+/**
+ * Shell model occupations in the jj coupling scheme
+ * each element consists of 4 numbers.
+ * Example: 1d5/2 state becomes {1, 2, 1, 14}
+ * Here the second number of the orbital angular momentum
+ * the third is +1 for the l+1/2 component and -1 otherwise
+ * the last is the total occupation when all shells up to that one
+ * is filled
+ */
 static int smOccupation[104] = {
     1, 0, 1,  2,   1, 1, 1,  6,   1, 1, -1, 8,   1, 2, 1,  14,  2, 0, 1,  16,
     1, 2, -1, 20,  1, 3, 1,  28,  2, 1, 1,  32,  1, 3, -1, 38,  2, 1, -1, 40,
     1, 4, 1,  50,  1, 4, -1, 58,  2, 2, 1,  64,  2, 2, -1, 68,  3, 0, 1,  70,
     1, 5, 1,  82,  1, 5, -1, 92,  2, 3, 1,  100, 2, 3, -1, 106, 3, 1, 1,  110,
     3, 1, -1, 112, 1, 6, 1,  126, 2, 4, 1,  136, 3, 2, 1,  142, 1, 6, -1, 154};
+
+/**
+ * Spectroscopic names corresponding to orbital angular momentum
+ */
 static char spectroNames[7] = {'s', 'p', 'd', 'f', 'g', 'h', 'i'};
 
+/**
+ * Calculate the factorial n!
+ * 
+ * @param n integer
+ */
 inline int Factorial(int n) {
   if (n <= 0) {
     return 1;
@@ -38,6 +56,11 @@ inline int Factorial(int n) {
   }
 }
 
+/**
+ * Double factorial function n!!
+ * 
+ * @param n integer
+ */
 inline int DoubleFactorial(int n) {
   if (n <= 0) {
     return 1;
@@ -46,6 +69,16 @@ inline int DoubleFactorial(int n) {
   }
 }
 
+/**
+ * Calculate the Clebsch-Gordan coefficient
+ * 
+ * @param two_ja double of first spin
+ * @param two_jb double of second spin
+ * @param two_jc double of resultant spin
+ * @param two_ma double of z projection of first spin
+ * @param two_mb double of z projection of second spin
+ * @param two_mc double of z projection of resultant spin
+ */
 inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma,
                             int two_mb, int two_mc) {
   double result = 0.0;
@@ -63,6 +96,17 @@ inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma,
            < L', LA' | Y  | L, LA >
                          L
 */
+/**
+ * Calculate the matrix element of a spherical harmonic
+ * @f[\langle J_f M_f | Y^M_L | J_i M_i \rangle @f]
+ * 
+ * @param lP final spin
+ * @param laP z-projection of the final spin
+ * @param l rank of spherical tensor of the operator
+ * @param m z-projection of the rank of the operator
+ * @param ll initial spin
+ * @param la z-projection of the initial spin
+ */
 inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll,
                                   int la) {
   double result = 0.;
@@ -77,6 +121,11 @@ inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll,
   return result;
 }
 
+/**
+ * Calculate the occupation numbers of the shell model orbitals assuming the jj-coupling scheme
+ * 
+ * @param N number of nucleons
+ */
 inline std::vector<int> GetOccupationNumbers(int N) {
   std::vector<int> occNumbers;
   occNumbers.push_back(1);
@@ -95,6 +144,9 @@ inline std::vector<int> GetOccupationNumbers(int N) {
   return occNumbers;
 }
 
+/**
+ * Class for Lagrange interpolation between a set of 3 (x,y) points
+ */
 class Lagrange {
  public:
   Lagrange(double*, double*);
@@ -106,6 +158,13 @@ class Lagrange {
   double yC[3];
 };
 
+/**
+ * Perform Simpson integration
+ * 
+ * @param x array of x values
+ * @param y array of y values
+ * @param size size of the arrays
+ */
 inline double Simpson(double x[], double y[], int size) {
   double result = 0.;
   for (int i = 0; i < size - 2; i += 2) {
@@ -120,6 +179,13 @@ inline double Simpson(double x[], double y[], int size) {
   return result;
 }
 
+/**
+ * Perform trapezoid integration
+ * 
+ * @param x array of x values
+ * @param y array of y values
+ * @param array size
+ */
 inline double Trapezoid(double x[], double y[], int size) {
   double result = 0.;
   for (int i = 0; i < size - 1; i++) {

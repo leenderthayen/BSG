@@ -18,12 +18,38 @@ using std::endl;
 
 namespace CD = ChargeDistributions;
 
+/** 
+ * Get the orbital angular momentum value from the kappa value
+ *
+ * @param k kappa value of state
+ */
 inline int gL(int k) { return (k > 0) ? k : std::abs(k) - 1; }
 
+/**
+ * Get the kappa value for an ls state
+ * 
+ * @param l orbital angular momentum
+ * @param s spin direction
+ */
 inline int kL(int l, int s) { return (s > 0) ? -(l + 1) : l; }
 
+/**
+ * Get the total angular momentum from the kappa value
+ * 
+ * @param k kappa
+ */
 inline double jL(int k) { return (k < 0) ? -k - 0.5 : k - 0.5; }
 
+/**
+ * Calculate the angular momentum function @f[ G_{KLs}(\kappa_i, \kappa_f) @f]
+ * as first defined by Weidenmueller
+ * 
+ * @param ki kappa of initial state
+ * @param kf kappa of final state
+ * @param K spherical tensor rank of the operator
+ * @param L orbital angular momentum of the operator
+ * @param s index denoting simple of vector spherical tensor
+ */
 inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
   int dJi = 2 * jL(ki);
   int dJf = 2 * jL(kf);
@@ -41,6 +67,25 @@ inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
   return first * second * third * fourth;
 }
 
+/**
+ * Calculate the single particle matrix element @f[ ^{V/A}M_{KLs} @f]
+ * as calculated between two spherical harmonic oscillator states
+ * in the non-relativistic approximation
+ * 
+ * @param V boolean denoting vector (true) or axial vector (false) nature of matrix element
+ * @param Ji spin of initial state, used for normalization
+ * @param K spherical tensor rank of the operator
+ * @param L orbital angular momentum of the operator
+ * @param s index denoting simple or vector spherical tensor
+ * @param ni principal quantum number of initial state
+ * @param nf principal quantum number of final state
+ * @param li orbital angular momentum of initial state
+ * @param lf orbital angular momentum of final state
+ * @param si spin direction of initial state
+ * @param sf spin direction of final state
+ * @param R nuclear radius
+ * @param nu length scale of the harmonic oscillator functions
+ */
 inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s, int ni, int nf, int li,
                                              int lf, int si, int sf, double R,
@@ -108,6 +153,20 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
   return result;
 }
 
+/**
+ * Calculate single particle matrix using initial and final single particle states
+ * containing a mixture of harmonic oscillator wave functions.
+ * 
+ * @param V boolean denoting vector (true) or axial vector (false) nature of matrix element
+ * @param Ji nuclear spin of initial state
+ * @param K rank of spherical tensor of the operator
+ * @param L orbital angular momentum of the operator
+ * @param s index denoting simple or vector spherical harmonics
+ * @param spsi initial single particle state
+ * @param spsf final single particle state
+ * @param R nuclear radius
+ * @param nu length scale of the harmonic oscillator functions
+ */
 inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s,
                                              SingleParticleState spsi,
@@ -131,6 +190,12 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
   return result;
 }
 
+/**
+ * Calculate the phase when switching the value of Omega for the C coefficients
+ * 
+ * @param w wave function component
+ * @param dO double of Omega value
+ */
 inline double GetCjO(WFComp w, int dO) {
   if (dO > 0) {
     return w.C;
@@ -139,6 +204,26 @@ inline double GetCjO(WFComp w, int dO) {
   }
 }
 
+/**
+ * Calculate the single particle matrix element in a deformed nucleus
+ * between two single particle states
+ * 
+ * @param opt option parameter for the difference between odd-A (0), odd-odd -> even-even (1)
+ *     and even-even -> odd-odd (2) transition
+ * @param spsi initial single particle state
+ * @param spsf final single particle state
+ * @param V boolean denoting vector (true) or axial vector (false) nature of matrix element
+ * @param K rank of spherical tensor of the operator
+ * @param L orbital angular momentum of the operator
+ * @param s index denoting simple or vector spherical harmonics
+ * @param dJi double of initial nuclear spin
+ * @param dJf double of final nuclear spin
+ * @param dKi double of initial K value
+ * @param dKf double of final K value
+ * @param R nuclear radius in natural units
+ * @param nu length scale of harmonic oscillator wave functions in natural units
+ * @see GetSingleParticleMatrixElement
+ */
 inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleState spsi,
                                              SingleParticleState spsf,
                                              bool V, int K, int L, int s,
