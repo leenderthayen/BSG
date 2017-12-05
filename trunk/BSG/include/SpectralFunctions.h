@@ -129,9 +129,26 @@ double L0Correction(double W, int Z, double r, int betaType, double aPos[],
  * 
  * @param W electron total energy in units of its rest mass
  * @param Z proton number
+ * @param R nuclear radius in natural units
  * @param betaType BetaType of the transition
+ * @param baseShape string denoting the name of the base shape. Currently only Fermi is implemented
+ * @param v vector representing the first 3 terms in an even-r power expansion of the base shape
+ * @param vp vector representing the first 3 terms in an even-r power expansion of the new shape
  */
-double UCorrection(double W, int Z, int betaType);
+double UCorrection(double W, int Z, double R, int betaType, std::string baseShape, std::vector<double>& v, std::vector<double>& vp);
+
+/**
+ * Correction to L0 by calculating @f$ \frac{L_0'}{L_0} @f$ using a power expansion of the potentials
+ * 
+ * @param W electron total energy in units of its rest mass
+ * @param Z proton number
+ * @param R nuclear radius in natural units
+ * @param betaType BetaType of the transition
+ * @param v vector representing the first 3 terms in an even-r power expansion of the base shape
+ * @param vp vector representing the first 3 terms in an even-r power expansion of the new shape
+ * @see UCorrection
+ */
+double UCorrection(double W, int Z, double R, int betaType, std::vector<double>& v, std::vector<double>& vp);
 
 /**
  * Electromagnetic correction to the Fermi function due to the change in the 

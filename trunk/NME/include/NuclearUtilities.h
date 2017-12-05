@@ -11,7 +11,7 @@ namespace NuclearStructure {
  *
  * @param x double
  */
-inline double sign(double x) { return (x == 0) ? 0 : x / std::abs(x); }
+inline int sign(double x) { return (x == 0) ? 0 : (int)(x / std::abs(x)); }
 
 /**
  * The Kronecker delta for two doubles

@@ -2,6 +2,8 @@
 #define GENERATOR
 
 #include <vector>
+#include <string>
+#include <tuple>
 #include "NuclearStructureManager.h"
 
 class Generator {
@@ -31,6 +33,9 @@ class Generator {
   int daughterSpinParity; /**< the double of the spin parity of the daughter state */
   BetaType betaType;  /**< internal state of the beta type */
   DecayType decayType; /**< internal state of the decay type */
+  std::vector<double> vOld; /**< power expansion in r for old electrostatic potential */
+  std::vector<double> vNew; /**< power expansion in r for new electrostatic potential */
+  std::string baseShape; /**< name denoting the base shape to use for the U correction */
 
   NuclearStructure::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
@@ -79,7 +84,7 @@ class Generator {
    * @param W the total electron energy in units of its rest mass
    * @returns the decay rate at energy W
    */
-  double* CalculateDecayRate(double W);
+  std::tuple<double, double> CalculateDecayRate(double W);
   /**
    * Write the spectrum to file using the file from the config options
    */

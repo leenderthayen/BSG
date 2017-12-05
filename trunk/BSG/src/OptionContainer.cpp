@@ -25,6 +25,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Set the mixing ratio defined as g_A M_{GT} / M_{F}. Defaults to zero.")(
       "Transition.QValue", po::value<double>(),
       "Set the Q value of the decay in keV.")(
+      "Transition.Lifetime", po::value<double>(),
+      "Set the lifetime in seconds of the beta branch.")(
       "Daughter.Z", po::value<int>(),
       "Set the proton number of the daughter nucleus.")(
       "Mother.Z", po::value<int>(),
@@ -102,7 +104,13 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Specify the last energy in keV for which to calculate the spectrum.")(
       "step,S", po::value<double>()->default_value(0.1),
       "Specify the stepsize in keV.")(
-      "neutrino,v", "Turn off the generation of the neutrino spectrum.");
+      "neutrino,v", "Turn off the generation of the neutrino spectrum.")(
+      "shape", po::value<std::string>()->default_value("Fermi"),
+      "Set the base shape name for the electrostatic finite size correction.")(
+      "vnew", po::value<std::vector<double> >()->multitoken(),
+      "Set the first three coefficients of the radial power expansion of the new nuclear electrostatic potential")(
+      "vold", po::value<std::vector<double> >()->multitoken(),
+      "Set the first three coefficients of the radial power expansion of the old nuclear electrostatic potential");
 
   configOptions.add(spectrumOptions);
   configOptions.add_options()(
@@ -120,6 +128,9 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       po::value<std::string>()->default_value("data/ExchangeData.dat"),
       "File location of the atomic exchange fit parameters.");
 
+  /** Parse command line options
+   * Included: generic options & spectrum shape options
+   */
   po::options_description cmdOptions;
   cmdOptions.add(genericOptions).add(spectrumOptions);
   po::store(po::command_line_parser(argc, argv)
@@ -139,6 +150,9 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     cout << configOptions << endl;
     cout << envOptions << endl;
   } else {
+    /** Parse configuration file
+     * Included: configOptions & spectrumOptions
+     */
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
       std::cerr << "ERROR: " << configName << " cannot be found.\n\n"
@@ -146,6 +160,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);
     }
+    /** Parse .ini file
+     */
     std::ifstream inputStream(inputName.c_str());
     if (!inputStream.is_open()) {
       std::cerr << "ERROR: " << inputName << " cannot be found.\n\n"
@@ -154,6 +170,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       po::store(po::parse_config_file(inputStream, transitionOptions, true),
                 vm);
     }
+    /** Parse environment options
+     */
     po::store(po::parse_environment(envOptions, "BSG_"), vm);
     po::notify(vm);
   }

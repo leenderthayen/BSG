@@ -17,38 +17,38 @@ using std::cout;
 using std::endl;
 
 NS::NuclearStructureManager::NuclearStructureManager() {
-  int Zd = GetOpt(int, Daughter.Z);
-  int Zm = GetOpt(int, Mother.Z);
-  int Ad = GetOpt(int, Daughter.A);
-  int Am = GetOpt(int, Mother.A);
+  int Zd = GetNMOpt(int, Daughter.Z);
+  int Zm = GetNMOpt(int, Mother.Z);
+  int Ad = GetNMOpt(int, Daughter.A);
+  int Am = GetNMOpt(int, Mother.A);
 
   if (Ad != Am) {
     cout << "ERROR: Mother and daughter mass number do not agree." << endl;
     return;
   }
   double Rd =
-      GetOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
+      GetNMOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   double Rm =
-      GetOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
+      GetNMOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   if (Rd == 0.0) {
     Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
   if (Rm == 0.0) {
     Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
-  double motherBeta2 = GetOpt(double, Mother.Beta2);
-  double motherBeta4 = GetOpt(double, Mother.Beta4);
-  double motherBeta6 = GetOpt(double, Mother.Beta6);
-  double daughterBeta2 = GetOpt(double, Daughter.Beta2);
-  double daughterBeta4 = GetOpt(double, Daughter.Beta4);
-  double daughterBeta6 = GetOpt(double, Daughter.Beta6);
-  int motherSpinParity = GetOpt(int, Mother.SpinParity);
-  int daughterSpinParity = GetOpt(int, Daughter.SpinParity);
+  double motherBeta2 = GetNMOpt(double, Mother.Beta2);
+  double motherBeta4 = GetNMOpt(double, Mother.Beta4);
+  double motherBeta6 = GetNMOpt(double, Mother.Beta6);
+  double daughterBeta2 = GetNMOpt(double, Daughter.Beta2);
+  double daughterBeta4 = GetNMOpt(double, Daughter.Beta4);
+  double daughterBeta6 = GetNMOpt(double, Daughter.Beta6);
+  int motherSpinParity = GetNMOpt(int, Mother.SpinParity);
+  int daughterSpinParity = GetNMOpt(int, Daughter.SpinParity);
 
-  double motherExcitationEn = GetOpt(double, Mother.ExcitationEnergy);
-  double daughterExcitationEn = GetOpt(double, Daughter.ExcitationEnergy);
+  double motherExcitationEn = GetNMOpt(double, Mother.ExcitationEnergy);
+  double daughterExcitationEn = GetNMOpt(double, Daughter.ExcitationEnergy);
 
-  std::string process = GetOpt(std::string, Transition.Process);
+  std::string process = GetNMOpt(std::string, Transition.Process);
 
   if (boost::iequals(process, "B+")) {
     betaType = BETA_PLUS;
@@ -113,22 +113,22 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
                                                SingleParticleState& spsf,
                                                std::string potential, int& dKi,
                                                int& dKf, double& obdme) {
-  double Vp = GetOpt(double, Computational.Vproton);
-  double Vn = GetOpt(double, Computational.Vneutron);
-  double Xn = GetOpt(double, Computational.Xneutron);
-  double Xp = GetOpt(double, Computational.Xproton);
-  double A0 = GetOpt(double, Computational.SurfaceThickness);
-  double VSp = GetOpt(double, Computational.V0Sproton);
-  double VSn = GetOpt(double, Computational.V0Sneutron);
+  double Vp = GetNMOpt(double, Computational.Vproton);
+  double Vn = GetNMOpt(double, Computational.Vneutron);
+  double Xn = GetNMOpt(double, Computational.Xneutron);
+  double Xp = GetNMOpt(double, Computational.Xproton);
+  double A0 = GetNMOpt(double, Computational.SurfaceThickness);
+  double VSp = GetNMOpt(double, Computational.V0Sproton);
+  double VSn = GetNMOpt(double, Computational.V0Sneutron);
 
   int dJReqIn = mother.dJ;
   int dJReqFin = daughter.dJ;
   if (mother.A % 2 == 0) {
-    dJReqIn = GetOpt(int, Mother.ForcedSPSpin);
-    dJReqFin = GetOpt(int, Daughter.ForcedSPSpin);
+    dJReqIn = GetNMOpt(int, Mother.ForcedSPSpin);
+    dJReqFin = GetNMOpt(int, Daughter.ForcedSPSpin);
   }
 
-  double threshold = GetOpt(double, Computational.EnergyMargin);
+  double threshold = GetNMOpt(double, Computational.EnergyMargin);
 
   double V0p = Vp * (1. + Xp * (mother.A - 2. * mother.Z) / mother.A);
   double V0n = Vn * (1. - Xn * (mother.A - 2. * mother.Z) / mother.A);
@@ -157,7 +157,7 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       mBeta4 = mother.beta4;
       mBeta6 = mother.beta6;
     }
-    if (!GetOpt(bool, Computational.ForceSpin)) {
+    if (!GetNMOpt(bool, Computational.ForceSpin)) {
       threshold = 0.0;
     }
     if (betaType == BETA_MINUS) {
@@ -181,11 +181,11 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     }
   }
 
-  if (GetOpt(bool, Computational.OverrideSPCoupling)) {
+  if (GetNMOpt(bool, Computational.OverrideSPCoupling)) {
     dKi = std::abs(mother.dJ);
     dKf = std::abs(daughter.dJ);
   } else {
-    bool reversedGhallagher = GetOpt(bool, Computational.ReversedGhallagher);
+    bool reversedGhallagher = GetNMOpt(bool, Computational.ReversedGhallagher);
 
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
         daughter.beta2 != 0.0) {
@@ -274,11 +274,11 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     int dT3f = daughter.A - 2 * daughter.Z;
     int dTi = std::abs(dT3i);
     int dTf = std::abs(dT3f);
-    if (OptExists(Mother.Isospin)) {
-      dTi = GetOpt(int, Mother.Isospin);
+    if (NMOptExists(Mother.Isospin)) {
+      dTi = GetNMOpt(int, Mother.Isospin);
     }
-    if (OptExists(NuclearPropertiesDaughterIsospin)) {
-      dTf = GetOpt(int, Daughter.Isospin);
+    if (NMOptExists(NuclearPropertiesDaughterIsospin)) {
+      dTf = GetNMOpt(int, Daughter.Isospin);
     }
     /*if ((dJi + dT3i) / 2 % 2 == 0) {
       dTi = dT3i + 1;
@@ -349,8 +349,8 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
 double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                                            int s) {
   if (!initialized ) {
-    Initialize(GetOpt(std::string, Computational.Method),
-               GetOpt(std::string, Computational.Potential));
+    Initialize(GetNMOpt(std::string, Computational.Method),
+               GetNMOpt(std::string, Computational.Potential));
   }
   double result = 0.0;
   double nu = CD::CalcNu(mother.R * std::sqrt(3. / 5.), mother.Z);
@@ -391,8 +391,8 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
 double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double result = 0.0;
 
-  double gM = GetOpt(double, Constants.gM);
-  double gA = GetOpt(double, Constants.gA);
+  double gM = GetNMOpt(double, Constants.gM);
+  double gA = GetNMOpt(double, Constants.gA);
 
   double VM111 = CalculateMatrixElement(true, 1, 1, 1);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);

@@ -14,13 +14,13 @@
  * @param a variable type
  * @param b variable name
  */
-#define GetOpt(a, b) NMEOptions::GetInstance().GetOption<a>(#b)
+#define GetNMOpt(a, b) NMEOptions::GetInstance().GetNMOption<a>(#b)
 /**
  * Macro to check whether a certain option was present
  * 
  * @param a variable name
  */
-#define OptExists(a) NMEOptions::GetInstance().Exists(#a)
+#define NMOptExists(a) NMEOptions::GetInstance().Exists(#a)
 
 namespace po = boost::program_options;
 
@@ -45,7 +45,7 @@ class NMEOptions {
    * @param name vriable name
    */
   template <typename T>
-  T GetOption(std::string name) {
+  T GetNMOption(std::string name) {
     return vm[name].as<T>();
   }
   /**

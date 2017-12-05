@@ -27,16 +27,16 @@ int main(int argc, char** argv) {
 
   NMEOptions::GetInstance(argc, argv);
 
-  if (OptExists(input)) {
+  if (NMOptExists(input)) {
     NuclearStructure::NuclearStructureManager* nsm = new NuclearStructure::NuclearStructureManager();
-    if (OptExists(weakmagnetism)) {
+    if (NMOptExists(weakmagnetism)) {
       cout << "b/Ac: " << nsm->CalculateWeakMagnetism() << endl;
     }
-    if (OptExists(inducedtensor)) {
+    if (NMOptExists(inducedtensor)) {
       cout << "d/Ac: " << nsm->CalculateInducedTensor() << endl;
     }
-    if (OptExists(matrixelement)) {
-      std::string me = GetOpt(std::string, matrixelement);
+    if (NMOptExists(matrixelement)) {
+      std::string me = GetNMOpt(std::string, matrixelement);
       bool V = (me[0] == 'V');
       cout << me[0] << "M" << me.substr(1, 3) << ": " << nsm->CalculateMatrixElement(V, (int)(me[1]-'0'), (int)(me[2]-'0'), (int)(me[3]-'0')) << endl;
     }

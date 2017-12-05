@@ -6,7 +6,6 @@
 #include "Utilities.h"
 #include "SpectralFunctions.h"
 
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -68,6 +67,29 @@ Generator::Generator() {
   }
   W0 = W0 - (W0 * W0 - 1) / 2. / A / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;
 
+  hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
+  cout << "hoFit: " << hoFit << endl;
+
+  baseShape = GetOpt(std::string, shape);
+
+  vOld.resize(3);
+  vNew.resize(3);
+
+  if (baseShape == "Modified_Gaussian") {
+    vOld[0] = 3./2.;
+    vOld[1] = -1./2.;
+    vNew[0] = std::sqrt(5./2.)*4.*(1.+hoFit)*std::sqrt(2.+5.*hoFit)/std::sqrt(M_PI)*std::pow(2.+3.*hoFit, 3./2.);
+    vNew[1] = -4./3./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 3./2.);
+    vNew[2] = (2.-7.*hoFit)/5./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 5./3.);
+  } else {
+    if (OptExists(vold) && OptExists(vnew)) {
+      vOld = GetOpt(std::vector<double>, vold);
+      vNew = GetOpt(std::vector<double>, vnew);
+    } else if (OptExists(vold) || OptExists(vnew)) {
+      cout << "ERROR: Both old and new potential expansions must be given." << endl;
+    }
+  }
+
   nsm = new NS::NuclearStructureManager();
 
   LoadExchangeParameters();
@@ -75,9 +97,6 @@ Generator::Generator() {
   InitializeL0Constants();
 
   GetMatrixElements();
-
-  hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
-  cout << "hoFit: " << hoFit << endl;
 }
 
 Generator::~Generator() { delete nsm; }
@@ -244,7 +263,7 @@ void Generator::GetMatrixElements() {
   fd = dAc * A * fc1;
 }
 
-double* Generator::CalculateDecayRate(double W) {
+std::tuple<double, double> Generator::CalculateDecayRate(double W) {
   double result = 1;
   double neutrinoResult = 1;
 
@@ -295,8 +314,8 @@ double* Generator::CalculateDecayRate(double W) {
   // cout << "result: " << result << endl;
 
   if (!OptExists(U)) {
-    result *= SF::UCorrection(W, Z, betaType);
-    neutrinoResult *= SF::UCorrection(Wv, Z, betaType);
+    result *= SF::UCorrection(W, Z, R, betaType, baseShape, vOld, vNew);
+    neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, baseShape, vOld, vNew);
   }
   // cout << "result: " << result << endl;
 
@@ -340,8 +359,7 @@ double* Generator::CalculateDecayRate(double W) {
   }
   // cout << "result: " << result << endl;
 
-  double fullResult[2] = {result, neutrinoResult};
-  return fullResult;
+  return std::make_tuple(result, neutrinoResult);
 }
 
 std::vector<std::vector<double> > Generator::CalculateSpectrum() {
@@ -358,8 +376,8 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
 
   double currentW = beginW;
   while (currentW <= endW) {
-    double* result = CalculateDecayRate(currentW);
-    std::vector<double> entry = {currentW, result[0], result[1]};
+    auto result = CalculateDecayRate(currentW);
+    std::vector<double> entry = {currentW, std::get<0>(result), std::get<1>(result)};
     spectrum.push_back(entry);
     currentW += stepW;
   }
