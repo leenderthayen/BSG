@@ -17,13 +17,28 @@ using std::cout;
 using std::endl;
 
 NS::NuclearStructureManager::NuclearStructureManager() {
+  InitializeLoggers();
+  InitializeConstants();
+}
+
+NS::NuclearStructureManager::NuclearStructureManager(BetaType bt,
+                                                     NS::Nucleus init,
+                                                     NS::Nucleus fin) {
+  betaType = bt;
+  mother = init;
+  daughter = fin;
+  initialized = false;
+}
+
+void NS::NuclearStructureManager::InitializeConstants() {
+  debugFileLogger->debug("Entered InitializeConstants");
   int Zd = GetNMOpt(int, Daughter.Z);
   int Zm = GetNMOpt(int, Mother.Z);
   int Ad = GetNMOpt(int, Daughter.A);
   int Am = GetNMOpt(int, Mother.A);
 
   if (Ad != Am) {
-    cout << "ERROR: Mother and daughter mass number do not agree." << endl;
+    consoleLogger->error("ERROR: Mother and daughter mass number do not agree.");
     return;
   }
   double Rd =
@@ -57,8 +72,8 @@ NS::NuclearStructureManager::NuclearStructureManager() {
   }
 
   if ((Zd - betaType) != Zm) {
-    cout << "ERROR: Mother and daughter proton numbers cannot be coupled "
-            "through process " << process << endl;
+     consoleLogger->error("ERROR: Mother and daughter proton numbers cannot be coupled "
+            "through process " + process);
     return;
   }
 
@@ -68,15 +83,24 @@ NS::NuclearStructureManager::NuclearStructureManager() {
                      daughterBeta2, daughterBeta4, daughterBeta6);
 }
 
-NS::NuclearStructureManager::NuclearStructureManager(BetaType bt,
-                                                     NS::Nucleus init,
-                                                     NS::Nucleus fin) {
-  betaType = bt;
-  mother = init;
-  daughter = fin;
-  initialized = false;
+void NS::NuclearStructureManager::InitializeLoggers() {
+  consoleLogger = spdlog::get("console");
+  if (!consoleLogger) {
+    consoleLogger = spdlog::stdout_color_st("console");
+    consoleLogger->set_level(spdlog::level::warn);
+  }
+  debugFileLogger = spdlog::get("debug_file");
+  if (!debugFileLogger) {
+    debugFileLogger = spdlog::basic_logger_st("debug_file", GetNMOpt(std::string, output) + ".log");
+    debugFileLogger->set_level(spdlog::level::debug);
+  }
+  nmeResultsLogger = spdlog::get("nme_results_file");
+  if (!nmeResultsLogger) {
+    nmeResultsLogger = spdlog::basic_logger_st("nme_results_file", GetNMOpt(std::string, output) + ".txt");
+    nmeResultsLogger->set_level(spdlog::level::info);
+    nmeResultsLogger->set_pattern("%v");
+  }
 }
-
 void NS::NuclearStructureManager::SetDaughterNucleus(int Z, int A, int dJ,
                                                      double R,
                                                      double excitationEnergy,
@@ -161,20 +185,20 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       threshold = 0.0;
     }
     if (betaType == BETA_MINUS) {
-      cout << "Proton State: " << endl;
+      nmeResultsLogger->info("Proton State: ");
       spsf = NO::CalculateDeformedSPState(
           daughter.Z, 0, daughter.A, daughter.dJ, dR, dBeta2, dBeta4, dBeta6,
           V0p, A0, VSp, dJReqFin, threshold);
-      cout << "Neutron State: " << endl;
+      nmeResultsLogger->info("Neutron State: ");
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
                                           mother.dJ, mR, mBeta2, mBeta4, mBeta6,
                                           V0n, A0, VSn, dJReqIn, threshold);
     } else {
-      cout << "Neutron State: " << endl;
+      nmeResultsLogger->info("Neutron State: ");
       spsf = NO::CalculateDeformedSPState(
           0, daughter.A - daughter.Z, daughter.A, daughter.dJ, dR, dBeta2,
           dBeta4, dBeta6, V0n, A0, VSn, dJReqFin, threshold);
-      cout << "Proton State: " << endl;
+      nmeResultsLogger->info("Proton State: ");
       spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
                                           mBeta2, mBeta4, mBeta6, V0p, A0, VSp,
                                           dJReqIn, threshold);
@@ -219,18 +243,14 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     }
 
     if (spsf.parity * spsi.parity * dKi != mother.dJ) {
-      cout << "ERROR: Single Particle spin coupling does not match mother spin!"
-           << endl;
-      cout << "Single Particle values. First: " << spsi.dO
-           << "/2  Second: " << spsf.dO << "/2" << endl;
-      cout << "Coupled spin: " << dKi << " Required: " << mother.dJ << endl;
+      consoleLogger->warn("WARNING: Single Particle spin coupling does not match mother spin!");
+      consoleLogger->warn("Single Particle values. First: {}/2  Second: {}/2", spsi.dO, spsf.dO);
+      consoleLogger->warn("Coupled spin: {} Required: {}", dKi, mother.dJ);
     }
     if (spsf.parity * spsi.parity * dKf != daughter.dJ) {
-      cout << "ERROR: Single Particle spin coupling does not match daughter "
-              "spin!" << endl;
-      cout << "Single Particle values. First: " << spsi.dO
-           << "/2  Second: " << spsf.dO << "/2" << endl;
-      cout << "Coupled spin: " << dKf << " Required: " << daughter.dJ << endl;
+      consoleLogger->warn("WARNING: Single Particle spin coupling does not match daughter spin!");
+      consoleLogger->warn("Single Particle values. First: {}/2  Second: {}/2", spsi.dO, spsf.dO);
+      consoleLogger->warn("Coupled spin: {} Required: {}", dKf, daughter.dJ);
     }
   }
 }
@@ -287,9 +307,9 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
       dTf = dT3f + 1;
     }*/
 
-    cout << "Isospin:" << endl;
-    cout << "Ti: " << dTi / 2 << " Tf: " << dTf / 2 << endl;
-    cout << "T3: " << dT3i / 2 << " T3: " << dT3f / 2 << endl;
+    debugFileLogger->debug("Isospin:");
+    debugFileLogger->debug("Ti: {} Tf: {}", dTi / 2, dTf / 2);
+    debugFileLogger->debug("T3: {} T3: {}", dT3i / 2, dT3f / 2);
     // Deformed transition
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
         daughter.beta2 != 0.0) {
@@ -371,10 +391,10 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
     if (boost::iequals(method, "ESP")) {
       obt.obdme = GetESPManyParticleCoupling(K, obt);
     }
-    cout << "OBDME: " << obt.obdme << endl;
+    debugFileLogger->debug("OBDME: {}", obt.obdme);
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
         daughter.beta2 != 0) {
-      cout << "Deformed" << endl;
+      debugFileLogger->debug("Deformed");
       result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
                                 opt, obt.spsi, obt.spsf, V, K, L, s,
                                 std::abs(mother.dJ), std::abs(daughter.dJ),
@@ -392,7 +412,7 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double result = 0.0;
 
   double gM = GetNMOpt(double, Constants.gM);
-  double gA = GetNMOpt(double, Constants.gA);
+  double gAeff = GetNMOpt(double, Constants.gAeff);
 
   double VM111 = CalculateMatrixElement(true, 1, 1, 1);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);
@@ -400,8 +420,8 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   // cout << "AM101: " << AM101 << " VM111: " << VM111 << endl;
 
   result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * mother.R /
-               gA * VM111 / AM101 +
-           gM / gA;
+               gAeff * VM111 / AM101 +
+           gM / gAeff;
   return result;
 }
 

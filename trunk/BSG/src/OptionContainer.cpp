@@ -25,7 +25,9 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Set the mixing ratio defined as g_A M_{GT} / M_{F}. Defaults to zero.")(
       "Transition.QValue", po::value<double>(),
       "Set the Q value of the decay in keV.")(
-      "Transition.Lifetime", po::value<double>(),
+      "Transition.AtomicEnergyDeficit", po::value<double>()->default_value(0.),
+      "Set the endpoint energy deficit due to atomic excitations. Turning this on will turn off the atomic mismatch correction")(
+      "Transition.PartialHalflife", po::value<double>(),
       "Set the lifetime in seconds of the beta branch.")(
       "Daughter.Z", po::value<int>(),
       "Set the proton number of the daughter nucleus.")(
@@ -138,7 +140,6 @@ OptionContainer::OptionContainer(int argc, char** argv) {
                 .allow_unregistered()
                 .run(),
             vm);
-  // po::store(po::parse_command_line(argc, argv, cmdOptions), vm);
   po::notify(vm);
 
   if (vm.count("help")) {

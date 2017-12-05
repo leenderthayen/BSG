@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 project(BSG)
  
 set(BSG_VERSION_MAJOR 0)
-set(BSG_VERSION_MINOR 11)
+set(BSG_VERSION_MINOR 13)
 set(BSG_VERSION
   ${BSG_VERION_MAJOR}.${BSG_VERSION_MINOR})
+set(BSG_LAST_UPDATE "December 5, 2017")
  
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR ${PROJECT_BINARY_DIR}/lib CACHE PATH "Installation directory for libraries")
@@ -36,6 +37,10 @@ include_directories(${ROOT_INCLUDE_DIRS})
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
+include_directories("${PROJECT_SOURCE_DIR}/spdlog")
+
+find_package(Threads)
+
 configure_file("${PROJECT_SOURCE_DIR}/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSGConfig.h")
 configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/NME_exec/config.txt")
 configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/BSG_exec/config.txt")
@@ -46,10 +51,9 @@ include_directories("${PROJECT_SOURCE_DIR}/BSG/include")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
  
 # Add sub-directories
-add_subdirectory(NME)
-include_directories("${PROJECT_SOURCE_DIR}/BSG/include")
-add_subdirectory(BSG)
 include_directories("${PROJECT_BINARY_DIR}")
+add_subdirectory(NME)
+add_subdirectory(BSG)
 add_subdirectory(BSG_exec)
 add_subdirectory(NME_exec)
  

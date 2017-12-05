@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "NuclearUtilities.h"
+#include "spdlog.h"
 
 namespace NuclearStructure {
 
@@ -103,7 +104,14 @@ class NuclearStructureManager {
     std::vector<OneBodyTransition> oneBodyTransitions;
     std::string method, potential;
 
+    std::shared_ptr<spdlog::logger> consoleLogger;
+    std::shared_ptr<spdlog::logger> debugFileLogger;
+    std::shared_ptr<spdlog::logger> nmeResultsLogger;
+
     bool initialized = false;
+
+    void InitializeLoggers();
+    void InitializeConstants();
 
     void GetESPStates(SingleParticleState&, SingleParticleState&, std::string, int&, int&, double&);
     void GetESPOrbitalNumbers(int&, int&, int&, int&, int&, int&);

@@ -4,6 +4,7 @@
 #include "Utilities.h"
 #include "Constants.h"
 #include "NuclearUtilities.h"
+#include "spdlog.h"
 
 #include <iostream>
 #include <algorithm>
@@ -139,11 +140,9 @@ inline double VNORM(int n, int l) {
  * @param nMax maximum number of oscillator shells
  * @param SW array containing values for radial integrals in Woods-Saxon potential
  * @param SDW array containing values for radial integrals in deformed Woods-Saxon potential
- * @param report boolean to determine whether or not to print results
  */
 inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
-                       double Z, int nMax, double SW[2][84], double SDW[462],
-                       bool report = false) {
+                       double Z, int nMax, double SW[2][84], double SDW[462]) {
   double FINT[3] = {};
   double S[3][4] = {};
   int II = 0;
@@ -165,9 +164,7 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
   double DFO = std::exp(DX / AO);
   int nMin = nMax % 2;
 
-  if (report) {
-    cout << "Radial integrals for Woods-Saxon potential" << endl;
-  }
+  spdlog::get("debug_file")->debug("Radial integrals for Woods-Saxon potential");
   for (int NI = nMin; NI <= nMax; NI += 2) {
     for (int NJ = nMin; NJ <= NI; NJ += 2) {
       for (int LI = nMin; LI <= NI; LI += 2) {
@@ -241,19 +238,13 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
           }
           SDW[JJ] = FINT[2] * X * DX * std::pow(TWONU, 1.5) * V0 * R;
           JJ++;
-          if (report) {
-            if (KK == 0) {
-              cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ
-                   << " >";
-              cout << "    " << II << " " << JJ << " =    " << SW[0][II - 1]
-                   << "\t " << SW[1][II - 1] << "\t " << SDW[JJ - 1];
-              cout << endl;
-            } else if (KK == 2) {
-              cout << "< " << NI << "," << LI << " | " << NJ << "," << LJ
-                   << " >";
-              cout << "      " << JJ << " = \t\t\t\t\t" << SDW[JJ - 1];
-              cout << endl;
-            }
+          auto l = spdlog::get("debug_file");
+          if (KK == 0) {
+            l->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
+            l->debug("    {} {} =    {}\t {}\t {}", II, JJ, SW[0][II - 1], SW[1][II - 1], SDW[JJ - 1]);
+          } else if (KK == 2) {
+            l->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
+            l->debug("      {} = \t\t\t\t\t{}", JJ, SDW[JJ - 1]);
           }
         }
       }
@@ -341,12 +332,11 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
  * @param A mass number
  * @param Z proton number
  * @param nMax maximum number of oscillator shells
- * @param report boolean to decide whether to print to stdout
  * @returns vector a SingleParticleState objects of all bound eigenstates in the potential
  */
 inline std::vector<SingleParticleState> Calculate(
     double spin, double beta2, double beta4, double beta6, double V0, double R,
-    double A0, double V0S, double A, double Z, int nMax, bool report = false) {
+    double A0, double V0S, double A, double Z, int nMax) {
   double SW[2][84] = {};
   double SDW[462] = {};
   int N[NDIM1] = {};
@@ -376,7 +366,7 @@ inline std::vector<SingleParticleState> Calculate(
 
   std::vector<SingleParticleState> states;
 
-  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW, false);
+  WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW);
 
   int II = 0;
   int K = 0;
@@ -429,7 +419,7 @@ inline std::vector<SingleParticleState> Calculate(
       double eigenValue = eVals[index];
       if (eigenValue <= 10.0) {
         if (K >= NDIM3 - 1) {
-          cout << "Dimensioned space inadequate" << endl;
+          spdlog::get("debug_file")->warn("Dimensioned space inadequate");
           return states;
         }
         eValsWS[K] = eigenValue;
@@ -458,14 +448,11 @@ inline std::vector<SingleParticleState> Calculate(
     }
   }
   if (K == 0) {
-    cout << "No harmonic oscillator single particle states below 10 MeV."
-         << endl;
+    spdlog::get("debug_file")->warn("No harmonic oscillator single particle states below 10 MeV.");
     return states;
   }
 
-  if (report) {
-    cout << "Spherical Woods-Saxon expansion in Harmonic Oscillator basis."
-         << endl;
+    spdlog::get("nme_result_file")->info("Spherical Woods-Saxon expansion in Harmonic Oscillator basis.");
     for (int KKK = 1; KKK <= K; KKK += 12) {
       int KKKK = std::min(K, KKK + 11);
       cout << "Energy (MeV): ";
@@ -492,7 +479,6 @@ inline std::vector<SingleParticleState> Calculate(
       }
       cout << endl;
     }
-  }
 
   if (!(beta2 == 0 && beta4 == 0 && beta6 == 0)) {
     int ISX2 = std::abs(2 * spin);
@@ -632,7 +618,6 @@ inline std::vector<SingleParticleState> Calculate(
         }
       }
     }
-    if (report) {
       cout << "Deformed states: No band mixing   Beta2: " << beta2
            << " Beta4: " << beta4 << " Beta6: " << beta6 << endl;
       for (int KKK = 1; KKK <= K; KKK += 12) {
@@ -661,7 +646,6 @@ inline std::vector<SingleParticleState> Calculate(
         }
         cout << endl;
       }
-    }
   }  // end of deformation only part
   for (int i = 0; i < K; i++) {
     SingleParticleState sps;
@@ -744,9 +728,9 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
     double beta6, double V0, double A0, double VS) {
   std::vector<SingleParticleState> evenStates =
-      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12, true);
+      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 12);
   std::vector<SingleParticleState> oddStates =
-      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 13, true);
+      Calculate(6.5, beta2, beta4, beta6, V0, R, A0, VS, A, Z, 13);
 
   // Join all states
   std::vector<SingleParticleState> allStates;

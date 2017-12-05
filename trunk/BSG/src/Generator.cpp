@@ -13,6 +13,8 @@
 
 #include "boost/algorithm/string.hpp"
 
+#include "BSGConfig.h"
+
 namespace SF = SpectralFunctions;
 namespace CD = ChargeDistributions;
 namespace NS = NuclearStructure;
@@ -20,11 +22,63 @@ namespace NS = NuclearStructure;
 using std::cout;
 using std::endl;
 
+std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
+
+void ShowInfo() {
+  auto logger = spdlog::get("BSG_results_file");
+  logger->info("**************************************************");
+  logger->info("                  BSG v{}", BSG_VERSION);
+  logger->info("        Last update: {}", BSG_LAST_UPDATE);
+  logger->info("      {}", author);
+  logger->info("**************************************************\n");
+}
+
 Generator::Generator() {
+  InitializeLoggers();
+  InitializeConstants();
+  InitializeShapeParameters();
+  InitializeL0Constants();
+  LoadExchangeParameters();
+
+  nsm = new NS::NuclearStructureManager();
+  GetMatrixElements();
+}
+
+Generator::~Generator() { delete nsm; }
+
+void Generator::InitializeLoggers() {
+  consoleLogger = spdlog::get("console");
+  if (!consoleLogger) {
+    consoleLogger = spdlog::stdout_color_st("console");
+    consoleLogger->set_level(spdlog::level::warn);
+  }
+  rawSpectrumLogger = spdlog::get("BSG_raw");
+  if (!rawSpectrumLogger) {
+    rawSpectrumLogger = spdlog::basic_logger_st("BSG_raw", GetOpt(std::string, output), + ".raw");
+    rawSpectrumLogger->set_pattern("%v");
+    rawSpectrumLogger->set_level(spdlog::level::info);
+  }
+  resultsFileLogger = spdlog::get("BSG_results_file");
+  if (!resultsFileLogger) {
+    resultsFileLogger = spdlog::basic_logger_st("BSG_results_file", GetOpt(std::string, output) + ".txt");
+    resultsFileLogger->set_pattern("%v");
+    resultsFileLogger->set_level(spdlog::level::info);
+  }
+  debugFileLogger = spdlog::get("debug_file");
+  if (!debugFileLogger) {
+    debugFileLogger = spdlog::basic_logger_st("debug_file", GetOpt(std::string, output) + ".log");
+    debugFileLogger->set_level(spdlog::level::debug);
+  }
+}
+
+void Generator::InitializeConstants() {
+  debugFileLogger->debug("Entered initialize constants");
+
   Z = GetOpt(int, Daughter.Z);
   A = GetOpt(int, Daughter.A);
   R = GetOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   if (R == 0.0) {
+    debugFileLogger->debug("Radius not found. Using standard formula.");
     R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
   motherBeta2 = GetOpt(double, Mother.Beta2);
@@ -60,13 +114,17 @@ Generator::Generator() {
 
   double QValue = GetOpt(double, Transition.QValue);
 
+  atomicEnergyDeficit = GetOpt(double, Transition.AtomicEnergyDeficit);
+
   if (betaType == BETA_MINUS) {
-    W0 = QValue / ELECTRON_MASS_KEV + 1.;
+    W0 = (QValue - atomicEnergyDeficit) / ELECTRON_MASS_KEV + 1.;
   } else {
-    W0 = QValue / ELECTRON_MASS_KEV - 1.;
+    W0 = (QValue - atomicEnergyDeficit) / ELECTRON_MASS_KEV - 1.;
   }
   W0 = W0 - (W0 * W0 - 1) / 2. / A / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;
+}
 
+void Generator::InitializeShapeParameters() {
   hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
   cout << "hoFit: " << hoFit << endl;
 
@@ -89,17 +147,7 @@ Generator::Generator() {
       cout << "ERROR: Both old and new potential expansions must be given." << endl;
     }
   }
-
-  nsm = new NS::NuclearStructureManager();
-
-  LoadExchangeParameters();
-
-  InitializeL0Constants();
-
-  GetMatrixElements();
 }
-
-Generator::~Generator() { delete nsm; }
 
 void Generator::LoadExchangeParameters() {
   std::string exParamFile = GetOpt(std::string, ExchangeData);
@@ -354,10 +402,14 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
   // cout << "result: " << result << endl;
 
   if (!OptExists(mismatch)) {
-    result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
-    neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
+    if (atomicEnergyDeficit == 0.) {
+      result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
+      neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
+    }
   }
   // cout << "result: " << result << endl;
+
+  rawSpectrumLogger->info("{:.5f}\t{:.5f}\t{:.5f}\t{:.5f}\n", (W-1.)*ELECTRON_MASS_KEV, W, result, neutrinoResult);
 
   return std::make_tuple(result, neutrinoResult);
 }
@@ -381,19 +433,25 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
     spectrum.push_back(entry);
     currentW += stepW;
   }
+  PrepareOutputFile();
   return spectrum;
 }
 
-void Generator::WriteSpectrumToFile() {
-  std::string outputName = GetOpt(std::string, output);
-  std::ofstream outputStream(outputName.c_str());
+double Generator::CalculateLogFtValue() {
+  double f = utilities::Simpson(spectrum);
+  double ft = f*GetOpt(double, Transition.PartialHalflife);
+  double logFt = std::log10(ft);
 
-  outputStream.setf(std::ios::scientific);
+  return logFt;
+}
+
+void Generator::PrepareOutputFile() {
+  ShowInfo();
+
+  auto l = spdlog::get("BSG_results_file");
+  l->info("Transition from ");
   for (int i = 0; i < spectrum.size(); i++) {
-    outputStream << spectrum[i][0] << "\t" << spectrum[i][1];
     if (!OptExists(neutrino)) {
-      outputStream << "\t" << spectrum[i][2];
     }
-    outputStream << endl;
   }
 }

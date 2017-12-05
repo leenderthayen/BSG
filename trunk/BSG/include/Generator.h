@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include "NuclearStructureManager.h"
+#include "spdlog.h"
 
 class Generator {
  private:
@@ -29,6 +30,7 @@ class Generator {
   double motherBeta2; /**< the quadrupole deofrmation of the mother nucleus */
   double motherExcitationEn; /**< the excitation energy in keV of the mother state */
   double daughterExcitationEn; /**< the excitation energy in keV of the daughter state */
+  double atomicEnergyDeficit; /**< explicit energy difference between Q value and endpoint energy due to incomplete atomic overlap (atomic excitations) */
   int motherSpinParity; /**< the double of the spin parity of the mother state */
   int daughterSpinParity; /**< the double of the spin parity of the daughter state */
   BetaType betaType;  /**< internal state of the beta type */
@@ -45,6 +47,11 @@ class Generator {
   double fb, fc1, fd, ratioM121;
   double gA, gP, gM; /**< coupling constants of the weak Hamiltonian */
 
+  std::shared_ptr<spdlog::logger> consoleLogger;
+  std::shared_ptr<spdlog::logger> debugFileLogger;
+  std::shared_ptr<spdlog::logger> rawSpectrumLogger;
+  std::shared_ptr<spdlog::logger> resultsFileLogger;
+
   /**
    * Calculate the required nuclear matrix elements if they are not given from the commandline
    */
@@ -58,6 +65,31 @@ class Generator {
    * Load the fit parameters of the atomic exchange correction from a file
    */
   void LoadExchangeParameters();
+
+  /**
+   * Initialize all constants such as Z, R, etc, taken from config files
+   */
+  void InitializeConstants();
+
+  /**
+   * Initialize all parameters related to the electrostatic shape
+   */
+  void InitializeShapeParameters();
+
+  /**
+   * Initialize all loggers
+   */
+  void InitializeLoggers();
+
+  /**
+   * Construct the output file
+   */
+  void PrepareOutputFile();
+
+  /**
+   * Calculate the properly normalized ft value
+   */
+  double CalculateLogFtValue();
 
  public:
   /**
@@ -85,10 +117,6 @@ class Generator {
    * @returns the decay rate at energy W
    */
   std::tuple<double, double> CalculateDecayRate(double W);
-  /**
-   * Write the spectrum to file using the file from the config options
-   */
-  void WriteSpectrumToFile();
 };
 
 #endif

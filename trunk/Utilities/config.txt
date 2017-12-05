@@ -16,6 +16,7 @@ V0Sneutron=7.2
 V0Sproton=7.2
 
 [Constants]
-gA=1.1
+gA=1.2723
+gAeff=1.0
 gP=0.0
 gM=4.706

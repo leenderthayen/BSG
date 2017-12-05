@@ -101,6 +101,8 @@ NMEOptions::NMEOptions(int argc, char** argv) {
        "Set the magnitude of the spin-orbit potential for protons in MeV.")
       ("Constants.gA", po::value<double>()->default_value(1.2723),
        "Set the weak coupling constant.")
+      ("Constants.gAeff", po::value<double>()->default_value(1.1723),
+       "Set the effective value for gA in nuclei.")
       ("Constants.gP", po::value<double>()->default_value(0.),
        "Set the induced pseudoscalar coupling constant.")
       ("Constants.gM", po::value<double>()->default_value(4.706),
