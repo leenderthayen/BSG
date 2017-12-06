@@ -59,12 +59,12 @@ NMEOptions::NMEOptions(int argc, char** argv) {
   std::string inputName = "test.ini";
   genericOptions.add_options()
       ("help,h", "Produce help message")
-      ("verbosity,v", po::value<int>()->default_value(1),
-      "Set verbosity (0 = silent)")
       ("config,c", po::value<std::string>(&configName),
        "Change the configuration file.")
       ("input,i", po::value<std::string>(&inputName),
        "Specify input file containing transition and nuclear data")
+      ("output,o", po::value<std::string>()->default_value("output.txt"),
+      "Specify the output file name.")
       ("weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")
       ("inducedtensor,d", "Calculate the induced tensor form factor d/Ac")
       ("matrixelement,M", po::value<std::string>(),

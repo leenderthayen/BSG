@@ -20,6 +20,7 @@ class Generator {
   double aNeg[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
   double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
   double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction */
+  double QValue; /**< Q value of the particular decay */
   double W0;  /**< the total electron energy in units of its rest mass */
   double R;   /**< the nuclear radius in natural units (HBAR=c=m_e=1) */
   double A;   /**< Mass number */
@@ -45,6 +46,7 @@ class Generator {
 
   /// recoil correction form factors
   double fb, fc1, fd, ratioM121;
+  double bAc, dAc;
   double gA, gP, gM; /**< coupling constants of the weak Hamiltonian */
 
   std::shared_ptr<spdlog::logger> consoleLogger;
@@ -88,8 +90,9 @@ class Generator {
 
   /**
    * Calculate the properly normalized ft value
+   * @param partialHalflife the halflife of the transition
    */
-  double CalculateLogFtValue();
+  double CalculateLogFtValue(double partialHalflife);
 
  public:
   /**

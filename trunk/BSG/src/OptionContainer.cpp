@@ -71,11 +71,9 @@ OptionContainer::OptionContainer(int argc, char** argv) {
 
   std::string configName = "config.txt";
   std::string inputName = "";
-  genericOptions.add_options()("help,h", "Produce help message")(
-      "verbosity,v", po::value<int>()->default_value(1),
-      "Set verbosity (0 = silent)")("config,c",
-                                    po::value<std::string>(&configName),
-                                    "Change the configuration file.")(
+  genericOptions.add_options()("help,h", "Produce help message")
+      ("config,c", po::value<std::string>(&configName),
+       "Change the configuration file.")(
       "input,i", po::value<std::string>(&inputName),
       "Specify input file containing transition and nuclear data")(
       "output,o", po::value<std::string>()->default_value("output.txt"),

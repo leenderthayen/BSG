@@ -84,22 +84,25 @@ void NS::NuclearStructureManager::InitializeConstants() {
 }
 
 void NS::NuclearStructureManager::InitializeLoggers() {
-  consoleLogger = spdlog::get("console");
-  if (!consoleLogger) {
-    consoleLogger = spdlog::stdout_color_st("console");
-    consoleLogger->set_level(spdlog::level::warn);
-  }
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
     debugFileLogger = spdlog::basic_logger_st("debug_file", GetNMOpt(std::string, output) + ".log");
     debugFileLogger->set_level(spdlog::level::debug);
   }
+  debugFileLogger->debug("Debugging logger found in NSM");
+  consoleLogger = spdlog::get("console");
+  if (!consoleLogger) {
+    consoleLogger = spdlog::stdout_color_st("console");
+    consoleLogger->set_level(spdlog::level::warn);
+  }
+  debugFileLogger->debug("Console logger found in NSM");
   nmeResultsLogger = spdlog::get("nme_results_file");
   if (!nmeResultsLogger) {
-    nmeResultsLogger = spdlog::basic_logger_st("nme_results_file", GetNMOpt(std::string, output) + ".txt");
+    nmeResultsLogger = spdlog::basic_logger_st("nme_results_file", GetNMOpt(std::string, output) + ".nme");
     nmeResultsLogger->set_level(spdlog::level::info);
     nmeResultsLogger->set_pattern("%v");
   }
+  debugFileLogger->debug("NME Results logger found in NSM");
 }
 void NS::NuclearStructureManager::SetDaughterNucleus(int Z, int A, int dJ,
                                                      double R,

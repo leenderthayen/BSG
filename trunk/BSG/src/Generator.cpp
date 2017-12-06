@@ -47,28 +47,32 @@ Generator::Generator() {
 Generator::~Generator() { delete nsm; }
 
 void Generator::InitializeLoggers() {
+  debugFileLogger = spdlog::get("debug_file");
+  if (!debugFileLogger) {
+    debugFileLogger = spdlog::basic_logger_st("debug_file", GetOpt(std::string, output) + ".log");
+    debugFileLogger->set_level(spdlog::level::debug);
+  }
+  debugFileLogger->debug("Debugging logger created");
   consoleLogger = spdlog::get("console");
   if (!consoleLogger) {
     consoleLogger = spdlog::stdout_color_st("console");
     consoleLogger->set_level(spdlog::level::warn);
   }
+  debugFileLogger->debug("Console logger created");
   rawSpectrumLogger = spdlog::get("BSG_raw");
   if (!rawSpectrumLogger) {
-    rawSpectrumLogger = spdlog::basic_logger_st("BSG_raw", GetOpt(std::string, output), + ".raw");
+    rawSpectrumLogger = spdlog::basic_logger_st("BSG_raw", GetOpt(std::string, output) + ".raw");
     rawSpectrumLogger->set_pattern("%v");
     rawSpectrumLogger->set_level(spdlog::level::info);
   }
+  debugFileLogger->debug("Raw spectrum logger created");
   resultsFileLogger = spdlog::get("BSG_results_file");
   if (!resultsFileLogger) {
     resultsFileLogger = spdlog::basic_logger_st("BSG_results_file", GetOpt(std::string, output) + ".txt");
     resultsFileLogger->set_pattern("%v");
     resultsFileLogger->set_level(spdlog::level::info);
   }
-  debugFileLogger = spdlog::get("debug_file");
-  if (!debugFileLogger) {
-    debugFileLogger = spdlog::basic_logger_st("debug_file", GetOpt(std::string, output) + ".log");
-    debugFileLogger->set_level(spdlog::level::debug);
-  }
+  debugFileLogger->debug("Results file logger created");
 }
 
 void Generator::InitializeConstants() {
@@ -112,7 +116,7 @@ void Generator::InitializeConstants() {
     mixingRatio = GetOpt(double, Transition.MixingRatio);
   }
 
-  double QValue = GetOpt(double, Transition.QValue);
+  QValue = GetOpt(double, Transition.QValue);
 
   atomicEnergyDeficit = GetOpt(double, Transition.AtomicEnergyDeficit);
 
@@ -122,11 +126,13 @@ void Generator::InitializeConstants() {
     W0 = (QValue - atomicEnergyDeficit) / ELECTRON_MASS_KEV - 1.;
   }
   W0 = W0 - (W0 * W0 - 1) / 2. / A / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;
+  debugFileLogger->debug("Leaving InitializeConstants");
 }
 
 void Generator::InitializeShapeParameters() {
+  debugFileLogger->debug("Entered InitializeShapeParameters");
   hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
-  cout << "hoFit: " << hoFit << endl;
+  debugFileLogger->debug("hoFit: {}", hoFit);
 
   baseShape = GetOpt(std::string, shape);
 
@@ -134,6 +140,7 @@ void Generator::InitializeShapeParameters() {
   vNew.resize(3);
 
   if (baseShape == "Modified_Gaussian") {
+    debugFileLogger->debug("Found Modified_Gaussian shape");
     vOld[0] = 3./2.;
     vOld[1] = -1./2.;
     vNew[0] = std::sqrt(5./2.)*4.*(1.+hoFit)*std::sqrt(2.+5.*hoFit)/std::sqrt(M_PI)*std::pow(2.+3.*hoFit, 3./2.);
@@ -141,15 +148,18 @@ void Generator::InitializeShapeParameters() {
     vNew[2] = (2.-7.*hoFit)/5./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 5./3.);
   } else {
     if (OptExists(vold) && OptExists(vnew)) {
+      debugFileLogger->debug("Found v and v'");
       vOld = GetOpt(std::vector<double>, vold);
       vNew = GetOpt(std::vector<double>, vnew);
     } else if (OptExists(vold) || OptExists(vnew)) {
-      cout << "ERROR: Both old and new potential expansions must be given." << endl;
+      consoleLogger->error("ERROR: Both old and new potential expansions must be given.");
     }
   }
+  debugFileLogger->debug("Leaving InitializeShapeParameters");
 }
 
 void Generator::LoadExchangeParameters() {
+  debugFileLogger->debug("Entered LoadExchangeParameters");
   std::string exParamFile = GetOpt(std::string, ExchangeData);
   std::ifstream paramStream(exParamFile.c_str());
   std::string line;
@@ -175,9 +185,11 @@ void Generator::LoadExchangeParameters() {
       }
     }
   }
+  debugFileLogger->debug("Leaving LoadExchangeParameters");
 }
 
 void Generator::InitializeL0Constants() {
+  debugFileLogger->debug("Leaving InitializeL0Constants");
   double b[7][6];
   double bNeg[7][6];
   bNeg[0][0] = 0.115;
@@ -275,10 +287,11 @@ void Generator::InitializeL0Constants() {
       aPos[i] += bPos[i][j] * std::pow(ALPHA * Z, j + 1);
     }
   }
+  debugFileLogger->debug("Leaving InitializeL0Constants");
 }
 
 void Generator::GetMatrixElements() {
-  cout << "Calculating matrix elements" << endl;
+  debugFileLogger->info("Calculating matrix elements");
   double M101 = 1.0;
   if (!OptExists(ratioM121)) {
     M101 = nsm->CalculateMatrixElement(false, 1, 0, 1);
@@ -290,22 +303,22 @@ void Generator::GetMatrixElements() {
 
   fc1 = gA * M101;
 
-  double bAc = 0, dAc = 0;
+  bAc = dAc = 0;
   if (!OptExists(weakmagnetism)) {
-    cout << "Calculating Weak Magnetism" << endl;
+    debugFileLogger->info("Calculating Weak Magnetism");
     bAc = nsm->CalculateWeakMagnetism();
   } else {
     bAc = GetOpt(double, weakmagnetism);
   }
   if (!OptExists(inducedtensor)) {
-    cout << "Calculating Induced Tensor" << endl;
+    debugFileLogger->info("Calculating Induced Tensor");
     dAc = nsm->CalculateInducedTensor();
   } else {
     dAc = GetOpt(double, inducedtensor);
   }
-  cout << "Weak magnetism: " << bAc << endl;
-  cout << "Induced tensor: " << dAc << endl;
-  cout << "M121/M101: " << ratioM121 << endl;
+  debugFileLogger->info("Weak magnetism: {}", bAc);
+  debugFileLogger->info("Induced tensor: {}", dAc);
+  debugFileLogger->info("M121/M101: {}", ratioM121);
 
   fb = bAc * A * fc1;
   fd = dAc * A * fc1;
@@ -409,12 +422,13 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
   }
   // cout << "result: " << result << endl;
 
-  rawSpectrumLogger->info("{:.5f}\t{:.5f}\t{:.5f}\t{:.5f}\n", (W-1.)*ELECTRON_MASS_KEV, W, result, neutrinoResult);
+  rawSpectrumLogger->info("{:<10f}\t{<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
 
   return std::make_tuple(result, neutrinoResult);
 }
 
 std::vector<std::vector<double> > Generator::CalculateSpectrum() {
+  debugFileLogger->info("Calculating spectrum");
   double beginEn = GetOpt(double, begin);
   double endEn = GetOpt(double, end);
   double stepEn = GetOpt(double, step);
@@ -437,9 +451,11 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
   return spectrum;
 }
 
-double Generator::CalculateLogFtValue() {
+double Generator::CalculateLogFtValue(double partialHalflife) {
+  debugFileLogger->debug("Calculating Ft value with partial halflife {}", partialHalflife);
   double f = utilities::Simpson(spectrum);
-  double ft = f*GetOpt(double, Transition.PartialHalflife);
+  debugFileLogger->debug("f: {}", f);
+  double ft = f*partialHalflife;
   double logFt = std::log10(ft);
 
   return logFt;
@@ -449,9 +465,59 @@ void Generator::PrepareOutputFile() {
   ShowInfo();
 
   auto l = spdlog::get("BSG_results_file");
-  l->info("Transition from ");
+  l->info("Spectrum input overview\n=====================");
+  l->info("Using information from {}\n\n", GetOpt(std::string, input));
+  l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
+  l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
+  if (OptExists(Transition.PartialHalflife)) {
+    l->info("Partial halflife: {} s", GetOpt(double, Transition.PartialHalflife));
+    l->info("Calculated log ft value: {} s", CalculateLogFtValue(GetOpt(double, Transition.PartialHalflife)));
+  } else {
+    l->info("Partial halflife: not given");
+    l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
+  }
+  l->info("\nMatrix Element Summary\n--------------------");
+  if (OptExists(weakmagnetism)) l->info("b/Ac (weak magnetism): {} (given)", bAc);
+  else l->info("b/Ac (weak magnetism): {}", bAc);
+  if (OptExists(inducedtensor)) l->info("d/Ac (induced tensor): {} (given)", dAc);
+  else l->info("d/Ac (induced tensor): {}", dAc);
+  if (OptExists(ratioM121)) l->info("AM121/AM101: {} (given)", ratioM121);
+  else l->info("AM121/AM101: {}", ratioM121);
+
+  l->info("\nSpectral corrections\n---------------------");
+  l->info("{:25}: {}", "Phase space", !OptExists(phase));
+  l->info("{:25}: {}", "Fermi function", !OptExists(fermi));
+  l->info("{:25}: {}", "L0 correction", !OptExists(l0));
+  l->info("{:25}: {}", "C correction", !OptExists(C));
+  l->info("{:25}: {}", "Relativistic terms", !OptExists(relativistic));
+  l->info("{:25}: {}", "Deformation", !OptExists(deformation));
+  l->info("{:25}: {}", "U correction", !OptExists(U));
+  l->info("    Shape: {}", GetOpt(std::string, shape));
+  if (OptExists(vold) && OptExists(vnew)) {
+    l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
+    l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);
+  } else {
+    l->info("    v : not given");
+    l->info("    v': not given");
+  }
+  l->info("{:25}: {}", "Q correction", !OptExists(Q));
+  l->info("{:25}: {}", "Radiative correction", !OptExists(radiative));
+  l->info("{:25}: {}", "Nuclear recoil", !OptExists(recoil));
+  l->info("{:25}: {}", "Atomic screening", !OptExists(screening));
+  l->info("{:25}: {}", "Atomic exchange", !OptExists(exchange));
+  l->info("{:25}: {}", "Atomic mismatch", !OptExists(mismatch));
+  l->info("{:25}: {}", "Export neutrino", !OptExists(neutrino));
+
+  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n", GetOpt(double, begin), GetOpt(double, end) > 0 ? GetOpt(double, end) : (W0-1.)*ELECTRON_MASS_KEV, GetOpt(double, step));
+
+  if (!OptExists(neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
+  else l->info("{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW");
+
   for (int i = 0; i < spectrum.size(); i++) {
     if (!OptExists(neutrino)) {
+      l->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", spectrum[i][0], (spectrum[i][0]-1.)*ELECTRON_MASS_KEV, spectrum[i][1], spectrum[i][2]);
+    } else {
+      l->info("{:<10f}\t{:<10f}\t{:<10f}", spectrum[i][0], (spectrum[i][0]-1.)*ELECTRON_MASS_KEV, spectrum[i][1]);
     }
   }
 }
