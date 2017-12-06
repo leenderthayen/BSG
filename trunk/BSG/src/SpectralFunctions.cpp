@@ -2,6 +2,7 @@
 
 #include "Utilities.h"
 #include "ChargeDistributions.h"
+#include "NuclearUtilities.h"
 #include "Screening.h"
 
 #include <complex>
@@ -163,77 +164,34 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
   // cout << "Ap: " << Ap << endl;
 
   return 1 - 8. / 5. * w * e * R * R / (5. * Ap + 2);
+}
 
-  double weakR2;
-  if (A > 90) {
-    nu = ChargeDistributions::CalcChargeIndepNu(rms, Z - betaType,
-                                                A - (Z - betaType));
-    weakR2 = ChargeDistributions::WeakIntegratedRMS(nu, nN, lN, nu, nZ, lZ);
-  } else {
-    nu = ChargeDistributions::CalcNu(rms, Z - betaType);
-    if (betaType == BETA_MINUS) {
-      weakR2 = std::pow(ChargeDistributions::GetRMSHO(nN, lN, nu), 2);
-    } else {
-      weakR2 = std::pow(ChargeDistributions::GetRMSHO(nZ, lZ, nu), 2);
+double SpectralFunctions::CICorrection(
+    double W, double W0, double Z, double R, int betaType,
+    NuclearStructure::SingleParticleState spsi,
+    NuclearStructure::SingleParticleState spsf) {
+  double V0 = betaType * 3. * Z * ALPHA / 2. / R;
+  double epsilon = 1. / 6. * (sqr(W0 - W) + sqr(W + V0) - 1.);
+
+  double nu = ChargeDistributions::CalcNu(R * std::sqrt(3. / 5.), Z);
+
+  double result = 0.;
+  for (int i = 0; i < spsi.componentsHO.size(); i++) {
+    for (int j = 0; j < spsf.componentsHO.size(); j++) {
+      I = ChargeDistributions::GetRadialMEHO(
+          spsf.componentsHO[j].n, spsf.componentsHO[j].l, 0,
+          spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
+      r2 = ChargeDistributions::GetRadialMEHO(
+          spsf.componentsHO[j].n, spsf.componentsHO[j].l, 2,
+          spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
+
+      result += sqr(spsf.componentsHO[j].C * spsi.componentsHO[i].C) *
+                I * (I - 2. * epsilon * r2)
     }
   }
+  result *= (1. + 6. / 5. * epsilon * R * R);
 
-  /*cout << "Nu: " << nu << endl;
-  cout << "nN: " << nN << " lN: " << lN << endl;
-  cout << "nZ: " << nZ << " lZ: " << lZ << endl;*/
-
-  double delta = (weakR2 - 3. / 5. * R * R) / 6.;
-
-  // return (1-e*weakR2)/(1-e*3./5.*R*R);
-  // return 1-e*(weakR2-R*R*3/5.);
-
-  // cout << "rmsW: " << weakR2 << " rmsCh " << 3./5.*R*R << " Delta: " << delta
-  // << endl;
-
-  AC0 = ALPHA * Z / R * (betaType * 4. / 3. * W0 - 9 / 2. * ALPHA * Z / R +
-                         4 * ALPHA * Z / R * W0 * W0 * delta);
-  AC1 = 40 / 9. * W0 +
-        ALPHA * Z / R * (betaType * 16. / 3. * W0 * W0 * delta -
-                         betaType * 22. / 3. - 22 * ALPHA * Z / R * W0 * delta);
-  AC2 = -40 / 9. - betaType * 24 * ALPHA * Z / R * W0 * delta +
-        27 * std::pow(ALPHA * Z / R, 2) * delta + 44. / 9. * W0 * W0 * delta;
-  ACm1 = -4 / 9. * W0;
-
-  /*cout << "W: " << W << " W0: " << W0 << endl;
-  cout << "AC0: " << AC0 << " AC1: " << AC1 << " AC2: " << AC2 << " ACm1: " <<
-  ACm1 << endl;*/
-
-  VC0 = ALPHA * Z / R * (-betaType * 4 * W0 - 9. / 2. * ALPHA * Z / R +
-                         4 * ALPHA * Z / R * W0 * W0 * delta);
-  VC1 = 8. / 3. * W0 +
-        ALPHA * Z / R * (-betaType * 16. / 3. * W0 * W0 * delta - betaType * 2 -
-                         2. * ALPHA * Z / R * W0 * delta);
-  VC2 = -8 / 3. + betaType * 8. / 3. * ALPHA * Z / R * W0 * delta +
-        7. * std::pow(ALPHA * Z / R, 2) * delta;
-  VCm1 = 4. / 3. * W0;
-
-  double r2 = 0.75 * R + weakR2 / 2. / R;
-  double r2r = 0.7 * weakR2 / R;
-
-  /*VC0 = -ALPHA*Z*2./9.*W0*(r2r/2.-0.25*R);
-  VC1 = ALPHA*Z*(4./3.*r2+4./9.*r2r-14./9.*R);
-  VCm1 = ALPHA*Z*(2*r2-r2r-0.5*R);
-  VC2 = 0.;*/
-
-  if (decayType == FERMI) {
-    return 1 + delta * (VC0 + VC1 * W + VC2 * W * W + VCm1 / W);
-  } else if (decayType == GAMOW_TELLER) {
-    return 1 + delta * (AC0 + AC1 * W + AC2 * W * W + ACm1 / W);
-  } /*else if (mixingRatio > 0) {
-    return 1 +
-           delta * (1. / (1 + std::pow(mixingRatio, 2)) *
-                        (VC0 + VC1 * W + VC2 * W * W + VCm1 / W) +
-                    1 / (1 + 1. / std::pow(mixingRatio, 2)) *
-                        (AC0 + AC1 * W + AC2 * W * W + ACm1 / W));
-  }
-  cout << "Mixing ratio is badly defined. Returning 1." << endl;*/
-
-  return 1.;
+  return result;
 }
 
 double SpectralFunctions::RelativisticCorrection(double W, double W0, int Z,
@@ -356,7 +314,8 @@ double SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
 }
 
 double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
-                                      std::string baseShape, std::vector<double>& v,
+                                      std::string baseShape,
+                                      std::vector<double>& v,
                                       std::vector<double>& vp) {
   double result = 1.;
   if (baseShape == "Fermi") {
@@ -374,7 +333,8 @@ double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
 }
 
 double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
-                                      std::vector<double>& v, std::vector<double>& vp) {
+                                      std::vector<double>& v,
+                                      std::vector<double>& vp) {
   double delta1 = 4. / 3. * (vp[0] - v[0]) + 17. / 30. * (vp[1] - v[1]) +
                   25. / 63. * (vp[2] - v[2]);
   double delta2 = 2. / 3. * (vp[0] - v[0]) + 7. / 12. * (vp[1] - v[1]) +

@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include "NuclearStructureManager.h"
+#include "NuclearUtilities.h"
 #include "spdlog.h"
 
 class Generator {
@@ -39,6 +40,8 @@ class Generator {
   std::vector<double> vOld; /**< power expansion in r for old electrostatic potential */
   std::vector<double> vNew; /**< power expansion in r for new electrostatic potential */
   std::string baseShape; /**< name denoting the base shape to use for the U correction */
+
+  NuclearStructure::SingleParticleState spsi, spsf; /**< single particle states calculated from the NME library and used in the C_I correction when turned on */
 
   NuclearStructure::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 

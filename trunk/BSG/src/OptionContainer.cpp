@@ -105,6 +105,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "step,S", po::value<double>()->default_value(0.1),
       "Specify the stepsize in keV.")(
       "neutrino,v", "Turn off the generation of the neutrino spectrum.")(
+      "connect", "Turn on the connection between BSG and NME for the calculation the C_I correction, thereby using the single particle states from the latter")(
       "shape", po::value<std::string>()->default_value("Fermi"),
       "Set the base shape name for the electrostatic finite size correction.")(
       "vnew", po::value<std::vector<double> >()->multitoken(),

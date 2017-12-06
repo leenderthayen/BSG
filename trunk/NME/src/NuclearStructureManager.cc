@@ -164,8 +164,8 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
   if (boost::iequals(method, "ESP")) {
     SingleParticleState spsi, spsf;
     int dKi, dKf;
-    double obdme;
-    GetESPStates(spsi, spsf, potential, dKi, dKf, obdme);
+    double obdme = 1.;
+    GetESPStates(spsi, spsf, dKi, dKf);
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
   }
   initialized = true;
@@ -174,8 +174,7 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
                                                SingleParticleState& spsf,
-                                               std::string potential, int& dKi,
-                                               int& dKf, double& obdme) {
+                                               int& dKi, int& dKf) {
   debugFileLogger->debug("Entered GetESPStates");
   double Vp = GetNMOpt(double, Computational.Vproton);
   double Vn = GetNMOpt(double, Computational.Vneutron);

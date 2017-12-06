@@ -39,8 +39,7 @@ Generator::Generator() {
   InitializeL0Constants();
   LoadExchangeParameters();
 
-  nsm = new NS::NuclearStructureManager();
-  GetMatrixElements();
+  InitializeNSMInfo();
 }
 
 Generator::~Generator() { delete nsm; }
@@ -306,6 +305,17 @@ void Generator::InitializeL0Constants() {
   debugFileLogger->debug("Leaving InitializeL0Constants");
 }
 
+void InitializeNSMInfo() {
+  nsm = new NS::NuclearStructureManager();
+
+  if (OptExists(connect)) {
+    int dKi, dKf;
+    nsm->GetESPStates(spsi, spsf, dKi, dKf);
+  }
+
+  GetMatrixElements();
+}
+
 void Generator::GetMatrixElements() {
   debugFileLogger->info("Calculating matrix elements");
   double M101 = 1.0;
@@ -501,6 +511,8 @@ void Generator::PrepareOutputFile() {
   else l->info("{:35}: {}", "d/Ac (induced tensor)", dAc);
   if (OptExists(ratioM121)) l->info("{:25}: {} ({})", "AM121/AM101", ratioM121, "given");
   else l->info("{:35}: {}", "AM121/AM101", ratioM121);
+
+  l->info("Full breakfown written in {}.nme", GetOpt(std::string, output));
 
   l->info("\nSpectral corrections\n{:->30}", "");
   l->info("{:25}: {}", "Phase space", !OptExists(phase));
