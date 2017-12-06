@@ -26,11 +26,11 @@ std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 void ShowInfo() {
   auto logger = spdlog::get("BSG_results_file");
-  logger->info("{:*30}");
-  logger->info("{:^30}", "BSG v." + BSG_VERSION);
-  logger->info("{:^30}", "Last update: " + BSG_LAST_UPDATE);
-  logger->info("{:^30}", "Author: " + author);
-  logger->info("{:*30}\n");
+  logger->info("{:*>60}", "");
+  logger->info("{:^60}", "BSG v" + std::string(BSG_VERSION));
+  logger->info("{:^60}", "Last update: " + std::string(BSG_LAST_UPDATE));
+  logger->info("{:^60}", "Author: " + author);
+  logger->info("{:*>60}\n", "");
 }
 
 Generator::Generator() {
@@ -53,8 +53,8 @@ void Generator::InitializeLoggers() {
    * Remove result & log files if they already exist
    */
   if (std::ifstream(outputName + ".log")) std::remove((outputName + ".log").c_str());
-  if (std::ifstream(outputName + ".raw")) std::remove(outputName + ".raw");
-  if (std::ifstream(outputName + ".txt")) std::remove(outputName + ".txt");
+  if (std::ifstream(outputName + ".raw")) std::remove((outputName + ".raw").c_str());
+  if (std::ifstream(outputName + ".txt")) std::remove((outputName + ".txt").c_str());
 
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
@@ -474,7 +474,7 @@ void Generator::PrepareOutputFile() {
   ShowInfo();
 
   auto l = spdlog::get("BSG_results_file");
-  l->info("Spectrum input overview\n=====================");
+  l->info("Spectrum input overview\n{:=>30}", "");
   l->info("Using information from {}\n\n", GetOpt(std::string, input));
   l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
   l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
@@ -485,15 +485,15 @@ void Generator::PrepareOutputFile() {
     l->info("Partial halflife: not given");
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
   }
-  l->info("\nMatrix Element Summary\n--------------------");
-  if (OptExists(weakmagnetism)) l->info("b/Ac (weak magnetism): {} (given)", bAc);
-  else l->info("b/Ac (weak magnetism): {}", bAc);
-  if (OptExists(inducedtensor)) l->info("d/Ac (induced tensor): {} (given)", dAc);
-  else l->info("d/Ac (induced tensor): {}", dAc);
-  if (OptExists(ratioM121)) l->info("AM121/AM101: {} (given)", ratioM121);
-  else l->info("AM121/AM101: {}", ratioM121);
+  l->info("\nMatrix Element Summary\n{:->30}", "");
+  if (OptExists(weakmagnetism)) l->info("{:25}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
+  else l->info("{:35}: {}", "b/Ac (weak magnetism)", bAc);
+  if (OptExists(inducedtensor)) l->info("{:25}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
+  else l->info("{:35}: {}", "d/Ac (induced tensor)", dAc);
+  if (OptExists(ratioM121)) l->info("{:25}: {} ({})", "AM121/AM101", ratioM121, "given");
+  else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
-  l->info("\nSpectral corrections\n---------------------");
+  l->info("\nSpectral corrections\n{:->30}", "");
   l->info("{:25}: {}", "Phase space", !OptExists(phase));
   l->info("{:25}: {}", "Fermi function", !OptExists(fermi));
   l->info("{:25}: {}", "L0 correction", !OptExists(l0));

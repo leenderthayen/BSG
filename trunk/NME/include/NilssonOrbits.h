@@ -143,6 +143,8 @@ inline double VNORM(int n, int l) {
  */
 inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
                        double Z, int nMax, double SW[2][84], double SDW[462]) {
+  auto dbl = spdlog::get("debug_file");
+  dbl->debug("Entered WoodsSaxon");
   double FINT[3] = {};
   double S[3][4] = {};
   int II = 0;
@@ -164,7 +166,7 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
   double DFO = std::exp(DX / AO);
   int nMin = nMax % 2;
 
-  spdlog::get("debug_file")->debug("Radial integrals for Woods-Saxon potential");
+  dbl->debug("Radial integrals for Woods-Saxon potential");
   for (int NI = nMin; NI <= nMax; NI += 2) {
     for (int NJ = nMin; NJ <= NI; NJ += 2) {
       for (int LI = nMin; LI <= NI; LI += 2) {
@@ -238,18 +240,18 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
           }
           SDW[JJ] = FINT[2] * X * DX * std::pow(TWONU, 1.5) * V0 * R;
           JJ++;
-          auto l = spdlog::get("debug_file");
           if (KK == 0) {
-            l->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
-            l->debug("    {} {} =    {}\t {}\t {}", II, JJ, SW[0][II - 1], SW[1][II - 1], SDW[JJ - 1]);
+            dbl->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
+            dbl->debug("    {} {} =    {}\t {}\t {}", II, JJ, SW[0][II - 1], SW[1][II - 1], SDW[JJ - 1]);
           } else if (KK == 2) {
-            l->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
-            l->debug("      {} = \t\t\t\t\t{}", JJ, SDW[JJ - 1]);
+            dbl->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
+            dbl->debug("      {} = \t\t\t\t\t{}", JJ, SDW[JJ - 1]);
           }
         }
       }
     }
   }
+  dbl->debug("Leaving WoodsSaxon");
 }
 
 // Calculate eigenvalues & vectors for a real symmetric FORTRAN matrix A, only
@@ -266,6 +268,8 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
  */
 inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
                   bool onlyUpper = true) {
+  auto dbl = spdlog::get("debug_file");
+  dbl->debug("Entered Eigen");
   gsl_matrix* aNew = gsl_matrix_alloc(dim, dim);
   // Loop over upper half of matrix
   for (int j = 0; j < dim; j++) {
@@ -315,6 +319,7 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
     }
   }
   gsl_matrix_free(eVec);
+  dbl->debug("Leaving Eigen");
 }
 
 /**
@@ -337,6 +342,8 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
 inline std::vector<SingleParticleState> Calculate(
     double spin, double beta2, double beta4, double beta6, double V0, double R,
     double A0, double V0S, double A, double Z, int nMax) {
+  auto dbl = spdlog::get("debug_file");
+  dbl->debug("Entered Calculate");
   double SW[2][84] = {};
   double SDW[462] = {};
   int N[NDIM1] = {};
@@ -367,6 +374,8 @@ inline std::vector<SingleParticleState> Calculate(
   std::vector<SingleParticleState> states;
 
   WoodsSaxon(V0, R, A0, V0S, A, Z, nMax, SW, SDW);
+
+  dbl->debug("Past WoodsSaxon");
 
   int II = 0;
   int K = 0;
@@ -419,7 +428,7 @@ inline std::vector<SingleParticleState> Calculate(
       double eigenValue = eVals[index];
       if (eigenValue <= 10.0) {
         if (K >= NDIM3 - 1) {
-          spdlog::get("debug_file")->warn("Dimensioned space inadequate");
+          dbl->warn("Dimensioned space inadequate");
           return states;
         }
         eValsWS[K] = eigenValue;
@@ -448,11 +457,11 @@ inline std::vector<SingleParticleState> Calculate(
     }
   }
   if (K == 0) {
-    spdlog::get("debug_file")->warn("No harmonic oscillator single particle states below 10 MeV.");
+    dbl->warn("No harmonic oscillator single particle states below 10 MeV.");
     return states;
   }
 
-    spdlog::get("nme_result_file")->info("Spherical Woods-Saxon expansion in Harmonic Oscillator basis.");
+    //spdlog::get("nme_result_file")->info("Spherical Woods-Saxon expansion in Harmonic Oscillator basis.");
     for (int KKK = 1; KKK <= K; KKK += 12) {
       int KKKK = std::min(K, KKK + 11);
       cout << "Energy (MeV): ";
@@ -479,7 +488,7 @@ inline std::vector<SingleParticleState> Calculate(
       }
       cout << endl;
     }
-
+  dbl->debug("Past spherical case");
   if (!(beta2 == 0 && beta4 == 0 && beta6 == 0)) {
     int ISX2 = std::abs(2 * spin);
     int ISPIN = (ISX2 + 1) / 2;

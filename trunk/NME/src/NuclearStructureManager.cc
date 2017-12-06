@@ -81,6 +81,7 @@ void NS::NuclearStructureManager::InitializeConstants() {
                    motherBeta2, motherBeta4, motherBeta6);
   SetDaughterNucleus(Zd, Ad, daughterSpinParity, Rm, daughterExcitationEn,
                      daughterBeta2, daughterBeta4, daughterBeta6);
+  debugFileLogger->debug("Leaving InitializeConstants");
 }
 
 void NS::NuclearStructureManager::InitializeLoggers() {
@@ -123,6 +124,7 @@ void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
 }
 
 void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
+  debugFileLogger->debug("Entered Initialize");
   method = m;
   potential = p;
   // Extreme Single particle
@@ -134,12 +136,14 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
   }
   initialized = true;
+  debugFileLogger->debug("Leaving Initialize");
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
                                                SingleParticleState& spsf,
                                                std::string potential, int& dKi,
                                                int& dKf, double& obdme) {
+  debugFileLogger->debug("Entered GetESPStates");
   double Vp = GetNMOpt(double, Computational.Vproton);
   double Vn = GetNMOpt(double, Computational.Vneutron);
   double Xn = GetNMOpt(double, Computational.Xneutron);
@@ -147,6 +151,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   double A0 = GetNMOpt(double, Computational.SurfaceThickness);
   double VSp = GetNMOpt(double, Computational.V0Sproton);
   double VSn = GetNMOpt(double, Computational.V0Sneutron);
+
+  debugFileLogger->debug("Found all Potential constants");
 
   int dJReqIn = mother.dJ;
   int dJReqFin = daughter.dJ;
@@ -156,6 +162,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   }
 
   double threshold = GetNMOpt(double, Computational.EnergyMargin);
+
+  debugFileLogger->debug("Found all spin constants");
 
   double V0p = Vp * (1. + Xp * (mother.A - 2. * mother.Z) / mother.A);
   double V0n = Vn * (1. - Xn * (mother.A - 2. * mother.Z) / mother.A);
