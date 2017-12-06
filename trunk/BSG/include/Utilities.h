@@ -189,8 +189,8 @@ inline double Simpson(double x[], double y[], int size) {
 inline double Simpson(std::vector<std::vector<double> > values) {
   double result = 0.;
   for (int i = 0; i < values.size()-2; i++) {
-    double xN[] = {values[i][0], values[i][0], values[i][0]};
-    double yN[] = {values[i][1], values[i][1], values[i][1]};
+    double xN[] = {values[i][0], values[i+1][0], values[i+2][0]};
+    double yN[] = {values[i][1], values[i+1][1], values[i+2][1]};
     double h = (xN[2] - xN[0]) / 2.;
     Lagrange* l = new Lagrange(xN, yN);
     result += 1. / 3. * h * (values[i][1] + 4. * l->GetValue(xN[0] + h) + values[i + 2][1]);

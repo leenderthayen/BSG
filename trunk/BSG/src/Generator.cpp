@@ -7,7 +7,7 @@
 #include "SpectralFunctions.h"
 
 #include <iostream>
-#include <fstream>
+#include <stdio.h>
 #include <vector>
 #include <cmath>
 
@@ -26,11 +26,11 @@ std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
 
 void ShowInfo() {
   auto logger = spdlog::get("BSG_results_file");
-  logger->info("**************************************************");
-  logger->info("                  BSG v{}", BSG_VERSION);
-  logger->info("        Last update: {}", BSG_LAST_UPDATE);
-  logger->info("      {}", author);
-  logger->info("**************************************************\n");
+  logger->info("{:*30}");
+  logger->info("{:^30}", "BSG v." + BSG_VERSION);
+  logger->info("{:^30}", "Last update: " + BSG_LAST_UPDATE);
+  logger->info("{:^30}", "Author: " + author);
+  logger->info("{:*30}\n");
 }
 
 Generator::Generator() {
@@ -47,9 +47,18 @@ Generator::Generator() {
 Generator::~Generator() { delete nsm; }
 
 void Generator::InitializeLoggers() {
+  std::string outputName = GetOpt(std::string, output);
+
+  /**
+   * Remove result & log files if they already exist
+   */
+  if (std::ifstream(outputName + ".log")) std::remove((outputName + ".log").c_str());
+  if (std::ifstream(outputName + ".raw")) std::remove(outputName + ".raw");
+  if (std::ifstream(outputName + ".txt")) std::remove(outputName + ".txt");
+
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
-    debugFileLogger = spdlog::basic_logger_st("debug_file", GetOpt(std::string, output) + ".log");
+    debugFileLogger = spdlog::basic_logger_st("debug_file", outputName + ".log");
     debugFileLogger->set_level(spdlog::level::debug);
   }
   debugFileLogger->debug("Debugging logger created");
@@ -61,14 +70,14 @@ void Generator::InitializeLoggers() {
   debugFileLogger->debug("Console logger created");
   rawSpectrumLogger = spdlog::get("BSG_raw");
   if (!rawSpectrumLogger) {
-    rawSpectrumLogger = spdlog::basic_logger_st("BSG_raw", GetOpt(std::string, output) + ".raw");
+    rawSpectrumLogger = spdlog::basic_logger_st("BSG_raw", outputName + ".raw");
     rawSpectrumLogger->set_pattern("%v");
     rawSpectrumLogger->set_level(spdlog::level::info);
   }
   debugFileLogger->debug("Raw spectrum logger created");
   resultsFileLogger = spdlog::get("BSG_results_file");
   if (!resultsFileLogger) {
-    resultsFileLogger = spdlog::basic_logger_st("BSG_results_file", GetOpt(std::string, output) + ".txt");
+    resultsFileLogger = spdlog::basic_logger_st("BSG_results_file", outputName + ".txt");
     resultsFileLogger->set_pattern("%v");
     resultsFileLogger->set_level(spdlog::level::info);
   }
@@ -121,9 +130,9 @@ void Generator::InitializeConstants() {
   atomicEnergyDeficit = GetOpt(double, Transition.AtomicEnergyDeficit);
 
   if (betaType == BETA_MINUS) {
-    W0 = (QValue - atomicEnergyDeficit) / ELECTRON_MASS_KEV + 1.;
+    W0 = (QValue - atomicEnergyDeficit + motherExcitationEn - daughterExcitationEn) / ELECTRON_MASS_KEV + 1.;
   } else {
-    W0 = (QValue - atomicEnergyDeficit) / ELECTRON_MASS_KEV - 1.;
+    W0 = (QValue - atomicEnergyDeficit + motherExcitationEn - daughterExcitationEn) / ELECTRON_MASS_KEV - 1.;
   }
   W0 = W0 - (W0 * W0 - 1) / 2. / A / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;
   debugFileLogger->debug("Leaving InitializeConstants");
@@ -422,7 +431,7 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
   }
   // cout << "result: " << result << endl;
 
-  rawSpectrumLogger->info("{:<10f}\t{<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
+  rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
 
   return std::make_tuple(result, neutrinoResult);
 }
@@ -471,7 +480,7 @@ void Generator::PrepareOutputFile() {
   l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
   if (OptExists(Transition.PartialHalflife)) {
     l->info("Partial halflife: {} s", GetOpt(double, Transition.PartialHalflife));
-    l->info("Calculated log ft value: {} s", CalculateLogFtValue(GetOpt(double, Transition.PartialHalflife)));
+    l->info("Calculated log ft value: {}", CalculateLogFtValue(GetOpt(double, Transition.PartialHalflife)));
   } else {
     l->info("Partial halflife: not given");
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
