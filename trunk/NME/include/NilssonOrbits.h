@@ -19,12 +19,12 @@
 
 namespace NuclearStructure {
 /**
- * This ia a C++ port of the original Fortran IV code from 
+ * This ia a C++ port of the original Fortran IV code from
  * Computer Physics Communications 6 (1973) 30
  * by Hird et al.
- * 
+ *
  * Here follows the original documentation
- * 
+ *
  * ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON
  * 1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE
  * 2   ROTATIONAL STATES.  HIRD, B.
@@ -69,7 +69,7 @@ namespace NuclearStructure {
  * JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.
  * SW(1,NN) = TABLE OF <N',L!F(R)!N,L>
  * SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.
- * SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      
+ * SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.
  */
 namespace nilsson {
 
@@ -78,7 +78,7 @@ using std::endl;
 
 /**
  * Value of harmonic oscillator function at radius x
- * 
+ *
  * @param n principal quantum number
  * @param l orbital quantum number
  * @param x radius in atomic units
@@ -102,7 +102,7 @@ inline double V(int n, int l, double x) {
 
 /**
  * Calculate the normalization constant for a harmonic oscillator wave function
- * 
+ *
  * @param n principal quantum number
  * @param l orbital quantum number
  */
@@ -129,17 +129,20 @@ inline double VNORM(int n, int l) {
 }
 
 /**
- * Calculate the radial integrals for all harmonic oscillator functions in a Woods-Saxon potential
- * 
+ * Calculate the radial integrals for all harmonic oscillator functions in a
+ *Woods-Saxon potential
+ *
  * @param V0 depth of the Woods-Saxon potential
  * @param R nuclear radius
- * @param A0 
+ * @param A0
  * @param V0S strength of the pion exchange term
  * @param A mass number
  * @param Z proton number
  * @param nMax maximum number of oscillator shells
- * @param SW array containing values for radial integrals in Woods-Saxon potential
- * @param SDW array containing values for radial integrals in deformed Woods-Saxon potential
+ * @param SW array containing values for radial integrals in Woods-Saxon
+ *potential
+ * @param SDW array containing values for radial integrals in deformed
+ *Woods-Saxon potential
  */
 inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
                        double Z, int nMax, double SW[2][84], double SDW[462]) {
@@ -242,7 +245,8 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
           JJ++;
           if (KK == 0) {
             dbl->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
-            dbl->debug("    {} {} =    {}\t {}\t {}", II, JJ, SW[0][II - 1], SW[1][II - 1], SDW[JJ - 1]);
+            dbl->debug("    {} {} =    {}\t {}\t {}", II, JJ, SW[0][II - 1],
+                       SW[1][II - 1], SDW[JJ - 1]);
           } else if (KK == 2) {
             dbl->debug("< {},{} | {},{} >", NI, LI, NJ, LJ);
             dbl->debug("      {} = \t\t\t\t\t{}", JJ, SDW[JJ - 1]);
@@ -259,8 +263,9 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
 /**
  * Calculate the eigen values and eigen vectors of a matrix
  * only the upper half of A is used by default
- * 
- * @param A pointer to an array containing the matrix elements in symmetric FORTRAN style
+ *
+ * @param A pointer to an array containing the matrix elements in symmetric
+ *FORTRAN style
  * @param dim dimension of the matrix
  * @param eVecs pointer to an array in which to place the eigenvectors
  * @param eVals reference to a vector in which to put the eigenvalues
@@ -325,19 +330,20 @@ inline void Eigen(double* A, int dim, double* eVecs, std::vector<double>& eVals,
 /**
  * Calculate the single particle eigenstates of the Woods-Saxon potential
  * Will calculate the deformed case when deformation parameters are non-zero
- * 
+ *
  * @param spin nuclear spin
  * @param beta2 quadrupole deformation
  * @param beta4 hexadecupole deformation
  * @param beta6 beta6 deformation
  * @param V0 depth of the Woods-Saxon potential
  * @param R nuclear radius in atomic units
- * @param A0 
+ * @param A0
  * @param V0S strength of the pion-spin-exchange
  * @param A mass number
  * @param Z proton number
  * @param nMax maximum number of oscillator shells
- * @returns vector a SingleParticleState objects of all bound eigenstates in the potential
+ * @returns vector a SingleParticleState objects of all bound eigenstates in the
+ *potential
  */
 inline std::vector<SingleParticleState> Calculate(
     double spin, double beta2, double beta4, double beta6, double V0, double R,
@@ -457,37 +463,39 @@ inline std::vector<SingleParticleState> Calculate(
     }
   }
   if (K == 0) {
-    dbl->warn("No harmonic oscillator single particle states below 10 MeV.");
+    spdlog::get("console")
+        ->warn("No harmonic oscillator single particle states below 10 MeV.");
     return states;
   }
 
-    //spdlog::get("nme_result_file")->info("Spherical Woods-Saxon expansion in Harmonic Oscillator basis.");
-    for (int KKK = 1; KKK <= K; KKK += 12) {
-      int KKKK = std::min(K, KKK + 11);
-      cout << "Energy (MeV): ";
-      for (int i = KKK; i <= KKKK; i++) {
-        cout << eValsWS[i - 1] << " ";
-      }
-      cout << endl;
-      cout << "Spin: \t\t";
-      for (int i = KKK; i <= KKKK; i++) {
-        cout << K3[i - 1] << "/2 \t";
-      }
-      cout << endl;
-      cout << "Coefficients: " << endl;
-      for (int J = 1; J <= II; J++) {
-        cout << "| " << N[J - 1] << " " << JX2[J - 1] << "/2 > ";
-        for (int L = KKK; L <= KKKK; L++) {
-          cout << sphExpCoef[L - 1][J - 1] << "\t\t ";
-        }
-        cout << endl;
-      }
-      cout << "Dominant N: ";
-      for (int i = KKK; i <= KKKK; i++) {
-        cout << NDOM[i - 1] << "\t";
+  /*spdlog::get("nme_results_file")->info("Spherical Woods-Saxon expansion in
+  Harmonic Oscillator basis.");
+  for (int KKK = 1; KKK <= K; KKK += 12) {
+    int KKKK = std::min(K, KKK + 11);
+    cout << "Energy (MeV): ";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << eValsWS[i - 1] << " ";
+    }
+    cout << endl;
+    cout << "Spin: \t\t";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << K3[i - 1] << "/2 \t";
+    }
+    cout << endl;
+    cout << "Coefficients: " << endl;
+    for (int J = 1; J <= II; J++) {
+      cout << "| " << N[J - 1] << " " << JX2[J - 1] << "/2 > ";
+      for (int L = KKK; L <= KKKK; L++) {
+        cout << sphExpCoef[L - 1][J - 1] << "\t\t ";
       }
       cout << endl;
     }
+    cout << "Dominant N: ";
+    for (int i = KKK; i <= KKKK; i++) {
+      cout << NDOM[i - 1] << "\t";
+    }
+    cout << endl;
+  }*/
   dbl->debug("Past spherical case");
   if (!(beta2 == 0 && beta4 == 0 && beta6 == 0)) {
     int ISX2 = std::abs(2 * spin);
@@ -530,7 +538,7 @@ inline std::vector<SingleParticleState> Calculate(
       }
       KKKK += KKK;
       if (KKKK > NDIM4) {
-        cout << "Problem KKKK > NDIM4" << endl;
+        dbl->warn("Problem KKKK > NDIM4");
         return states;
       }
       K1[IIOM - 1] = KKK;
@@ -627,34 +635,34 @@ inline std::vector<SingleParticleState> Calculate(
         }
       }
     }
-      cout << "Deformed states: No band mixing   Beta2: " << beta2
-           << " Beta4: " << beta4 << " Beta6: " << beta6 << endl;
-      for (int KKK = 1; KKK <= K; KKK += 12) {
-        int KKKK = std::min(K, KKK + 11);
-        cout << "Energy (MeV): ";
-        for (int i = KKK; i <= KKKK; i++) {
-          cout << eValsDWS[i - 1] << " ";
-        }
-        cout << endl;
-        cout << "*OMEGA |MU> ";
-        for (int i = KKK; i <= KKKK; i++) {
-          cout << K3[i - 1] << "/2|" << K4[i - 1] << "> \t";
-        }
-        cout << endl;
-        for (int j = 1; j <= II; j++) {
-          cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > " << LA[j - 1]
-               << " ";
-          for (int l = KKK; l <= KKKK; l++) {
-            cout << defExpCoef[l - 1][j - 1] << "\t\t";
-          }
-          cout << endl;
-        }
-        cout << "Dominant N: ";
-        for (int i = KKK; i <= KKKK; i++) {
-          cout << NDOMK[i - 1] << "\t";
+    /*cout << "Deformed states: No band mixing   Beta2: " << beta2
+         << " Beta4: " << beta4 << " Beta6: " << beta6 << endl;
+    for (int KKK = 1; KKK <= K; KKK += 12) {
+      int KKKK = std::min(K, KKK + 11);
+      cout << "Energy (MeV): ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << eValsDWS[i - 1] << " ";
+      }
+      cout << endl;
+      cout << "*OMEGA |MU> ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << K3[i - 1] << "/2|" << K4[i - 1] << "> \t";
+      }
+      cout << endl;
+      for (int j = 1; j <= II; j++) {
+        cout << "| " << N[j - 1] << ", " << JX2[j - 1] << "/2 > " << LA[j - 1]
+             << " ";
+        for (int l = KKK; l <= KKKK; l++) {
+          cout << defExpCoef[l - 1][j - 1] << "\t\t";
         }
         cout << endl;
       }
+      cout << "Dominant N: ";
+      for (int i = KKK; i <= KKKK; i++) {
+        cout << NDOMK[i - 1] << "\t";
+      }
+      cout << endl;
+    }*/
   }  // end of deformation only part
   for (int i = 0; i < K; i++) {
     SingleParticleState sps;
@@ -708,7 +716,7 @@ inline std::vector<SingleParticleState> Calculate(
 /**
  * Custom sort function to compare to SingleParticleState objects.
  * Sorts on energy of the state, checks whether lhs < rhs
- * 
+ *
  * @param lhs left-hand side
  * @param rhs right-hand side
  */
@@ -719,7 +727,7 @@ inline bool StateSorter(SingleParticleState const& lhs,
 
 /**
  * Get a sorted vector of all bound Single particle states, even and odd parity
- * 
+ *
  * @param Z proton number
  * @param N neutron number
  * @param A mass number
@@ -731,7 +739,8 @@ inline bool StateSorter(SingleParticleState const& lhs,
  * @param V0 depth of the Woods-Saxon potential
  * @param A0
  * @param VS strength of the pion-exchange
- * @returns vector of all bound single particle states, sorted for increasing energy
+ * @returns vector of all bound single particle states, sorted for increasing
+ *energy
  */
 inline std::vector<SingleParticleState> GetAllSingleParticleStates(
     int Z, int N, int A, int dJ, double R, double beta2, double beta4,
@@ -754,9 +763,10 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
 }
 
 /**
- * Search for the deformation single particle state corresponding to a certain spin
+ * Search for the deformation single particle state corresponding to a certain
+ *spin
  * within a certain energy threshold of the calculated ones
- * 
+ *
  * @param Z proton number
  * @param N neutron number
  * @param A mass number
@@ -771,7 +781,8 @@ inline std::vector<SingleParticleState> GetAllSingleParticleStates(
  * @param dJreq double of the required spin
  * @param threshold maximum energy difference between the calculated state with
  *     the correct spin and that proposed as the one at the Fermi surface
- * @returns SingleParticleState object. If the correct state is not found, it returns
+ * @returns SingleParticleState object. If the correct state is not found, it
+ *returns
  *     the first SingleParticleState
  */
 inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
@@ -807,30 +818,41 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
         }
       }
       if (index == 0) {
-        cout
-            << "ERROR: Couldn't find a correct spin state within the threshold."
-            << endl;
+        spdlog::get("console")->warn(
+            "ERROR: Couldn't find a correct spin state within the threshold.");
       }
     }
   }
+  auto nmeResults = spdlog::get("nme_results_file");
+  nmeResults->info("Sorted single particle states\n{:->30}", "");
 
-  cout << "Found single particle state. Energy: " << allStates[index].energy
-       << endl;
-  cout << "Spin: " << allStates[index].parity* allStates[index].dO << "/2 ["
-       << allStates[index].nDom << allStates[index].nZ
-       << allStates[index].lambda << "]" << endl;
-  cout << "Orbital\tC" << endl;
-  for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
-    cout << allStates[index].componentsHO[j].n
-         << utilities::spectroNames[allStates[index].componentsHO[j].l]
-         << allStates[index].componentsHO[j].l * 2 +
-                allStates[index].componentsHO[j].s << "/2\t"
-         << allStates[index].componentsHO[j].C << endl;
+  for (int i = 0; i < allStates.size(); i++) {
+    std::string line("{:_>5}  {: }/2  {:8f} MeV");
+    if (i == index) line += "<-------";
+    nmeResults->info(line.c_str(), "", allStates[i].parity * allStates[i].dO,
+                     allStates[i].energy);
   }
 
+  nmeResults->info("\nExplicit wave function composition\n{:->30}", "");
+  nmeResults->info("Selected state: {}/2 ({} MeV)",
+                   allStates[index].parity * allStates[index].dO, allStates[index].energy);
+  if (!(beta2 == 0 & beta4 == 0 & beta6 == 0)) {
+    nmeResults->info("Deformed oscillator quantum numbers: [{}{}{}]",
+                     allStates[index].nDom, allStates[index].nZ,
+                     allStates[index].lambda);
+  }
+  nmeResults->info("Orbital\tC");
+  for (int j = 0; j < allStates[index].componentsHO.size(); j++) {
+    nmeResults->info(
+        "{}{}{}/2\t{}", allStates[index].componentsHO[j].n,
+        utilities::spectroNames[allStates[index].componentsHO[j].l],
+        allStates[index].componentsHO[j].l * 2 +
+            allStates[index].componentsHO[j].s,
+        allStates[index].componentsHO[j].C);
+  }
+  nmeResults->info("\n\n");
   return allStates[index];
 }
-
 }
 }
 #endif

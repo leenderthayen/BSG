@@ -8,6 +8,11 @@
 #include "boost/algorithm/string.hpp"
 #include "gsl/gsl_sf_coupling.h"
 
+#include <stdio.h>
+#include <fstream>
+
+#include "NMEConfig.h"
+
 namespace NS = NuclearStructure;
 namespace NO = NS::nilsson;
 namespace ME = NS::MatrixElements;
@@ -15,6 +20,16 @@ namespace CD = ChargeDistributions;
 
 using std::cout;
 using std::endl;
+
+void ShowNMEInfo() {
+  std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
+  auto logger = spdlog::get("nme_results_file");
+  logger->info("{:*>60}", "");
+  logger->info("{:^60}", "NME v" + std::string(NME_VERSION));
+  logger->info("{:^60}", "Last update: " + std::string(NME_LAST_UPDATE));
+  logger->info("{:^60}", "Author: " + author);
+  logger->info("{:*>60}\n", "");
+}
 
 NS::NuclearStructureManager::NuclearStructureManager() {
   InitializeLoggers();
@@ -38,13 +53,14 @@ void NS::NuclearStructureManager::InitializeConstants() {
   int Am = GetNMOpt(int, Mother.A);
 
   if (Ad != Am) {
-    consoleLogger->error("ERROR: Mother and daughter mass number do not agree.");
+    consoleLogger->error(
+        "ERROR: Mother and daughter mass number do not agree.");
     return;
   }
-  double Rd =
-      GetNMOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
-  double Rm =
-      GetNMOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
+  double Rd = GetNMOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH *
+              std::sqrt(5. / 3.);
+  double Rm = GetNMOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH *
+              std::sqrt(5. / 3.);
   if (Rd == 0.0) {
     Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
@@ -72,8 +88,10 @@ void NS::NuclearStructureManager::InitializeConstants() {
   }
 
   if ((Zd - betaType) != Zm) {
-     consoleLogger->error("ERROR: Mother and daughter proton numbers cannot be coupled "
-            "through process " + process);
+    consoleLogger->error(
+        "ERROR: Mother and daughter proton numbers cannot be coupled "
+        "through process " +
+        process);
     return;
   }
 
@@ -81,13 +99,26 @@ void NS::NuclearStructureManager::InitializeConstants() {
                    motherBeta2, motherBeta4, motherBeta6);
   SetDaughterNucleus(Zd, Ad, daughterSpinParity, Rm, daughterExcitationEn,
                      daughterBeta2, daughterBeta4, daughterBeta6);
+
+  nmeResultsLogger->info("NME input overview\n{:=>30}", "");
+  nmeResultsLogger->info("Using information from {}\n\n", GetNMOpt(std::string, input));
+  nmeResultsLogger->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", Am, utilities::atoms[int(Zm-1)], motherSpinParity, motherExcitationEn, Ad, utilities::atoms[int(Zd-1)], daughterSpinParity, daughterExcitationEn);
   debugFileLogger->debug("Leaving InitializeConstants");
 }
 
 void NS::NuclearStructureManager::InitializeLoggers() {
+  std::string outputName = GetNMOpt(std::string, output);
+
+  /**
+   * Remove result & log files if they already exist
+   */
+  if (std::ifstream(outputName + ".nme"))
+    std::remove((outputName + ".nme").c_str());
+
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
-    debugFileLogger = spdlog::basic_logger_st("debug_file", GetNMOpt(std::string, output) + ".log");
+    debugFileLogger = spdlog::basic_logger_st(
+        "debug_file", GetNMOpt(std::string, output) + ".log");
     debugFileLogger->set_level(spdlog::level::debug);
   }
   debugFileLogger->debug("Debugging logger found in NSM");
@@ -99,10 +130,12 @@ void NS::NuclearStructureManager::InitializeLoggers() {
   debugFileLogger->debug("Console logger found in NSM");
   nmeResultsLogger = spdlog::get("nme_results_file");
   if (!nmeResultsLogger) {
-    nmeResultsLogger = spdlog::basic_logger_st("nme_results_file", GetNMOpt(std::string, output) + ".nme");
+    nmeResultsLogger = spdlog::basic_logger_st(
+        "nme_results_file", GetNMOpt(std::string, output) + ".nme");
     nmeResultsLogger->set_level(spdlog::level::info);
     nmeResultsLogger->set_pattern("%v");
   }
+  ShowNMEInfo();
   debugFileLogger->debug("NME Results logger found in NSM");
 }
 void NS::NuclearStructureManager::SetDaughterNucleus(int Z, int A, int dJ,
@@ -196,20 +229,20 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       threshold = 0.0;
     }
     if (betaType == BETA_MINUS) {
-      nmeResultsLogger->info("Proton State: ");
+      nmeResultsLogger->info("Proton State\n{:=>20}", "");
       spsf = NO::CalculateDeformedSPState(
           daughter.Z, 0, daughter.A, daughter.dJ, dR, dBeta2, dBeta4, dBeta6,
           V0p, A0, VSp, dJReqFin, threshold);
-      nmeResultsLogger->info("Neutron State: ");
+      nmeResultsLogger->info("Neutron State\n{:=>20}", "");
       spsi = NO::CalculateDeformedSPState(0, mother.A - mother.Z, mother.A,
                                           mother.dJ, mR, mBeta2, mBeta4, mBeta6,
                                           V0n, A0, VSn, dJReqIn, threshold);
     } else {
-      nmeResultsLogger->info("Neutron State: ");
+      nmeResultsLogger->info("Neutron State\n{:=>20}", "");
       spsf = NO::CalculateDeformedSPState(
           0, daughter.A - daughter.Z, daughter.A, daughter.dJ, dR, dBeta2,
           dBeta4, dBeta6, V0n, A0, VSn, dJReqFin, threshold);
-      nmeResultsLogger->info("Proton State: ");
+      nmeResultsLogger->info("Proton State\n{:=>20}", "");
       spsi = NO::CalculateDeformedSPState(mother.Z, 0, mother.A, mother.dJ, mR,
                                           mBeta2, mBeta4, mBeta6, V0p, A0, VSp,
                                           dJReqIn, threshold);
@@ -247,21 +280,30 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
           dKf = 0;
           dKi = dKc;
         }
+        if (spsf.parity * spsi.parity * dKi != mother.dJ) {
+          consoleLogger->warn(
+              "WARNING: Single Particle spin coupling does not match mother "
+              "spin!");
+          consoleLogger->warn(
+              "Single Particle values. First: {}/2  Second: {}/2", spsi.dO,
+              spsf.dO);
+          consoleLogger->warn("Coupled spin: {} Required: {}", dKi, mother.dJ);
+        }
+        if (spsf.parity * spsi.parity * dKf != daughter.dJ) {
+          consoleLogger->warn(
+              "WARNING: Single Particle spin coupling does not match daughter "
+              "spin!");
+          consoleLogger->warn(
+              "Single Particle values. First: {}/2  Second: {}/2", spsi.dO,
+              spsf.dO);
+          consoleLogger->warn("Coupled spin: {} Required: {}", dKf,
+                              daughter.dJ);
+        }
+
       } else {
         dKi = spsi.dO;
         dKf = spsf.dO;
       }
-    }
-
-    if (spsf.parity * spsi.parity * dKi != mother.dJ) {
-      consoleLogger->warn("WARNING: Single Particle spin coupling does not match mother spin!");
-      consoleLogger->warn("Single Particle values. First: {}/2  Second: {}/2", spsi.dO, spsf.dO);
-      consoleLogger->warn("Coupled spin: {} Required: {}", dKi, mother.dJ);
-    }
-    if (spsf.parity * spsi.parity * dKf != daughter.dJ) {
-      consoleLogger->warn("WARNING: Single Particle spin coupling does not match daughter spin!");
-      consoleLogger->warn("Single Particle values. First: {}/2  Second: {}/2", spsi.dO, spsf.dO);
-      consoleLogger->warn("Coupled spin: {} Required: {}", dKf, daughter.dJ);
     }
   }
 }
@@ -379,7 +421,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
 
 double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                                            int s) {
-  if (!initialized ) {
+  if (!initialized) {
     Initialize(GetNMOpt(std::string, Computational.Method),
                GetNMOpt(std::string, Computational.Potential));
   }
@@ -416,6 +458,8 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                 obt.spsf, mother.R, nu);
     }
   }
+  nmeResultsLogger->info("Calculated matrix element {}M{}{}{}. Result: {}",
+                         V ? "V" : "A", K, L, s, result);
   return result;
 }
 
@@ -428,11 +472,10 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double VM111 = CalculateMatrixElement(true, 1, 1, 1);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);
 
-  // cout << "AM101: " << AM101 << " VM111: " << VM111 << endl;
-
-  result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * mother.R /
-               gAeff * VM111 / AM101 +
+  result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
+               mother.R / gAeff * VM111 / AM101 +
            gM / gAeff;
+  nmeResultsLogger->info("Weak magnetism final result: b/Ac = {}", result);
   return result;
 }
 
@@ -442,7 +485,8 @@ double NS::NuclearStructureManager::CalculateInducedTensor() {
   double AM110 = CalculateMatrixElement(false, 1, 1, 0);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);
 
-  result = 2. / std::sqrt(3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * mother.R *
-           AM110 / AM101;
+  result = 2. / std::sqrt(3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
+           mother.R * AM110 / AM101;
+  nmeResultsLogger->info("Induced tensor final result: a/Ac = {}", result);
   return result;
 }

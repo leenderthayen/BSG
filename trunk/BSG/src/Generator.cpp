@@ -22,9 +22,8 @@ namespace NS = NuclearStructure;
 using std::cout;
 using std::endl;
 
-std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
-
-void ShowInfo() {
+void ShowBSGInfo() {
+  std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
   auto logger = spdlog::get("BSG_results_file");
   logger->info("{:*>60}", "");
   logger->info("{:^60}", "BSG v" + std::string(BSG_VERSION));
@@ -89,6 +88,7 @@ void Generator::InitializeConstants() {
 
   Z = GetOpt(int, Daughter.Z);
   A = GetOpt(int, Daughter.A);
+
   R = GetOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   if (R == 0.0) {
     debugFileLogger->debug("Radius not found. Using standard formula.");
@@ -123,6 +123,13 @@ void Generator::InitializeConstants() {
   } else {
     decayType = MIXED;
     mixingRatio = GetOpt(double, Transition.MixingRatio);
+  }
+
+  if (A != GetOpt(int, Mother.A)) {
+    consoleLogger->error("Mother and daughter mass numbers are not the same.");
+  }
+  if (Z != GetOpt(int, Mother.Z)+betaType) {
+    consoleLogger->error("Mother and daughter cannot be obtained through {} process", process);
   }
 
   QValue = GetOpt(double, Transition.QValue);
@@ -471,13 +478,15 @@ double Generator::CalculateLogFtValue(double partialHalflife) {
 }
 
 void Generator::PrepareOutputFile() {
-  ShowInfo();
+  ShowBSGInfo();
 
   auto l = spdlog::get("BSG_results_file");
   l->info("Spectrum input overview\n{:=>30}", "");
   l->info("Using information from {}\n\n", GetOpt(std::string, input));
   l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
   l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
+  l->info("Process: {}\tType: {}", GetOpt(std::string, Transition.Process), GetOpt(std::string, Transition.Type));
+  if (mixingRatio != 0) l->info("Mixing ratio: {}", mixingRatio);
   if (OptExists(Transition.PartialHalflife)) {
     l->info("Partial halflife: {} s", GetOpt(double, Transition.PartialHalflife));
     l->info("Calculated log ft value: {}", CalculateLogFtValue(GetOpt(double, Transition.PartialHalflife)));

@@ -63,7 +63,7 @@ NMEOptions::NMEOptions(int argc, char** argv) {
        "Change the configuration file.")
       ("input,i", po::value<std::string>(&inputName),
        "Specify input file containing transition and nuclear data")
-      ("output,o", po::value<std::string>()->default_value("output.txt"),
+      ("output,o", po::value<std::string>()->default_value("output"),
       "Specify the output file name.")
       ("weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")
       ("inducedtensor,d", "Calculate the induced tensor form factor d/Ac")
