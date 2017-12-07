@@ -54,7 +54,42 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
                                       double R, int betaType, double hoFit,
                                       int decayType, double gA, double gP,
                                       double fc1, double fb, double fd,
-                                      double ratioM121) {
+                                      double ratioM121, bool addCI) {
+  double cShape, cNS;
+  std::tie(cShape, cNS) =
+      CCorrectionComponents(W, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
+                            fc1, fb, fd, ratioM121);
+  double result = 0.;
+  if (addCI) {
+    result = cShape * CICorrection(W, W0, Z, A, R, betaType) + cNS;
+  } else {
+    result = cShape + cNS;
+  }
+  return result;
+}
+
+double SpectralFunctions::CCorrection(
+    double W, double W0, int Z, int A, double R, int betaType, double hoFit,
+    int decayType, double gA, double gP, double fc1, double fb, double fd,
+    double ratioM121, bool addCI, NuclearStructure::SingleParticleState& spsi,
+    NuclearStructure::SingleParticleState& spsf) {
+  double cShape, cNS;
+  std::tie(cShape, cNS) =
+      CCorrectionComponents(W, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
+                            fc1, fb, fd, ratioM121);
+  double result = 0.;
+  if (addCI) {
+    result = cShape * CICorrection(W, W0, Z, R, betaType, spsi, spsf) + cNS;
+  } else {
+    result = cShape + cNS;
+  }
+  return result;
+}
+
+std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
+    double W, double W0, int Z, int A, double R, int betaType, double hoFit,
+    int decayType, double gA, double gP, double fc1, double fb, double fd,
+    double ratioM121) {
   double AC0, AC1, ACm1, AC2;
   double VC0, VC1, VCm1, VC2;
 
@@ -85,19 +120,15 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
 
   AC2 = -4. / 9. * R * R;
 
-  double result = 1.;
+  double cShape = 0.;
 
   if (decayType == FERMI) {
-    result = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
+    cShape = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
   } else if (decayType == GAMOW_TELLER) {
-    result = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
+    cShape = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
   }
-  // TODO
-  /*} else if (mixingRatio > 0) {
-  }*/
 
-  result *= CICorrection(W, W0, Z, A, R, betaType, decayType);
-
+  double cNS = 0;
   if (decayType == GAMOW_TELLER) {
     double M = A * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV;
 
@@ -120,15 +151,14 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
 
     double NSC2 = 2. / 45. * R * R * x;
 
-    result += NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
+    cNS = NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
   }
 
-  // cout << "Mixing ratio badly defined. Returning 1." << endl;
-  return result;
+  return std::make_tuple(cShape, cNS);
 }
 
 double SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
-                                       double R, int betaType, int decayType) {
+                                       double R, int betaType) {
   double AC0, AC1, AC2, ACm1;
   double VC0, VC1, VC2, VCm1;
 
@@ -167,28 +197,34 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
 
 double SpectralFunctions::CICorrection(
     double W, double W0, double Z, double R, int betaType,
-    NuclearStructure::SingleParticleState spsi,
-    NuclearStructure::SingleParticleState spsf) {
+    NuclearStructure::SingleParticleState& spsi,
+    NuclearStructure::SingleParticleState& spsf) {
   double V0 = betaType * 3. * Z * ALPHA / 2. / R;
   double epsilon = 1. / 6. * (sqr(W0 - W) + sqr(W + V0) - 1.);
 
   double nu = ChargeDistributions::CalcNu(R * std::sqrt(3. / 5.), Z);
 
   double result = 0.;
+
+  double C = 0.;
   for (int i = 0; i < spsi.componentsHO.size(); i++) {
     for (int j = 0; j < spsf.componentsHO.size(); j++) {
-      double I = ChargeDistributions::GetRadialMEHO(
-          spsf.componentsHO[j].n, spsf.componentsHO[j].l, 0,
-          spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
-      double r2 = ChargeDistributions::GetRadialMEHO(
-          spsf.componentsHO[j].n, spsf.componentsHO[j].l, 2,
-          spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
+      if ((spsf.componentsHO[j].n == spsi.componentsHO[i].n) &&
+          (spsf.componentsHO[j].l == spsi.componentsHO[i].l)) {
+        double I = ChargeDistributions::GetRadialMEHO(
+            spsf.componentsHO[j].n, spsf.componentsHO[j].l, 0,
+            spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
+        double r2 = ChargeDistributions::GetRadialMEHO(
+            spsf.componentsHO[j].n, spsf.componentsHO[j].l, 2,
+            spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
 
-      result += sqr(spsf.componentsHO[j].C * spsi.componentsHO[i].C) *
-                I * (I - 2. * epsilon * r2);
+        result += sqr(spsf.componentsHO[j].C * spsi.componentsHO[i].C) * I *
+                  (I - 2. * epsilon * r2);
+        C += sqr(spsf.componentsHO[j].C * spsi.componentsHO[i].C);
+      }
     }
   }
-  result *= (1. + 6. / 5. * epsilon * R * R);
+  result *= (1. + 6. / 5. * epsilon * R * R) / C;
 
   return result;
 }

@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
       cout << "d/Ac: " << nsm->CalculateInducedTensor() << endl;
     }
     if (NMOptExists(matrixelement)) {
-      std::string me = GetNMOpt(std::string, matrixelement);
+      std::string me = GetNMEOpt(std::string, matrixelement);
       bool V = (me[0] == 'V');
       cout << me[0] << "M" << me.substr(1, 3) << ": " << nsm->CalculateMatrixElement(V, (int)(me[1]-'0'), (int)(me[2]-'0'), (int)(me[3]-'0')) << endl;
     }

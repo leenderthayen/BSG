@@ -51,6 +51,7 @@ configure_file("${PROJECT_SOURCE_DIR}/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSG
 configure_file("${PROJECT_SOURCE_DIR}/NMEConfig.h.in" "${PROJECT_BINARY_DIR}/NMEConfig.h")
 configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/NME_exec/config.txt")
 configure_file("${PROJECT_SOURCE_DIR}/Utilities/config.txt" "${PROJECT_BINARY_DIR}/BSG_exec/config.txt")
+configure_file("${PROJECT_SOURCE_DIR}/Utilities/data/ExchangeData.dat" "${PROJECT_BINARY_DIR}/BSG_exec/ExchangeData.dat")
 
 include_directories("${PROJECT_SOURCE_DIR}/NME/include")
 include_directories("${PROJECT_SOURCE_DIR}/BSG/include")

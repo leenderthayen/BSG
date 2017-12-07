@@ -453,7 +453,7 @@
       <property name="title">
        <string>File info</string>
       </property>
-      <widget class="QLabel" name="label_13">
+      <widget class="QLabel" name="label_11">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -466,7 +466,7 @@
         <string>Current file:</string>
        </property>
       </widget>
-      <widget class="QLabel" name="label_14">
+      <widget class="QLabel" name="l_iniFilename">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -479,7 +479,7 @@
         <string>Filename placeholder</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="b_load_ini">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -492,7 +492,7 @@
         <string>Load .ini file</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="b_save_ini">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -848,7 +848,7 @@
         <property name="title">
          <string/>
         </property>
-        <widget class="QCheckBox" name="checkBox">
+        <widget class="QCheckBox" name="cb_phasespace">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -885,7 +885,7 @@
           <string>Basic:</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_2">
+        <widget class="QCheckBox" name="cb_fermi">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -920,7 +920,7 @@
           <string>Electrostatic:</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_6">
+        <widget class="QCheckBox" name="cb_radiative">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -936,7 +936,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_3">
+        <widget class="QCheckBox" name="cb_efs">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -952,7 +952,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_4">
+        <widget class="QCheckBox" name="cb_ens">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -968,7 +968,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_5">
+        <widget class="QCheckBox" name="cb_efs_deformation">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -1003,7 +1003,7 @@
           <string>Kinematic:</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_7">
+        <widget class="QCheckBox" name="cb_recoil">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -1019,7 +1019,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_8">
+        <widget class="QCheckBox" name="cb_Q">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -1054,7 +1054,7 @@
           <string>Atomic:</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_9">
+        <widget class="QCheckBox" name="cb_screening">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -1070,7 +1070,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_10">
+        <widget class="QCheckBox" name="cb_exchange">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -1086,7 +1086,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QRadioButton" name="radioButton">
+        <widget class="QRadioButton" name="rb_overlap">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -1102,7 +1102,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QRadioButton" name="radioButton_2">
+        <widget class="QRadioButton" name="rb_dW0">
          <property name="geometry">
           <rect>
            <x>230</x>
@@ -1118,7 +1118,7 @@
           <bool>false</bool>
          </property>
         </widget>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox">
+        <widget class="QDoubleSpinBox" name="dsb_dW0">
          <property name="enabled">
           <bool>false</bool>
          </property>
@@ -1140,7 +1140,7 @@
           <double>0.100000000000000</double>
          </property>
         </widget>
-        <widget class="QComboBox" name="comboBox">
+        <widget class="QComboBox" name="cb_shape">
          <property name="geometry">
           <rect>
            <x>30</x>
@@ -1169,7 +1169,7 @@
           <string>Nuclear Structure:</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_11">
+        <widget class="QCheckBox" name="cb_C">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -1185,7 +1185,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_12">
+        <widget class="QCheckBox" name="cb_isovector">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -1201,7 +1201,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_13">
+        <widget class="QCheckBox" name="cb_coupled">
          <property name="geometry">
           <rect>
            <x>40</x>
@@ -1217,7 +1217,7 @@
           <string>Coupled</string>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_14">
+        <widget class="QCheckBox" name="cb_C_deformation">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -1233,7 +1233,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QComboBox" name="comboBox_2">
+        <widget class="QComboBox" name="cb_C_shape">
          <property name="geometry">
           <rect>
            <x>30</x>
@@ -1243,7 +1243,7 @@
           </rect>
          </property>
         </widget>
-        <widget class="QCheckBox" name="checkBox_15">
+        <widget class="QCheckBox" name="cb_relativistic">
          <property name="geometry">
           <rect>
            <x>10</x>
@@ -1259,7 +1259,7 @@
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="b_enable_all">
          <property name="geometry">
           <rect>
            <x>240</x>
@@ -1272,7 +1272,7 @@
           <string>Enable All</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_4">
+        <widget class="QPushButton" name="b_disable_all">
          <property name="geometry">
           <rect>
            <x>240</x>
@@ -1285,7 +1285,7 @@
           <string>Disable All</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_5">
+        <widget class="QPushButton" name="b_load_profile">
          <property name="geometry">
           <rect>
            <x>240</x>
@@ -1299,7 +1299,7 @@
 Profile</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_6">
+        <widget class="QPushButton" name="b_save_profile">
          <property name="geometry">
           <rect>
            <x>340</x>

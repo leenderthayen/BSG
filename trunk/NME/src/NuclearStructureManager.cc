@@ -47,19 +47,19 @@ NS::NuclearStructureManager::NuclearStructureManager(BetaType bt,
 
 void NS::NuclearStructureManager::InitializeConstants() {
   debugFileLogger->debug("Entered InitializeConstants");
-  int Zd = GetNMOpt(int, Daughter.Z);
-  int Zm = GetNMOpt(int, Mother.Z);
-  int Ad = GetNMOpt(int, Daughter.A);
-  int Am = GetNMOpt(int, Mother.A);
+  int Zd = GetNMEOpt(int, Daughter.Z);
+  int Zm = GetNMEOpt(int, Mother.Z);
+  int Ad = GetNMEOpt(int, Daughter.A);
+  int Am = GetNMEOpt(int, Mother.A);
 
   if (Ad != Am) {
     consoleLogger->error(
         "ERROR: Mother and daughter mass number do not agree.");
     return;
   }
-  double Rd = GetNMOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH *
+  double Rd = GetNMEOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH *
               std::sqrt(5. / 3.);
-  double Rm = GetNMOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH *
+  double Rm = GetNMEOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH *
               std::sqrt(5. / 3.);
   if (Rd == 0.0) {
     Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
@@ -67,19 +67,19 @@ void NS::NuclearStructureManager::InitializeConstants() {
   if (Rm == 0.0) {
     Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
-  double motherBeta2 = GetNMOpt(double, Mother.Beta2);
-  double motherBeta4 = GetNMOpt(double, Mother.Beta4);
-  double motherBeta6 = GetNMOpt(double, Mother.Beta6);
-  double daughterBeta2 = GetNMOpt(double, Daughter.Beta2);
-  double daughterBeta4 = GetNMOpt(double, Daughter.Beta4);
-  double daughterBeta6 = GetNMOpt(double, Daughter.Beta6);
-  int motherSpinParity = GetNMOpt(int, Mother.SpinParity);
-  int daughterSpinParity = GetNMOpt(int, Daughter.SpinParity);
+  double motherBeta2 = GetNMEOpt(double, Mother.Beta2);
+  double motherBeta4 = GetNMEOpt(double, Mother.Beta4);
+  double motherBeta6 = GetNMEOpt(double, Mother.Beta6);
+  double daughterBeta2 = GetNMEOpt(double, Daughter.Beta2);
+  double daughterBeta4 = GetNMEOpt(double, Daughter.Beta4);
+  double daughterBeta6 = GetNMEOpt(double, Daughter.Beta6);
+  int motherSpinParity = GetNMEOpt(int, Mother.SpinParity);
+  int daughterSpinParity = GetNMEOpt(int, Daughter.SpinParity);
 
-  double motherExcitationEn = GetNMOpt(double, Mother.ExcitationEnergy);
-  double daughterExcitationEn = GetNMOpt(double, Daughter.ExcitationEnergy);
+  double motherExcitationEn = GetNMEOpt(double, Mother.ExcitationEnergy);
+  double daughterExcitationEn = GetNMEOpt(double, Daughter.ExcitationEnergy);
 
-  std::string process = GetNMOpt(std::string, Transition.Process);
+  std::string process = GetNMEOpt(std::string, Transition.Process);
 
   if (boost::iequals(process, "B+")) {
     betaType = BETA_PLUS;
@@ -100,14 +100,16 @@ void NS::NuclearStructureManager::InitializeConstants() {
   SetDaughterNucleus(Zd, Ad, daughterSpinParity, Rm, daughterExcitationEn,
                      daughterBeta2, daughterBeta4, daughterBeta6);
 
+  potential = GetNMEOpt(std::string, Computational.Potential);
+
   nmeResultsLogger->info("NME input overview\n{:=>30}", "");
-  nmeResultsLogger->info("Using information from {}\n\n", GetNMOpt(std::string, input));
+  nmeResultsLogger->info("Using information from {}\n\n", GetNMEOpt(std::string, input));
   nmeResultsLogger->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", Am, utilities::atoms[int(Zm-1)], motherSpinParity, motherExcitationEn, Ad, utilities::atoms[int(Zd-1)], daughterSpinParity, daughterExcitationEn);
   debugFileLogger->debug("Leaving InitializeConstants");
 }
 
 void NS::NuclearStructureManager::InitializeLoggers() {
-  std::string outputName = GetNMOpt(std::string, output);
+  std::string outputName = GetNMEOpt(std::string, output);
 
   /**
    * Remove result & log files if they already exist
@@ -118,7 +120,7 @@ void NS::NuclearStructureManager::InitializeLoggers() {
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
     debugFileLogger = spdlog::basic_logger_st(
-        "debug_file", GetNMOpt(std::string, output) + ".log");
+        "debug_file", GetNMEOpt(std::string, output) + ".log");
     debugFileLogger->set_level(spdlog::level::debug);
   }
   debugFileLogger->debug("Debugging logger found in NSM");
@@ -131,7 +133,7 @@ void NS::NuclearStructureManager::InitializeLoggers() {
   nmeResultsLogger = spdlog::get("nme_results_file");
   if (!nmeResultsLogger) {
     nmeResultsLogger = spdlog::basic_logger_st(
-        "nme_results_file", GetNMOpt(std::string, output) + ".nme");
+        "nme_results_file", GetNMEOpt(std::string, output) + ".nme");
     nmeResultsLogger->set_level(spdlog::level::info);
     nmeResultsLogger->set_pattern("%v");
   }
@@ -176,24 +178,24 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
                                                SingleParticleState& spsf,
                                                int& dKi, int& dKf) {
   debugFileLogger->debug("Entered GetESPStates");
-  double Vp = GetNMOpt(double, Computational.Vproton);
-  double Vn = GetNMOpt(double, Computational.Vneutron);
-  double Xn = GetNMOpt(double, Computational.Xneutron);
-  double Xp = GetNMOpt(double, Computational.Xproton);
-  double A0 = GetNMOpt(double, Computational.SurfaceThickness);
-  double VSp = GetNMOpt(double, Computational.V0Sproton);
-  double VSn = GetNMOpt(double, Computational.V0Sneutron);
+  double Vp = GetNMEOpt(double, Computational.Vproton);
+  double Vn = GetNMEOpt(double, Computational.Vneutron);
+  double Xn = GetNMEOpt(double, Computational.Xneutron);
+  double Xp = GetNMEOpt(double, Computational.Xproton);
+  double A0 = GetNMEOpt(double, Computational.SurfaceThickness);
+  double VSp = GetNMEOpt(double, Computational.V0Sproton);
+  double VSn = GetNMEOpt(double, Computational.V0Sneutron);
 
   debugFileLogger->debug("Found all Potential constants");
 
   int dJReqIn = mother.dJ;
   int dJReqFin = daughter.dJ;
   if (mother.A % 2 == 0) {
-    dJReqIn = GetNMOpt(int, Mother.ForcedSPSpin);
-    dJReqFin = GetNMOpt(int, Daughter.ForcedSPSpin);
+    dJReqIn = GetNMEOpt(int, Mother.ForcedSPSpin);
+    dJReqFin = GetNMEOpt(int, Daughter.ForcedSPSpin);
   }
 
-  double threshold = GetNMOpt(double, Computational.EnergyMargin);
+  double threshold = GetNMEOpt(double, Computational.EnergyMargin);
 
   debugFileLogger->debug("Found all spin constants");
 
@@ -224,7 +226,7 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
       mBeta4 = mother.beta4;
       mBeta6 = mother.beta6;
     }
-    if (!GetNMOpt(bool, Computational.ForceSpin)) {
+    if (!GetNMEOpt(bool, Computational.ForceSpin)) {
       threshold = 0.0;
     }
     if (betaType == BETA_MINUS) {
@@ -248,11 +250,11 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
     }
   }
 
-  if (GetNMOpt(bool, Computational.OverrideSPCoupling)) {
+  if (GetNMEOpt(bool, Computational.OverrideSPCoupling)) {
     dKi = std::abs(mother.dJ);
     dKf = std::abs(daughter.dJ);
   } else {
-    bool reversedGhallagher = GetNMOpt(bool, Computational.ReversedGhallagher);
+    bool reversedGhallagher = GetNMEOpt(bool, Computational.ReversedGhallagher);
 
     if (boost::iequals(potential, "DWS") && mother.beta2 != 0.0 &&
         daughter.beta2 != 0.0) {
@@ -347,10 +349,10 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     int dTi = std::abs(dT3i);
     int dTf = std::abs(dT3f);
     if (NMOptExists(Mother.Isospin)) {
-      dTi = GetNMOpt(int, Mother.Isospin);
+      dTi = GetNMEOpt(int, Mother.Isospin);
     }
     if (NMOptExists(NuclearPropertiesDaughterIsospin)) {
-      dTf = GetNMOpt(int, Daughter.Isospin);
+      dTf = GetNMEOpt(int, Daughter.Isospin);
     }
     /*if ((dJi + dT3i) / 2 % 2 == 0) {
       dTi = dT3i + 1;
@@ -421,8 +423,8 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
 double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
                                                            int s) {
   if (!initialized) {
-    Initialize(GetNMOpt(std::string, Computational.Method),
-               GetNMOpt(std::string, Computational.Potential));
+    Initialize(GetNMEOpt(std::string, Computational.Method),
+               GetNMEOpt(std::string, Computational.Potential));
   }
   double result = 0.0;
   double nu = CD::CalcNu(mother.R * std::sqrt(3. / 5.), mother.Z);
@@ -465,8 +467,8 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
 double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double result = 0.0;
 
-  double gM = GetNMOpt(double, Constants.gM);
-  double gAeff = GetNMOpt(double, Constants.gAeff);
+  double gM = GetNMEOpt(double, Constants.gM);
+  double gAeff = GetNMEOpt(double, Constants.gAeff);
 
   double VM111 = CalculateMatrixElement(true, 1, 1, 1);
   double AM101 = CalculateMatrixElement(false, 1, 0, 1);

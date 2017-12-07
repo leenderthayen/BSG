@@ -1,5 +1,6 @@
 #include "OptionContainer.h"
 #include "NMEOptions.h"
+#include "spdlog.h"
 #include <iostream>
 
 using std::cout;
@@ -12,7 +13,6 @@ po::options_description OptionContainer::configOptions(
     "Configuration file options");
 po::options_description OptionContainer::transitionOptions(
     "Transition information");
-po::options_description OptionContainer::envOptions("Environment options");
 po::variables_map OptionContainer::vm;
 
 OptionContainer::OptionContainer(int argc, char** argv) {
@@ -74,6 +74,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   genericOptions.add_options()("help,h", "Produce help message")
       ("config,c", po::value<std::string>(&configName),
        "Change the configuration file.")(
+       "exchangedata,e", po::value<std::string>()->default_value("ExchangeData.dat"),
+       "Set the location of the atomic exchange parameters file.")(
       "input,i", po::value<std::string>(&inputName),
       "Specify input file containing transition and nuclear data")(
       "output,o", po::value<std::string>()->default_value("output"),
@@ -82,6 +84,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   spectrumOptions.add_options()("fermi,f", "Turn off the Fermi Function.")(
       "phase,p", "Turn off the phase space factor. ")(
       "l0,l", "Turn off L0 correction.")("C,C", "Turn off C correction.")(
+      "isovector,I", "Turn off the isovector correction to C")(
       "relativistic,R", "Turn off relativistic corrections.")(
       "deformation,D", "Turn off deformation corrections.")(
       "U,U", "Turn off U correction.")("Q,Q", "Turn off Q correction.")(
@@ -124,11 +127,6 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Constants.gP", po::value<double>(),
       "Specify the induced pseudoscalar coupling constant, gP");
 
-  envOptions.add_options()(
-      "ExchangeData",
-      po::value<std::string>()->default_value("data/ExchangeData.dat"),
-      "File location of the atomic exchange fit parameters.");
-
   /** Parse command line options
    * Included: generic options & spectrum shape options
    */
@@ -148,15 +146,13 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     cout << genericOptions << endl;
     cout << spectrumOptions << endl;
     cout << configOptions << endl;
-    cout << envOptions << endl;
   } else {
     /** Parse configuration file
      * Included: configOptions & spectrumOptions
      */
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
-      std::cerr << "ERROR: " << configName << " cannot be found.\n\n"
-                << std::endl;
+      spdlog::get("console")->error("ERROR: {} cannot be found.", configName);
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);
     }
@@ -164,15 +160,11 @@ OptionContainer::OptionContainer(int argc, char** argv) {
      */
     std::ifstream inputStream(inputName.c_str());
     if (!inputStream.is_open()) {
-      std::cerr << "ERROR: " << inputName << " cannot be found.\n\n"
-                << std::endl;
+      spdlog::get("console")->error("ERROR: {} cannot be found.", inputName);
     } else {
       po::store(po::parse_config_file(inputStream, transitionOptions, true),
                 vm);
     }
-    /** Parse environment options
-     */
-    po::store(po::parse_environment(envOptions, "BSG_"), vm);
     po::notify(vm);
   }
 

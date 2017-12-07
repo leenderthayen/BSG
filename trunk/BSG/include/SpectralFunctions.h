@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <gsl/gsl_complex.h>
+#include <tuple>
 
 #include "Constants.h"
 #include "NuclearUtilities.h"
@@ -59,11 +60,60 @@ double FermiFunction(double W, int Z, double R, int betaType);
  * @param fb the b form factor as per Holstein
  * @param fd the d form factor as per Holstein
  * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
- * @return the value
+ * @param addCI boolean to decide whether or not to include the isovector correction to the shape part of C
+ * @param spsi NuclearStructure::SingleParticleState object denoting the initial nucleon state
+ * @param spsf NuclearStructure::SingleParticleState object denoting the final nucleon state
  *
  * The C correction describing effects of finite nuclear size and induced currents.
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
+                   double hoFit, int decayType, double gA, double gP,
+                   double fc1, double fb, double fd, double ratioM121, bool addCI, NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
+
+/**
+ * @brief C correction
+ * @param W total energy in units of electron mass
+ * @param W0 the total endpoint energy in units of the electron rest mass
+ * @param Z proton number
+ * @param A mass number
+ * @param R nuclear radius in natural units
+ * @param betaType the BetaType of the transition
+ * @param hoFit the fitted A value for the Modified Gaussian distribution
+ * @param decayType the DecayType of the transition
+ * @param gA the axial vector coupling constant
+ * @param gP the induced pseudoscalar coupling constant
+ * @param fc1 the c1 form factor as per Holstein (@f$ g_A M_{GT} @f$)
+ * @param fb the b form factor as per Holstein
+ * @param fd the d form factor as per Holstein
+ * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
+ * @param addCI boolean to decide whether or not to include the isovector correction to the shape part of C
+ *
+ * The C correction describing effects of finite nuclear size and induced currents.
+ */
+double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
+                   double hoFit, int decayType, double gA, double gP,
+                   double fc1, double fb, double fd, double ratioM121, bool addCI);
+/**
+ * @brief C correction
+ * @param W total energy in units of electron mass
+ * @param W0 the total endpoint energy in units of the electron rest mass
+ * @param Z proton number
+ * @param A mass number
+ * @param R nuclear radius in natural units
+ * @param betaType the BetaType of the transition
+ * @param hoFit the fitted A value for the Modified Gaussian distribution
+ * @param decayType the DecayType of the transition
+ * @param gA the axial vector coupling constant
+ * @param gP the induced pseudoscalar coupling constant
+ * @param fc1 the c1 form factor as per Holstein (@f$ g_A M_{GT} @f$)
+ * @param fb the b form factor as per Holstein
+ * @param fd the d form factor as per Holstein
+ * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
+ * @return the value
+ *
+ * The C correction describing effects of finite nuclear size and induced currents.
+ */
+std::tuple<double, double> CCorrectionComponents(double W, double W0, int Z, int A, double R, int betaType,
                    double hoFit, int decayType, double gA, double gP,
                    double fc1, double fb, double fd, double ratioM121);
 
@@ -78,8 +128,7 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param betaType BetaType of the transition
  * @param decayType DecayType of the transition
  */
-double CICorrection(double W, double W0, int Z, int A, double R, int betaType,
-                    int decayType);
+double CICorrection(double W, double W0, int Z, int A, double R, int betaType);
 
 /**
  * Isovector correction to the charge density-calculated C correction
@@ -95,7 +144,7 @@ double CICorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param spsf NuclearStructure::SingleParticleState object denoting the final state
  */
 double CICorrection(double W, double W0, double Z, double R, int betaType,
-    NuclearStructure::SingleParticleState spsi, NuclearStructure::SingleParticleState spsf);
+    NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
 
 /**
  * Relativistic matrix element correction to the vector part of the C correction

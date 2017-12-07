@@ -45,7 +45,7 @@ Generator::Generator() {
 Generator::~Generator() { delete nsm; }
 
 void Generator::InitializeLoggers() {
-  std::string outputName = GetOpt(std::string, output);
+  std::string outputName = GetBSGOpt(std::string, output);
 
   /**
    * Remove result & log files if they already exist
@@ -63,6 +63,7 @@ void Generator::InitializeLoggers() {
   consoleLogger = spdlog::get("console");
   if (!consoleLogger) {
     consoleLogger = spdlog::stdout_color_st("console");
+    consoleLogger->set_pattern("%v");
     consoleLogger->set_level(spdlog::level::warn);
   }
   debugFileLogger->debug("Console logger created");
@@ -85,28 +86,28 @@ void Generator::InitializeLoggers() {
 void Generator::InitializeConstants() {
   debugFileLogger->debug("Entered initialize constants");
 
-  Z = GetOpt(int, Daughter.Z);
-  A = GetOpt(int, Daughter.A);
+  Z = GetBSGOpt(int, Daughter.Z);
+  A = GetBSGOpt(int, Daughter.A);
 
-  R = GetOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
+  R = GetBSGOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH * std::sqrt(5. / 3.);
   if (R == 0.0) {
     debugFileLogger->debug("Radius not found. Using standard formula.");
     R = 1.2 * std::pow(A, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
   }
-  motherBeta2 = GetOpt(double, Mother.Beta2);
-  daughterBeta2 = GetOpt(double, Daughter.Beta2);
-  motherSpinParity = GetOpt(int, Mother.SpinParity);
-  daughterSpinParity = GetOpt(int, Daughter.SpinParity);
+  motherBeta2 = GetBSGOpt(double, Mother.Beta2);
+  daughterBeta2 = GetBSGOpt(double, Daughter.Beta2);
+  motherSpinParity = GetBSGOpt(int, Mother.SpinParity);
+  daughterSpinParity = GetBSGOpt(int, Daughter.SpinParity);
 
-  motherExcitationEn = GetOpt(double, Mother.ExcitationEnergy);
-  daughterExcitationEn = GetOpt(double, Daughter.ExcitationEnergy);
+  motherExcitationEn = GetBSGOpt(double, Mother.ExcitationEnergy);
+  daughterExcitationEn = GetBSGOpt(double, Daughter.ExcitationEnergy);
 
-  gA = GetOpt(double, Constants.gA);
-  gP = GetOpt(double, Constants.gP);
-  gM = GetOpt(double, Constants.gM);
+  gA = GetBSGOpt(double, Constants.gA);
+  gP = GetBSGOpt(double, Constants.gP);
+  gM = GetBSGOpt(double, Constants.gM);
 
-  std::string process = GetOpt(std::string, Transition.Process);
-  std::string type = GetOpt(std::string, Transition.Type);
+  std::string process = GetBSGOpt(std::string, Transition.Process);
+  std::string type = GetBSGOpt(std::string, Transition.Type);
 
   if (boost::iequals(process, "B+")) {
     betaType = BETA_PLUS;
@@ -121,19 +122,19 @@ void Generator::InitializeConstants() {
     decayType = GAMOW_TELLER;
   } else {
     decayType = MIXED;
-    mixingRatio = GetOpt(double, Transition.MixingRatio);
+    mixingRatio = GetBSGOpt(double, Transition.MixingRatio);
   }
 
-  if (A != GetOpt(int, Mother.A)) {
+  if (A != GetBSGOpt(int, Mother.A)) {
     consoleLogger->error("Mother and daughter mass numbers are not the same.");
   }
-  if (Z != GetOpt(int, Mother.Z)+betaType) {
+  if (Z != GetBSGOpt(int, Mother.Z)+betaType) {
     consoleLogger->error("Mother and daughter cannot be obtained through {} process", process);
   }
 
-  QValue = GetOpt(double, Transition.QValue);
+  QValue = GetBSGOpt(double, Transition.QValue);
 
-  atomicEnergyDeficit = GetOpt(double, Transition.AtomicEnergyDeficit);
+  atomicEnergyDeficit = GetBSGOpt(double, Transition.AtomicEnergyDeficit);
 
   if (betaType == BETA_MINUS) {
     W0 = (QValue - atomicEnergyDeficit + motherExcitationEn - daughterExcitationEn) / ELECTRON_MASS_KEV + 1.;
@@ -149,7 +150,7 @@ void Generator::InitializeShapeParameters() {
   hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
   debugFileLogger->debug("hoFit: {}", hoFit);
 
-  baseShape = GetOpt(std::string, shape);
+  baseShape = GetBSGOpt(std::string, shape);
 
   vOld.resize(3);
   vNew.resize(3);
@@ -164,8 +165,8 @@ void Generator::InitializeShapeParameters() {
   } else {
     if (OptExists(vold) && OptExists(vnew)) {
       debugFileLogger->debug("Found v and v'");
-      vOld = GetOpt(std::vector<double>, vold);
-      vNew = GetOpt(std::vector<double>, vnew);
+      vOld = GetBSGOpt(std::vector<double>, vold);
+      vNew = GetBSGOpt(std::vector<double>, vnew);
     } else if (OptExists(vold) || OptExists(vnew)) {
       consoleLogger->error("ERROR: Both old and new potential expansions must be given.");
     }
@@ -175,7 +176,7 @@ void Generator::InitializeShapeParameters() {
 
 void Generator::LoadExchangeParameters() {
   debugFileLogger->debug("Entered LoadExchangeParameters");
-  std::string exParamFile = GetOpt(std::string, ExchangeData);
+  std::string exParamFile = GetBSGOpt(std::string, exchangedata);
   std::ifstream paramStream(exParamFile.c_str());
   std::string line;
 
@@ -199,6 +200,8 @@ void Generator::LoadExchangeParameters() {
         exPars[8] = i;
       }
     }
+  } else {
+    consoleLogger->error("ERROR: Can't find Exchange parameters file at {}.", exParamFile);
   }
   debugFileLogger->debug("Leaving LoadExchangeParameters");
 }
@@ -324,7 +327,7 @@ void Generator::GetMatrixElements() {
     double M121 = nsm->CalculateMatrixElement(false, 1, 2, 1);
     ratioM121 = M121 / M101;
   } else {
-    ratioM121 = GetOpt(double, ratioM121);
+    ratioM121 = GetBSGOpt(double, ratioM121);
   }
 
   fc1 = gA * M101;
@@ -334,13 +337,13 @@ void Generator::GetMatrixElements() {
     debugFileLogger->info("Calculating Weak Magnetism");
     bAc = nsm->CalculateWeakMagnetism();
   } else {
-    bAc = GetOpt(double, weakmagnetism);
+    bAc = GetBSGOpt(double, weakmagnetism);
   }
   if (!OptExists(inducedtensor)) {
     debugFileLogger->info("Calculating Induced Tensor");
     dAc = nsm->CalculateInducedTensor();
   } else {
-    dAc = GetOpt(double, inducedtensor);
+    dAc = GetBSGOpt(double, inducedtensor);
   }
   debugFileLogger->info("Weak magnetism: {}", bAc);
   debugFileLogger->info("Induced tensor: {}", dAc);
@@ -362,92 +365,73 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
         SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
 
-  // cout << "result: " << result << endl;
-
   if (!OptExists(fermi)) {
     result *= SF::FermiFunction(W, Z, R, betaType);
     neutrinoResult *= SF::FermiFunction(Wv, Z, R, betaType);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(C)) {
-    result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
-                              gP, fc1, fb, fd, ratioM121);
-    neutrinoResult *=
-        SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                        fc1, fb, fd, ratioM121);
+    if (OptExists(connect)) {
+      result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
+                                gP, fc1, fb, fd, ratioM121, !OptExists(isovector), spsi, spsf);
+      neutrinoResult *=
+          SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
+                          fc1, fb, fd, ratioM121, !OptExists(isovector), spsi, spsf);
+    } else {
+      result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
+                                gP, fc1, fb, fd, ratioM121, !OptExists(isovector));
+      neutrinoResult *=
+          SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
+                          fc1, fb, fd, ratioM121, !OptExists(isovector));
+    }
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, betaType, decayType);
     neutrinoResult *=
         SF::RelativisticCorrection(Wv, W0, Z, A, R, betaType, decayType);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(deformation)) {
     result *=
         SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType);
     neutrinoResult *=
         SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(l0)) {
     result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(U)) {
     result *= SF::UCorrection(W, Z, R, betaType, baseShape, vOld, vNew);
     neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, baseShape, vOld, vNew);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(Q)) {
     result *= SF::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
     neutrinoResult *=
         SF::QCorrection(Wv, W0, Z, A, betaType, decayType, mixingRatio);
   }
-
-  // cout << "result: " << result << endl;
-
   if (!OptExists(radiative)) {
     result *= SF::RadiativeCorrection(W, W0, Z, R, betaType, gA, gM);
     neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(recoil)) {
     result *= SF::RecoilCorrection(W, W0, A, decayType, mixingRatio);
     neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(screening)) {
     result *= SF::AtomicScreeningCorrection(W, Z, betaType);
     neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, betaType);
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(exchange)) {
     if (betaType == BETA_MINUS) {
       result *= SF::AtomicExchangeCorrection(W, exPars);
       neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
     }
   }
-  // cout << "result: " << result << endl;
-
   if (!OptExists(mismatch)) {
     if (atomicEnergyDeficit == 0.) {
       result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
       neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
     }
   }
-  // cout << "result: " << result << endl;
-
   rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
 
   return std::make_tuple(result, neutrinoResult);
@@ -455,9 +439,9 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
 
 std::vector<std::vector<double> > Generator::CalculateSpectrum() {
   debugFileLogger->info("Calculating spectrum");
-  double beginEn = GetOpt(double, begin);
-  double endEn = GetOpt(double, end);
-  double stepEn = GetOpt(double, step);
+  double beginEn = GetBSGOpt(double, begin);
+  double endEn = GetBSGOpt(double, end);
+  double stepEn = GetBSGOpt(double, step);
 
   double beginW = beginEn / ELECTRON_MASS_KEV + 1.;
   double endW = endEn / ELECTRON_MASS_KEV + 1.;
@@ -492,14 +476,14 @@ void Generator::PrepareOutputFile() {
 
   auto l = spdlog::get("BSG_results_file");
   l->info("Spectrum input overview\n{:=>30}", "");
-  l->info("Using information from {}\n\n", GetOpt(std::string, input));
+  l->info("Using information from {}\n\n", GetBSGOpt(std::string, input));
   l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
   l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
-  l->info("Process: {}\tType: {}", GetOpt(std::string, Transition.Process), GetOpt(std::string, Transition.Type));
+  l->info("Process: {}\tType: {}", GetBSGOpt(std::string, Transition.Process), GetBSGOpt(std::string, Transition.Type));
   if (mixingRatio != 0) l->info("Mixing ratio: {}", mixingRatio);
   if (OptExists(Transition.PartialHalflife)) {
-    l->info("Partial halflife: {} s", GetOpt(double, Transition.PartialHalflife));
-    l->info("Calculated log ft value: {}", CalculateLogFtValue(GetOpt(double, Transition.PartialHalflife)));
+    l->info("Partial halflife: {} s", GetBSGOpt(double, Transition.PartialHalflife));
+    l->info("Calculated log ft value: {}", CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife)));
   } else {
     l->info("Partial halflife: not given");
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
@@ -512,17 +496,18 @@ void Generator::PrepareOutputFile() {
   if (OptExists(ratioM121)) l->info("{:25}: {} ({})", "AM121/AM101", ratioM121, "given");
   else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
-  l->info("Full breakfown written in {}.nme", GetOpt(std::string, output));
+  l->info("Full breakfown written in {}.nme", GetBSGOpt(std::string, output));
 
   l->info("\nSpectral corrections\n{:->30}", "");
   l->info("{:25}: {}", "Phase space", !OptExists(phase));
   l->info("{:25}: {}", "Fermi function", !OptExists(fermi));
   l->info("{:25}: {}", "L0 correction", !OptExists(l0));
   l->info("{:25}: {}", "C correction", !OptExists(C));
+  l->info("{:25}: {}", "Isovector correction", !OptExists(isovector));
   l->info("{:25}: {}", "Relativistic terms", !OptExists(relativistic));
   l->info("{:25}: {}", "Deformation", !OptExists(deformation));
   l->info("{:25}: {}", "U correction", !OptExists(U));
-  l->info("    Shape: {}", GetOpt(std::string, shape));
+  l->info("    Shape: {}", GetBSGOpt(std::string, shape));
   if (OptExists(vold) && OptExists(vnew)) {
     l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
     l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);
@@ -538,7 +523,7 @@ void Generator::PrepareOutputFile() {
   l->info("{:25}: {}", "Atomic mismatch", !OptExists(mismatch));
   l->info("{:25}: {}", "Export neutrino", !OptExists(neutrino));
 
-  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n", GetOpt(double, begin), GetOpt(double, end) > 0 ? GetOpt(double, end) : (W0-1.)*ELECTRON_MASS_KEV, GetOpt(double, step));
+  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n", GetBSGOpt(double, begin), GetBSGOpt(double, end) > 0 ? GetBSGOpt(double, end) : (W0-1.)*ELECTRON_MASS_KEV, GetBSGOpt(double, step));
 
   if (!OptExists(neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
   else l->info("{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW");

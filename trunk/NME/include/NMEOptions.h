@@ -14,7 +14,7 @@
  * @param a variable type
  * @param b variable name
  */
-#define GetNMOpt(a, b) NMEOptions::GetInstance().GetNMOption<a>(#b)
+#define GetNMEOpt(a, b) NMEOptions::GetInstance().GetNMEOption<a>(#b)
 /**
  * Macro to check whether a certain option was present
  * 
@@ -45,7 +45,7 @@ class NMEOptions {
    * @param name vriable name
    */
   template <typename T>
-  T GetNMOption(std::string name) {
+  T GetNMEOption(std::string name) {
     return vm[name].as<T>();
   }
   /**
