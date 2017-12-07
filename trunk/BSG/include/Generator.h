@@ -87,6 +87,11 @@ class Generator {
   void InitializeLoggers();
 
   /**
+   * Initialize all Nuclear structure manager-related stuff, like single particle states when C_I and NME are connected, and calculating the required matrix elements
+   */
+  void InitializeNSMInfo();
+
+  /**
    * Construct the output file
    */
   void PrepareOutputFile();

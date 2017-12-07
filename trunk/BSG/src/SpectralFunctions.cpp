@@ -2,7 +2,6 @@
 
 #include "Utilities.h"
 #include "ChargeDistributions.h"
-#include "NuclearUtilities.h"
 #include "Screening.h"
 
 #include <complex>
@@ -178,15 +177,15 @@ double SpectralFunctions::CICorrection(
   double result = 0.;
   for (int i = 0; i < spsi.componentsHO.size(); i++) {
     for (int j = 0; j < spsf.componentsHO.size(); j++) {
-      I = ChargeDistributions::GetRadialMEHO(
+      double I = ChargeDistributions::GetRadialMEHO(
           spsf.componentsHO[j].n, spsf.componentsHO[j].l, 0,
           spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
-      r2 = ChargeDistributions::GetRadialMEHO(
+      double r2 = ChargeDistributions::GetRadialMEHO(
           spsf.componentsHO[j].n, spsf.componentsHO[j].l, 2,
           spsi.componentsHO[i].n, spsi.componentsHO[i].l, nu);
 
       result += sqr(spsf.componentsHO[j].C * spsi.componentsHO[i].C) *
-                I * (I - 2. * epsilon * r2)
+                I * (I - 2. * epsilon * r2);
     }
   }
   result *= (1. + 6. / 5. * epsilon * R * R);

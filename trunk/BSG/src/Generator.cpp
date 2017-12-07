@@ -305,7 +305,7 @@ void Generator::InitializeL0Constants() {
   debugFileLogger->debug("Leaving InitializeL0Constants");
 }
 
-void InitializeNSMInfo() {
+void Generator::InitializeNSMInfo() {
   nsm = new NS::NuclearStructureManager();
 
   if (OptExists(connect)) {

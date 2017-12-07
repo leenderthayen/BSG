@@ -105,6 +105,8 @@ class NuclearStructureManager {
   void AddOneBodyTransition(double obdme, int dKi, int dKf,
                             SingleParticleState spsi, SingleParticleState spsf);
 
+  void GetESPStates(SingleParticleState&, SingleParticleState&, int&, int&);
+
  private:
   Nucleus mother, daughter;
   BetaType betaType;
@@ -120,8 +122,6 @@ class NuclearStructureManager {
   void InitializeLoggers();
   void InitializeConstants();
 
-  void GetESPStates(SingleParticleState&, SingleParticleState&, std::string,
-                    int&, int&, double&);
   void GetESPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
   double GetESPManyParticleCoupling(int, OneBodyTransition&);
 };

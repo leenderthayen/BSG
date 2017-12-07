@@ -7,6 +7,7 @@
 #include <gsl/gsl_complex.h>
 
 #include "Constants.h"
+#include "NuclearUtilities.h"
 
 /**
  * Namespace containing all correction factors to the allowed beta spectrum shape
@@ -79,6 +80,22 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  */
 double CICorrection(double W, double W0, int Z, int A, double R, int betaType,
                     int decayType);
+
+/**
+ * Isovector correction to the charge density-calculated C correction
+ * Gets called when connection with NME is turned on, thereby using actual
+ * single particle wave functions from a (deformed) Woods-Saxon potential
+ * 
+ * @param W electron total energy in units of its rest mass
+ * @param W0 total endpoint energy i units of the electron rest mass
+ * @param Z proton number
+ * @param R nuclear radius in natural units
+ * @betaType beta type of the transition
+ * @param spsi NuclearStructure::SingleParticleState object denoting the initial state
+ * @param spsf NuclearStructure::SingleParticleState object denoting the final state
+ */
+double CICorrection(double W, double W0, double Z, double R, int betaType,
+    NuclearStructure::SingleParticleState spsi, NuclearStructure::SingleParticleState spsf);
 
 /**
  * Relativistic matrix element correction to the vector part of the C correction
