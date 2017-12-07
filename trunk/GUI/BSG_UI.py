@@ -10,6 +10,8 @@ from PySide import QtCore, QtGui, QtUiTools
 
 from MainWindowGUI import Ui_MainWindow
 
+import numpy as np
+
 def loadDeformation(Z, A, filename = 'FRDM2012/FRDM2012.dat'):
     """Load deformation data from Moeller et al., arXiv:1508.06294
 
@@ -53,7 +55,7 @@ def loadChargeRadius(Z, A, filename = 'ChargeRadii/nuclear_charge_radii.txt'):
         radius = UF.getEltonNuclearRadius(A)
     return radius
     
-def writeIniFile(Z, A, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, \
+def writeIniFile(Zm, Zd, A, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, \
 beta6d, mRad, dRad, mJpi, dJpi, dE=0.0, name=None, prefix='', **kwargs):
     if not name:
         name = '%sZ%d_A%d_Q%.0f.ini' % (prefix, Z, A, Q)
@@ -62,10 +64,10 @@ beta6d, mRad, dRad, mJpi, dJpi, dE=0.0, name=None, prefix='', **kwargs):
         % (process, decayType, Q)
         f.write(text)
         text = '[Mother]\nZ=%d\nA=%d\nRadius=%f\nBeta2=%f\nBeta4=%f\nBeta6=%f\nSpinParity=%d\n\n' \
-        % (Z, A, mRad, beta2m, beta4m, beta6m, mJpi)
+        % (Zm, A, mRad, beta2m, beta4m, beta6m, mJpi)
         f.write(text)
         text = '[Daughter]\nZ=%d\nA=%d\nRadius=%f\nBeta2=%f\nBeta4=%f\nBeta6=%f\nSpinParity=%d\nExcitationEnergy=%f\n' \
-        % (Z+1 if process == 'B-' else Z-1, A, dRad, beta2d, beta4d, beta6d, dJpi, dE)
+        % (Zd, A, dRad, beta2d, beta4d, beta6d, dJpi, dE)
         f.write(text)
     return name
 
@@ -77,14 +79,45 @@ class BSG_UI(QtGui.QMainWindow):
         
         self.ui.setupUi(self)
         
-    def saveProfile(self):
+        self.ui.cb_process.addItems(("B-", "B+", "EC"))
+        self.ui.cb_type.addItems(("Fermi", "Gamow-Teller", "Mixed"))
+        self.ui.dsb_MixingRatio.setEnabled(False)
+        self.ui.cb_type.currentIndexChanged[int].connect(self.enableMixingRatio)
         
+        self.ui.b_save_ini.clicked.connect(self.writeIniFile)
+        
+    def enableMixingRatio(self):
+        if self.ui.cb_type.currentText() == "Mixed":
+            self.ui.dsb_MixingRatio.setEnabled(True)
+        else:
+            self.ui.dsb_MixingRatio.setEnabled(False)
+        
+    def saveProfile(self):
+        pass
         
     def writeIniFile(self):
+        Zm = self.ui.sb_ZM.value()
+        Zd = self.ui.sb_ZD.value()
+        Am = self.ui.sb_AM.value()
+        Ad = self.ui.sb_AD.value()
         
+        process = self.ui.cb_process.currentText()
+
+        if Am != Ad:
+            QtGui.QErrorMessage(self).showMessage("Mass numbers do not agree.")
+            return
+        if Zd != (Zm + 1 if process == "B-" else Zm -1):
+            QtGui.QErrorMessage(self).showMessage("Z values do not agree with process")
+            return
+            
+        Q = self.ui.dsb_Q.value()
+        decayType = self.ui.cb_type.currentText()
+        mJ = self.ui.dsb_JM.value()
+        dJ = self.ui.dsb_JM.value()
         
+        filename = QtGui.QFileDialog.getSaveFileName(self, "Save file", "", "")[0]
     def writeConfigFile(self):
-        
+        pass
         
     
 if __name__ == '__main__':
