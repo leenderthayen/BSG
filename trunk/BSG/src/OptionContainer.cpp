@@ -26,7 +26,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Transition.QValue", po::value<double>(),
       "Set the Q value of the decay in keV.")(
       "Transition.AtomicEnergyDeficit", po::value<double>()->default_value(0.),
-      "Set the endpoint energy deficit due to atomic excitations. Turning this on will turn off the atomic mismatch correction")(
+      "Set the endpoint energy deficit due to atomic excitations. Turning this "
+      "on will turn off the atomic mismatch correction")(
       "Transition.PartialHalflife", po::value<double>(),
       "Set the lifetime in seconds of the beta branch.")(
       "Daughter.Z", po::value<int>(),
@@ -71,50 +72,71 @@ OptionContainer::OptionContainer(int argc, char** argv) {
 
   std::string configName = "config.txt";
   std::string inputName = "";
-  genericOptions.add_options()("help,h", "Produce help message")
-      ("config,c", po::value<std::string>(&configName),
-       "Change the configuration file.")(
-       "exchangedata,e", po::value<std::string>()->default_value("ExchangeData.dat"),
-       "Set the location of the atomic exchange parameters file.")(
+  genericOptions.add_options()("help,h", "Produce help message")(
+      "config,c", po::value<std::string>(&configName),
+      "Change the configuration file.")(
+      "exchangedata,e",
+      po::value<std::string>()->default_value("ExchangeData.dat"),
+      "Set the location of the atomic exchange parameters file.")(
       "input,i", po::value<std::string>(&inputName),
       "Specify input file containing transition and nuclear data")(
       "output,o", po::value<std::string>()->default_value("output"),
       "Specify the output file name.");
 
-  spectrumOptions.add_options()("fermi,f", "Turn off the Fermi Function.")(
-      "phase,p", "Turn off the phase space factor. ")(
-      "l0,l", "Turn off L0 correction.")("C,C", "Turn off C correction.")(
-      "isovector,I", "Turn off the isovector correction to C")(
-      "relativistic,R", "Turn off relativistic corrections.")(
-      "deformation,D", "Turn off deformation corrections.")(
-      "U,U", "Turn off U correction.")("Q,Q", "Turn off Q correction.")(
-      "radiative,r", "Turn off radiative corrections.")(
-      "recoil,n", "Turn off kinematic recoil corrections.")(
-      "screening,s", "Turn off atomic screening.")("exchange,x",
-                                                   "Turn off atomic exchange.")(
-      "mismatch,m", "Turn off the atomic mismatch correction.")(
-      "weakmagnetism,b", po::value<double>(),
+  spectrumOptions.add_options()("Spectrum.Fermi,f",
+                                po::value<bool>()->default_value(true),
+                                "Turn off the Fermi Function.")(
+      "Spectrum.Phasespace,p", po::value<bool>()->default_value(true),
+      "Turn off the phase space factor. ")(
+      "Spectrum.ESFiniteSize,l", po::value<bool>()->default_value(true),
+      "Turn off L0 correction.")("Spectrum.C,C", po::value<bool>()->default_value(true),
+                                 "Turn off C correction.")(
+      "Spectrum.Isovector,I", po::value<bool>()->default_value(true),
+      "Turn off the isovector correction to C")(
+      "Spectrum.Relativistic,R", po::value<bool>()->default_value(true),
+      "Turn off relativistic corrections.")(
+      "Spectrum.ESDeformation,D", po::value<bool>()->default_value(true),
+      "Turn off deformation corrections.")(
+      "Spectrum.ESShape,U", po::value<bool>()->default_value(true),
+      "Turn off U correction.")("Spectrum.CoulombRecoil,Q", po::value<bool>()->default_value(true),
+                                "Turn off Q correction.")(
+      "Spectrum.Radiative,r", po::value<bool>()->default_value(true),
+      "Turn off radiative corrections.")(
+      "Spectrum.Recoil,n", po::value<bool>()->default_value(true),
+      "Turn off kinematic recoil corrections.")(
+      "Spectrum.Screening,s", po::value<bool>()->default_value(true),
+      "Turn off atomic screening.")("Spectrum.Exchange,x",
+                                    po::value<bool>()->default_value(true),
+                                    "Turn off atomic exchange.")(
+      "Spectrum.AtomicMismatch,m", po::value<bool>()->default_value(true),
+      "Turn off the atomic mismatch correction.")(
+      "Spectrum.WeakMagnetism,b", po::value<double>(),
       "Specify the b/Ac1 value in the Holstein formalism.")(
-      "inducedtensor,d", po::value<double>(),
+      "Spectrum.InducedTensor,d", po::value<double>(),
       "Specify the d/Ac1 value in the Holstein formalism.")(
-      "ratioM121,X", po::value<double>(),
+      "Spectrum.Lambda,L", po::value<double>(),
       "Specify the ratio of matrix elements M121/M101 in the "
-      "Behrens-Buhring formalism.")("begin,B",
+      "Behrens-Buhring formalism.")("Spectrum.Begin,B",
                                     po::value<double>()->default_value(0.1),
                                     "Specify the starting energy in keV from "
                                     "which to start the spectrum calculation.")(
-      "end,E", po::value<double>()->default_value(0.),
+      "Spectrum.End,E", po::value<double>()->default_value(0.),
       "Specify the last energy in keV for which to calculate the spectrum.")(
-      "step,S", po::value<double>()->default_value(0.1),
+      "Spectrum.Step,S", po::value<double>()->default_value(0.1),
       "Specify the stepsize in keV.")(
-      "neutrino,v", "Turn off the generation of the neutrino spectrum.")(
-      "connect", "Turn on the connection between BSG and NME for the calculation the C_I correction, thereby using the single particle states from the latter")(
-      "shape", po::value<std::string>()->default_value("Fermi"),
+      "Spectrum.Neutrino,v", po::value<bool>()->default_value(true),
+      "Turn off the generation of the neutrino spectrum.")(
+      "Spectrum.Connect", po::value<bool>()->default_value(true),
+      "Turn on the connection between BSG and NME for the calculation the C_I "
+      "correction, thereby using the single particle states from the latter")(
+      "Spectrum.Shape", po::value<std::string>()->default_value("Fermi"),
       "Set the base shape name for the electrostatic finite size correction.")(
-      "vnew", po::value<std::vector<double> >()->multitoken(),
-      "Set the first three coefficients of the radial power expansion of the new nuclear electrostatic potential")(
-      "vold", po::value<std::vector<double> >()->multitoken(),
-      "Set the first three coefficients of the radial power expansion of the old nuclear electrostatic potential");
+      "Spectrum.vnew", po::value<std::vector<double> >()->multitoken(),
+      "Set the first three coefficients of the radial power expansion of the "
+      "new nuclear electrostatic potential")(
+      "Spectrum.vold", po::value<std::vector<double> >()->multitoken(),
+      "Set the first three coefficients of the radial power expansion of the "
+      "old nuclear electrostatic potential");
 
   configOptions.add(spectrumOptions);
   configOptions.add_options()(

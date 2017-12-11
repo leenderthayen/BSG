@@ -7,13 +7,15 @@ Created on Fri Sep 19 14:08:39 2014
 import sys
 from shell import Shell, CommandError
 
-from PySide import QtCore, QtGui, QtUiTools
+from PySide import QtGui
 
 from MainWindowGUI import Ui_MainWindow
 
 import ConfigParser
 
 import numpy as np
+
+import os
 
 def loadDeformation(Z, A, filename = 'FRDM2012/FRDM2012.dat'):
     """Load deformation data from Moeller et al., arXiv:1508.06294
@@ -93,33 +95,44 @@ beta6d, mRad, dRad, mJpi, dJpi, phl=None, dE=0.0, mE=0.0, name=None, prefix='', 
     with open(name, 'wb') as configFile:
         config.write(configFile)
     
-def writeConfigFile(name, directory, prefix, method, margin, forceSpin, reverseGhallagher,\
-overrideCoupling, potential, V0n, V0p, Xn, Xp, V0Sn, V0Sp, gA, gAeff, gP, gM):
+def writeConfigFile(name, directory, computational, constants, spectrumCheckBoxes,\
+spectrumDSB, spectrumNME, enforceNME, spectrumComboBoxes):
     config = ConfigParser.RawConfigParser(allow_no_value=True)
     config.optionxform = str
+    config.add_section('Spectrum')
     config.add_section('General')
     config.add_section('Computational')
     config.add_section('Constants')
     config.set('General', 'Folder', directory)
-    config.set('General', 'Prefix', prefix)
-    config.set('Computational', 'Method', method)
-    config.set('Computational', 'EnergyMargin', margin)
-    config.set('Computational', 'ForceSpin', forceSpin)
-    config.set('Computational', 'ReversedGhallagher', reverseGhallagher)
-    config.set('Computational', 'OverrideSPCoupling', overrideCoupling)
-    config.set('Computational', 'Potential', potential)
-    config.set('Computational', 'Vneutron', V0n)
-    config.set('Computational', 'Vproton', V0p)
-    config.set('Computational', 'Xneutron', Xn)
-    config.set('Computational', 'Xproton', Xp)
-    config.set('Computational', 'V0Sneutron', V0Sn)
-    config.set('Computational', 'V0Sproton', V0Sp)
-    config.set('Constants', 'gA', gA)
-    config.set('Constants', 'gAeff', gAeff)
-    config.set('Constants', 'gP', gP)
-    config.set('Constants', 'gM', gM)
+    for key in computational:
+        try:
+            config.set('Computational', computational[key], key.value())
+        except:
+            try:
+                config.set('Computational', computational[key], key.isChecked())
+            except:
+                try:
+                    config.set('Computational', computational[key], key.currentText())
+                except:
+                    pass
+    for key in constants:
+        config.set('Constants', constants[key], key.value())
+        
+    for key in spectrumCheckBoxes:
+        config.set('Spectrum', spectrumCheckBoxes[key], key.isChecked())
+    for key in spectrumDSB:
+        config.set('Spectrum', spectrumDSB[key], key.value())
+    if enforceNME:
+        for key in spectrumNME:
+            config.set('Spectrum', spectrumNME[key], key.value())
+    for key in spectrumComboBoxes:
+        config.set('Spectrum', spectrumComboBoxes[key], key.currentText())
     with open(name, 'wb') as configFile:
         config.write(configFile)
+        
+def setCheckBoxState(cb, b):
+    if (cb.isChecked() and not b) or (not cb.isChecked() and b):
+        cb.toggle()
 
 class BSG_UI(QtGui.QMainWindow):
     
@@ -129,21 +142,40 @@ class BSG_UI(QtGui.QMainWindow):
         
         self.ui.setupUi(self)
         
-        self.sh = Shell()
+        self.iniName = ''
+        self.configName = ''
+        self.execPath = ''
+        self.exchangePath = ''
         
-        self.checkBoxes =  {self.ui.cb_phasespace: "phase", self.ui.cb_fermi: "fermi", self.ui.cb_radiative: "radiative",\
-        self.ui.cb_efs: "l0", self.ui.cb_ens: "U", self.ui.cb_efs_deformation: "deformation",\
-        self.ui.cb_C: "C", self.ui.cb_isovector: "isovector", self.ui.cb_coupled: "connect", self.ui.cb_C_deformation: "deformation",\
-        self.ui.cb_relativistic: "relativistic", self.ui.cb_recoil: "recoil", self.ui.cb_Q: "Q", \
-        self.ui.cb_screening: "screening", self.ui.cb_exchange: "exchange"}
+        self.spectrumCheckBoxes =  {self.ui.cb_phasespace: "Phasespace", self.ui.cb_fermi: "Fermi", self.ui.cb_radiative: "Radiative",\
+        self.ui.cb_efs: "ESFiniteSize", self.ui.cb_ens: "ESShape", self.ui.cb_efs_deformation: "ESDeformation",\
+        self.ui.cb_C: "C", self.ui.cb_isovector: "Isovector", self.ui.cb_coupled: "Connect", self.ui.cb_C_deformation: "CDeformation",\
+        self.ui.cb_relativistic: "Relativistic", self.ui.cb_recoil: "Recoil", self.ui.cb_Q: "CoulombRecoil", \
+        self.ui.cb_screening: "Screening", self.ui.cb_exchange: "Exchange", self.ui.cb_mismatch: "AtomicMismatch"}
+        self.spectrumNME = {self.ui.dsb_bAc: "WeakMagnetism", self.ui.dsb_dAc: "InducedTensor",\
+        self.ui.dsb_lambda: "Lambda"}
+        self.spectrumDSB = {self.ui.dsb_begin: "Begin", self.ui.dsb_end: "End",\
+        self.ui.dsb_step: "Step"}
+        self.spectrumComboBoxes = {self.ui.cb_shape: "Shape"}
+        self.constants = {self.ui.dsb_gA: "gA", self.ui.dsb_gAeff: "gAeff", self.ui.dsb_gP: "gP",\
+        self.ui.dsb_gM: "gM"}
+        self.computational = {self.ui.cb_nmeMethod: "Method", self.ui.dsb_energyMargin: "EnergyMargin",\
+        self.ui.cb_forceSpin: "ForceSpin", self.ui.cb_reverseGhallagher: "ReversedGhallagher",\
+        self.ui.cb_overrideCoupling: "OverrideSPCoupling", self.ui.cb_potential: "Potential",\
+        self.ui.dsb_V0n: "Vneutron", self.ui.dsb_V0p: "Vproton", self.ui.dsb_V0Sn: "V0Sneutron",\
+        self.ui.dsb_V0Sp: "V0Sproton", self.ui.dsb_Xn: "Xneutron", self.ui.dsb_Xp: "Xproton"}
+        
+        
+        self.ui.gv_plotSpectrum.setLabels(bottom='Energy [keV]', left='Amplitude')
+        self.ui.gv_plotSpectrum.showGrid(True, True, 0.5)
+        
+        self.sh = Shell()
         
         self.ui.b_enable_all.clicked.connect(self.enableAll)
         self.ui.b_disable_all.clicked.connect(self.disableAll)
         
         self.ui.cb_shape.addItems(("Fermi", "Mod. Gauss."))
         self.ui.cb_C_shape.addItems(("UCS", "Mod. Gauss."))
-        #self.ui.rb_dW0.toggled.connect(self.enableDeltaW0)
-        #self.ui.rb_overlap.toggled.connect(self.enableDeltaW0)
         
         self.ui.cb_process.addItems(("B-", "B+", "EC"))
         self.ui.cb_type.addItems(("Fermi", "Gamow-Teller", "Mixed"))
@@ -155,39 +187,82 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.cb_nmeMethod.addItem("ESP")
         self.ui.cb_potential.addItems(("SHO", "WS", "DWS"))
         
-        self.ui.b_saveConfigFile.clicked.connect(self.writeConfigFile)
-        self.ui.b_loadConfigFile.clicked.connect(self.loadConfigFile)
+        self.ui.a_loadIni.triggered.connect(self.loadIniFile)
+        self.ui.a_loadConfig.triggered.connect(self.loadConfigFile)
+        self.ui.a_saveConfig.triggered.connect(self.writeConfigFile)
+        self.ui.a_saveIni.triggered.connect(self.writeIniFile)
+        self.ui.a_bsgExec.triggered.connect(self.changeBSGExec)
+        self.ui.a_exchangeData.triggered.connect(self.changeBSGExchange)
         
-        self.ui.b_save_ini.clicked.connect(self.writeIniFile)
-        self.ui.b_load_ini.clicked.connect(self.loadIniFile)
+        self.ui.a_about.triggered.connect(self.about)
+        self.ui.a_feedback.triggered.connect(self.submitFeedback)
+        
         self.ui.b_runBSG.clicked.connect(self.runBSG)
-        self.ui.b_changeIni.clicked.connect(self.changeBSGIniFile)
-        self.ui.b_changeConfig.clicked.connect(self.changeBSGConfigFile)
-        self.ui.b_changeProfile.clicked.connect(self.changeBSGProfileFile)
-        self.ui.b_bsgExchange.clicked.connect(self.changeBSGExchange)
+        
+        self.plotColors = ('r','g','b','w','y')
+        self.currentPlotIndex = 0
+        
+        self.findDefaults()
         
         self.log('Initialized...')
+        
+        self.statusBar().showMessage("Ready!")
         
     def log(self, message):
         self.ui.txt_lastActions.insertPlainText(message + '\n')
         self.ui.txt_lastActions.moveCursor(QtGui.QTextCursor.End)
         
+    def status(self, message):
+        self.statusBar().showMessage(message)
+        
+    def about(self):
+        QtGui.QMessageBox.information(self, "About", "Beta spectrum Generator GUI v 0.1")
+        
+    def submitFeedback(self):
+        QtGui.QMessageBox.information(self, "Send feedback", "Not yet implemented. Send emails to leendert.hayen@kuleuven.be")
+        
+    def findDefaults(self):
+        self.log("Looking for defaults in current folder...")
+        files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        for f in files:
+            fullPath = os.path.join(os.getcwd(), f)
+            if f == 'BSG':
+                self.log("Found BSG Executable")
+                self.execPath = fullPath
+            elif f == 'config.txt':
+                self.log("Found config.txt")
+                self.loadConfigFile(fullPath)
+            elif f == 'ExchangeData.dat':
+                self.log("Found ExchangeData.dat")
+                self.exchangePath = fullPath
+                
+    def clearPlots(self):
+        pass
+        
     def runBSG(self):
-        execName = self.ui.l_bsgExec.text()
-        iniName = self.ui.l_bsgIni.text()
-        configName = self.ui.l_bsgConfig.text()
+        self.status("Calculating...")
         outputName = self.ui.le_outputName.text()
-        exchangeName = self.ui.l_bsgExchange.text()
-        if iniName == '(blank)':
+        if self.execPath == '':
+            QtGui.QErrorMessage(self).showMessage("Set the path for the generator executable.")
+        if self.iniName == '':
             QtGui.QErrorMessage(self).showMessage("Choose an ini file.")
             return
-        if configName == '(blank)':
+        if self.configName == '':
             QtGui.QErrorMessage(self).showMessage("Choose a config file.")
             return
-        if exchangeName == '(blank)':
+        if self.exchangePath == '':
             QtGui.QErrorMessage(self).showMessage("Choose the Exchange Data file.")
             return
-        command = "./{0} -i {1} -o {2} -c {3} -e {4}".format(execName, iniName, outputName, configName, exchangeName)
+        command = "{0} -i {1} -o {2} -c {3} -e {4}".format(self.execPath, self.iniName, outputName, self.configName, self.exchangePath)
+        for key in self.spectrumCheckBoxes:
+            command += " --Spectrum.{0}={1}".format(self.spectrumCheckBoxes[key], key.isChecked())
+        for key in self.spectrumComboBoxes:
+            command += " --Spectrum.{0}={1}".format(self.spectrumComboBoxes[key], key.currentText())
+        for key in self.spectrumDSB:
+            command += " --Spectrum.{0}={1}".format(self.spectrumDSB[key], key.value())
+        if self.ui.cb_enforceNME.isChecked():
+            for key in self.spectrumNME:
+                command += " --Spectrum.{0}={1}".format(self.spectrumNME[key], key.value())
         print(command)
         try:
             self.sh.run(command)
@@ -195,73 +270,40 @@ class BSG_UI(QtGui.QMainWindow):
                 QtGui.QErrorMessage(self).showMessage(self.sh.output(raw=True))
                 return
             spectrum = np.genfromtxt(outputName + '.raw')
-            self.ui.gv_plotSpectrum.plot(x=spectrum[:, 1], y=spectrum[:,2])
+            self.ui.gv_plotSpectrum.plot(x=spectrum[:, 1], y=spectrum[:,2], pen=self.plotColors[self.currentPlotIndex%len(self.plotColors)])
+            self.currentPlotIndex += 1
             self.log("Spectrum calculation OK")
         except CommandError as e:
             QtGui.QErrorMessage(self).showMessage(('CommandError({0}): {1}'.format(e.errno, e.strerror)))
+        self.status("Ready!")
         
     def changeBSGExec(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, "Choose BSG exec")[0]
         if filename == '':
             return
-        self.ui.l_bsgExec.setText(filename)
-        self.ui.l_bsgExec.setToolTip(filename)
-        
-    def changeBSGIniFile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, "Choose .ini file")[0]
-        if filename == '':
-            return
-        self.loadIniFile(filename)
-        self.ui.l_bsgIni.setText(filename)
-        self.ui.l_bsgIni.setToolTip(filename)
-        
-    def changeBSGConfigFile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, "Choose config file")[0]
-        if filename == '':
-            return
-        self.loadConfigFile(filename)
-        self.ui.l_bsgConfig.setText(filename)
-        self.ui.l_bsgConfig.setToolTip(filename)
-        
-    def changeBSGProfileFile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, "Choose profile file")[0]
-        if filename == '':
-            return
-        self.loadProfileFile(filename)
-        self.ui.l_bsgProfile.setText(filename)
-        self.ui.l_bsgProfile.setToolTip(filename)
+        self.execPath = filename
         
     def changeBSGExchange(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, "Choose Exchange data file")[0]
         if filename == '':
             return
-        self.ui.l_bsgExchange.setText(filename)
-        self.ui.l_bsgExchange.setToolTip(filename)
+        self.exchangePath = filename
         
     def enableMixingRatio(self):
         if self.ui.cb_type.currentText() == "Mixed":
             self.ui.dsb_MixingRatio.setEnabled(True)
         else:
             self.ui.dsb_MixingRatio.setEnabled(False)
-#    def enableDeltaW0(self):
-#        if self.ui.rb_dW0.isChecked():
-#            self.ui.dsb_dW0.setEnabled(True)
-#        else:
-#            self.ui.dsb_dW0.setEnabled(False)
             
     def enableAll(self):
-        for key in self.checkBoxes:
+        for key in self.spectrumCheckBoxes:
             if not key.isChecked():
                 key.toggle()
+                
     def disableAll(self):
-        for key in self.checkBoxes:
+        for key in self.spectrumCheckBoxes:
             if key.isChecked():
                 key.toggle()
-        
-    def saveProfile(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, "Save profile")[0]
-        if filename == '':
-            return
         
     def writeIniFile(self):
         Zm = self.ui.sb_ZM.value()
@@ -311,7 +353,6 @@ class BSG_UI(QtGui.QMainWindow):
             config = ConfigParser.RawConfigParser(allow_no_value=True)
             config.read(filename)
             
-            self.ui.l_iniFilename.setText(filename.split('/')[-1])
             self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(config.get('Transition', 'Process')))
             self.ui.cb_type.setCurrentIndex(self.ui.cb_type.findText(config.get('Transition', 'Type')))
             self.ui.dsb_MixingRatio.setValue(config.getfloat('Transition', 'MixingRatio'))
@@ -332,6 +373,10 @@ class BSG_UI(QtGui.QMainWindow):
             self.ui.dsb_Beta2D.setValue(config.getfloat('Daughter', 'Beta2'))
             self.ui.dsb_Beta4D.setValue(config.getfloat('Daughter', 'Beta6'))
             self.ui.dsb_Beta6D.setValue(config.getfloat('Daughter', 'Beta6'))
+            self.ui.l_iniFilename.setText(filename.split('/')[-1])
+            self.ui.l_iniFilename.setToolTip(filename)
+            
+            self.iniName = filename
             self.log("Loaded Ini file: %s." % filename)
         except:
             QtGui.QErrorMessage(self).showMessage("Failed to load %s file" % filename)
@@ -339,51 +384,62 @@ class BSG_UI(QtGui.QMainWindow):
         filename = QtGui.QFileDialog.getSaveFileName(self, "Save config file")[0]
         if filename == '':
             return
-        
-        writeConfigFile(filename, self.ui.b_chooseConfigFolder.text(), \
-        self.ui.le_configPrefix.text(), self.ui.cb_nmeMethod.currentText(),\
-        self.ui.dsb_energyMargin.value(), self.ui.cb_forceSpin.isChecked(), self.ui.cb_reverseGhallagher.isChecked(),\
-        self.ui.cb_overrideCoupling.isChecked(), self.ui.cb_potential.currentText(),\
-        self.ui.dsb_V0n.value(), self.ui.dsb_V0p.value(), self.ui.dsb_Xn.value(),\
-        self.ui.dsb_Xp.value(), self.ui.dsb_V0Sn.value(), self.ui.dsb_V0Sp.value(),\
-        self.ui.dsb_gA.value(), self.ui.dsb_gAeff.value(), self.ui.dsb_gP.value(),\
-        self.ui.dsb_gM.value())
-        self.log("Config file written to %s." % filename)
+        try:
+            writeConfigFile(filename, self.ui.b_chooseConfigFolder.text(), self.computational,\
+            self.constants, self.spectrumCheckBoxes, self.spectrumDSB, self.spectrumNME,\
+            self.ui.cb_enforceNME.isChecked(), self.spectrumComboBoxes)
+            self.log("Config file written to %s." % filename)
+        except:
+            QtGui.QErrorMessage(self).showMessage("Writing ini file failed.")
         
     def loadConfigFile(self, filename = None):
         if not filename:
             filename = QtGui.QFileDialog.getOpenFileName(self, "Choose config file")[0]
         if filename == '':
             return
-        try:
-            config = ConfigParser.RawConfigParser()
-            config.read(filename)
+        #try:
+        config = ConfigParser.RawConfigParser()
+        config.read(filename)
+        
+        self.ui.b_chooseConfigFolder.setText(config.get('General', 'Folder'))
+        for key in self.computational:
+            try:
+                key.setValue(config.getfloat('Computational', self.computational[key]))
+            except:
+                try:
+                    setCheckBoxState(key, config.getboolean('Computational', self.computational[key]))
+                except:
+                    try:
+                        key.setCurrentIndex(key.findText(config.get('Computational', self.computational[key])))
+                    except:
+                        pass
+        
+        for key in self.spectrumCheckBoxes:
+            try:
+                setCheckBoxState(key, config.getboolean('Spectrum', self.spectrumCheckBoxes[key]))
+            except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                break
+        for key in self.spectrumDSB:
+            try:
+                key.setValue(config.getfloat('Spectrum', self.spectrumDSB[key]))
+            except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                break
+        for key in self.spectrumNME:
+            try:
+                key.setValue(config.getfloat('Spectrum', self.spectrumNME[key]))
+                setCheckBoxState(self.ui.cb_enforceNME, True)
+            except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                break
+        for key in self.spectrumComboBoxes:
+            try:
+                key.setCurrentIndex(key.findText(config.get('Spectrum', self.spectrumComboBoxes[key])))
+            except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                break
             
-            self.ui.b_chooseConfigFolder.setText(config.get('General', 'Folder'))
-            self.ui.le_configPrefix.setText(config.get('General', 'Prefix'))
-            self.ui.cb_nmeMethod.setCurrentIndex(self.ui.cb_nmeMethod.findText(config.get('Computational', 'Method')))
-            self.ui.dsb_energyMargin.setValue(config.getfloat('Computational', 'EnergyMargin'))
-            self.ui.cb_potential.setCurrentIndex(self.ui.cb_potential.findText(config.get('Computational', 'Potential')))
-            self.ui.dsb_V0n.setValue(config.getfloat('Computational', 'Vneutron'))
-            self.ui.dsb_V0p.setValue(config.getfloat('Computational', 'Vproton'))
-            self.ui.dsb_Xn.setValue(config.getfloat('Computational', 'Xneutron'))
-            self.ui.dsb_Xp.setValue(config.getfloat('Computational', 'Xproton'))
-            self.ui.dsb_V0Sn.setValue(config.getfloat('Computational', 'V0Sneutron'))
-            self.ui.dsb_V0Sp.setValue(config.getfloat('Computational', 'V0Sproton'))
-            self.ui.dsb_gA.setValue(config.getfloat('Constants', 'gA'))
-            self.ui.dsb_gAeff.setValue(config.getfloat('Constants', 'gAeff'))
-            self.ui.dsb_gP.setValue(config.getfloat('Constants', 'gP'))
-            self.ui.dsb_gM.setValue(config.getfloat('Constants', 'gM'))
-            
-            if (self.ui.cb_overrideCoupling.isChecked() and not config.getboolean('Computational', 'OverrideSPCoupling')) or (not self.ui.cb_overrideCoupling.isChecked() and config.getboolean('Computational', 'OverrideSPCoupling')):
-                self.ui.cb_overrideCoupling.toggle()
-            if (self.ui.cb_reverseGhallagher.isChecked() and not config.getboolean('Computational', 'ReversedGhallagher')) or (not self.ui.cb_reverseGhallagher.isChecked() and config.getboolean('Computational', 'ReversedGhallagher')):
-                self.ui.cb_reverseGhallagher.toggle()
-            if (self.ui.cb_forceSpin.isChecked() and not config.getboolean('Computational', 'ForceSpin')) or (not self.ui.cb_forceSpin.isChecked() and config.getboolean('Computational', 'ForceSpin')):
-                self.ui.cb_forceSpin.toggle()
-            self.log("Loaded config file: %s." % filename)
-        except:
-            QtGui.QErrorMessage(self).showMessage("Failed to load %s file" % filename)
+        self.configName = filename
+        self.log("Loaded config file: %s." % filename)
+        #except:
+            #QtGui.QErrorMessage(self).showMessage("Failed to load %s file" % filename)
         
     
 if __name__ == '__main__':

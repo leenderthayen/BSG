@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>912</width>
-    <height>678</height>
+    <width>944</width>
+    <height>724</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QScrollArea" name="scrollArea">
     <property name="geometry">
      <rect>
-      <x>520</x>
-      <y>510</y>
-      <width>361</width>
-      <height>161</height>
+      <x>550</x>
+      <y>500</y>
+      <width>381</width>
+      <height>171</height>
      </rect>
     </property>
     <property name="widgetResizable">
@@ -31,8 +31,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>359</width>
-       <height>159</height>
+       <width>379</width>
+       <height>169</height>
       </rect>
      </property>
      <widget class="QPlainTextEdit" name="txt_lastActions">
@@ -40,8 +40,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>361</width>
-        <height>161</height>
+        <width>381</width>
+        <height>171</height>
        </rect>
       </property>
      </widget>
@@ -50,7 +50,7 @@
    <widget class="QTabWidget" name="optionsTabWidget">
     <property name="geometry">
      <rect>
-      <x>510</x>
+      <x>550</x>
       <y>20</y>
       <width>381</width>
       <height>451</height>
@@ -61,128 +61,8 @@
     </property>
     <widget class="QWidget" name="iniTab">
      <attribute name="title">
-      <string>Transition Options</string>
+      <string>Transition Info</string>
      </attribute>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>0</y>
-        <width>191</width>
-        <height>151</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Transition</string>
-      </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>30</y>
-         <width>67</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Process:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>60</y>
-         <width>67</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Type:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_3">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>90</y>
-         <width>101</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Mixing Ratio:</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_4">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>120</y>
-         <width>67</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Q value: </string>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="cb_type">
-       <property name="geometry">
-        <rect>
-         <x>80</x>
-         <y>60</y>
-         <width>111</width>
-         <height>27</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="cb_process">
-       <property name="geometry">
-        <rect>
-         <x>110</x>
-         <y>30</y>
-         <width>81</width>
-         <height>27</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QDoubleSpinBox" name="dsb_MixingRatio">
-       <property name="geometry">
-        <rect>
-         <x>100</x>
-         <y>90</y>
-         <width>91</width>
-         <height>27</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QDoubleSpinBox" name="dsb_Q">
-       <property name="geometry">
-        <rect>
-         <x>70</x>
-         <y>120</y>
-         <width>121</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="suffix">
-        <string> keV</string>
-       </property>
-       <property name="maximum">
-        <double>20000.000000000000000</double>
-       </property>
-      </widget>
-      <zorder>label</zorder>
-      <zorder>label_2</zorder>
-      <zorder>label_3</zorder>
-      <zorder>label_4</zorder>
-      <zorder>cb_type</zorder>
-      <zorder>cb_process</zorder>
-      <zorder>dsb_MixingRatio</zorder>
-      <zorder>dsb_Q</zorder>
-      <zorder>gv_plotSensors</zorder>
-     </widget>
      <widget class="QGroupBox" name="group_M">
       <property name="geometry">
        <rect>
@@ -256,6 +136,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Quadrupole deformation</string>
+       </property>
        <property name="text">
         <string>Beta2:</string>
        </property>
@@ -269,6 +152,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Hexadecupole deformation</string>
+       </property>
        <property name="text">
         <string>Beta4:</string>
        </property>
@@ -281,6 +167,9 @@
          <width>67</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="statusTip">
+        <string>Beta6 deformation</string>
        </property>
        <property name="text">
         <string>Beta6:</string>
@@ -372,6 +261,9 @@
          <height>27</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Parity of nuclear level</string>
+       </property>
       </widget>
       <widget class="QDoubleSpinBox" name="dsb_Beta2M">
        <property name="geometry">
@@ -381,6 +273,9 @@
          <width>69</width>
          <height>27</height>
         </rect>
+       </property>
+       <property name="statusTip">
+        <string>Quadrupole deformation</string>
        </property>
        <property name="decimals">
         <number>3</number>
@@ -404,6 +299,9 @@
          <height>27</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Hexadecupole deformation</string>
+       </property>
        <property name="decimals">
         <number>3</number>
        </property>
@@ -426,6 +324,9 @@
          <height>27</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Beta6 deformation</string>
+       </property>
        <property name="decimals">
         <number>3</number>
        </property>
@@ -439,31 +340,14 @@
         <double>0.100000000000000</double>
        </property>
       </widget>
-      <zorder>lab_ZM</zorder>
-      <zorder>lab_AM</zorder>
-      <zorder>lab_RM</zorder>
-      <zorder>lab_JM</zorder>
-      <zorder>lab_Beta2M</zorder>
-      <zorder>lab_Beta4M</zorder>
-      <zorder>lab_Beta6M</zorder>
-      <zorder>lab_PiM</zorder>
-      <zorder>sb_ZM</zorder>
-      <zorder>sb_AM</zorder>
-      <zorder>dsb_RM</zorder>
-      <zorder>dsb_JM</zorder>
-      <zorder>cb_PiM</zorder>
-      <zorder>dsb_Beta2M</zorder>
-      <zorder>dsb_Beta4M</zorder>
-      <zorder>dsb_Beta6M</zorder>
-      <zorder>gv_plotSensors</zorder>
      </widget>
      <widget class="QGroupBox" name="groupBox_3">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>0</y>
-        <width>161</width>
-        <height>141</height>
+        <width>351</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="title">
@@ -473,7 +357,7 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>20</y>
+         <y>30</y>
          <width>91</width>
          <height>21</height>
         </rect>
@@ -485,40 +369,20 @@
       <widget class="QLabel" name="l_iniFilename">
        <property name="geometry">
         <rect>
-         <x>0</x>
-         <y>50</y>
+         <x>190</x>
+         <y>36</y>
          <width>161</width>
-         <height>17</height>
+         <height>21</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Filename placeholder</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="b_load_ini">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>80</y>
-         <width>131</width>
-         <height>27</height>
-        </rect>
+       <property name="statusTip">
+        <string>Current file used for the transition</string>
        </property>
        <property name="text">
-        <string>Load .ini file</string>
+        <string>(blank)</string>
        </property>
-      </widget>
-      <widget class="QPushButton" name="b_save_ini">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>110</y>
-         <width>131</width>
-         <height>27</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Save as...</string>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </widget>
@@ -595,6 +459,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Quadrupole deformation</string>
+       </property>
        <property name="text">
         <string>Beta2:</string>
        </property>
@@ -608,6 +475,9 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Hexadecupole deformation</string>
+       </property>
        <property name="text">
         <string>Beta4:</string>
        </property>
@@ -620,6 +490,9 @@
          <width>67</width>
          <height>31</height>
         </rect>
+       </property>
+       <property name="statusTip">
+        <string>Beta6 deformation</string>
        </property>
        <property name="text">
         <string>Beta6:</string>
@@ -711,6 +584,9 @@
          <height>27</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Parity of nuclear level</string>
+       </property>
       </widget>
       <widget class="QDoubleSpinBox" name="dsb_Beta2D">
        <property name="geometry">
@@ -720,6 +596,9 @@
          <width>69</width>
          <height>27</height>
         </rect>
+       </property>
+       <property name="statusTip">
+        <string>Quadrupole deformation</string>
        </property>
        <property name="decimals">
         <number>3</number>
@@ -743,6 +622,9 @@
          <height>27</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Hexadecupole deformation</string>
+       </property>
        <property name="decimals">
         <number>3</number>
        </property>
@@ -765,6 +647,9 @@
          <height>27</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Beta6 deformation</string>
+       </property>
        <property name="decimals">
         <number>3</number>
        </property>
@@ -779,18 +664,141 @@
        </property>
       </widget>
      </widget>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>60</y>
+        <width>371</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Transition</string>
+      </property>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>30</y>
+         <width>67</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Process:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>60</y>
+         <width>67</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Type:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>30</y>
+         <width>101</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Mixing Ratio:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_4">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>60</y>
+         <width>67</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Q value: </string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="cb_type">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>60</y>
+         <width>111</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Decay type</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="cb_process">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>30</y>
+         <width>81</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Decay process</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="dsb_MixingRatio">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>30</y>
+         <width>91</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Mixing ratio as M_F/M_GT</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="dsb_Q">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>60</y>
+         <width>121</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Q Value in keV</string>
+       </property>
+       <property name="suffix">
+        <string> keV</string>
+       </property>
+       <property name="maximum">
+        <double>20000.000000000000000</double>
+       </property>
+      </widget>
+     </widget>
     </widget>
     <widget class="QWidget" name="configTab">
      <attribute name="title">
-      <string>Configuration Options</string>
+      <string>Nuclear Structure Options</string>
      </attribute>
      <widget class="QLabel" name="label_12">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>10</y>
+        <y>0</y>
         <width>67</width>
-        <height>17</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="font">
@@ -806,8 +814,8 @@
      <widget class="QLabel" name="label_13">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>30</y>
+        <x>190</x>
+        <y>20</y>
         <width>81</width>
         <height>31</height>
        </rect>
@@ -819,8 +827,8 @@
      <widget class="QPushButton" name="b_chooseConfigFolder">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>30</y>
+        <x>270</x>
+        <y>20</y>
         <width>99</width>
         <height>27</height>
        </rect>
@@ -846,29 +854,6 @@
       </property>
       <property name="text">
        <string>Computational:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_15">
-      <property name="geometry">
-       <rect>
-        <x>200</x>
-        <y>26</y>
-        <width>51</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Prefix:</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="le_configPrefix">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>30</y>
-        <width>113</width>
-        <height>27</height>
-       </rect>
       </property>
      </widget>
      <widget class="QLabel" name="label_16">
@@ -995,7 +980,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>210</y>
+        <y>220</y>
         <width>91</width>
         <height>31</height>
        </rect>
@@ -1008,7 +993,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>240</y>
+        <y>260</y>
         <width>91</width>
         <height>31</height>
        </rect>
@@ -1021,7 +1006,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>210</y>
+        <y>220</y>
         <width>69</width>
         <height>27</height>
        </rect>
@@ -1034,7 +1019,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>240</y>
+        <y>260</y>
         <width>69</width>
         <height>27</height>
        </rect>
@@ -1047,7 +1032,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>270</y>
+        <y>300</y>
         <width>81</width>
         <height>31</height>
        </rect>
@@ -1060,7 +1045,7 @@
       <property name="geometry">
        <rect>
         <x>190</x>
-        <y>270</y>
+        <y>300</y>
         <width>71</width>
         <height>31</height>
        </rect>
@@ -1073,7 +1058,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>270</y>
+        <y>300</y>
         <width>69</width>
         <height>27</height>
        </rect>
@@ -1086,7 +1071,7 @@
       <property name="geometry">
        <rect>
         <x>300</x>
-        <y>270</y>
+        <y>300</y>
         <width>69</width>
         <height>27</height>
        </rect>
@@ -1099,7 +1084,7 @@
       <property name="geometry">
        <rect>
         <x>190</x>
-        <y>210</y>
+        <y>220</y>
         <width>111</width>
         <height>31</height>
        </rect>
@@ -1112,7 +1097,7 @@
       <property name="geometry">
        <rect>
         <x>190</x>
-        <y>240</y>
+        <y>260</y>
         <width>101</width>
         <height>31</height>
        </rect>
@@ -1125,7 +1110,7 @@
       <property name="geometry">
        <rect>
         <x>300</x>
-        <y>210</y>
+        <y>220</y>
         <width>69</width>
         <height>27</height>
        </rect>
@@ -1138,7 +1123,7 @@
       <property name="geometry">
        <rect>
         <x>300</x>
-        <y>240</y>
+        <y>260</y>
         <width>69</width>
         <height>27</height>
        </rect>
@@ -1151,7 +1136,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>300</y>
+        <y>330</y>
         <width>81</width>
         <height>17</height>
        </rect>
@@ -1170,9 +1155,9 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>320</y>
+        <y>350</y>
         <width>67</width>
-        <height>17</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -1183,9 +1168,9 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>350</y>
+        <y>390</y>
         <width>67</width>
-        <height>17</height>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -1196,7 +1181,7 @@
       <property name="geometry">
        <rect>
         <x>88</x>
-        <y>320</y>
+        <y>350</y>
         <width>81</width>
         <height>27</height>
        </rect>
@@ -1212,7 +1197,7 @@
       <property name="geometry">
        <rect>
         <x>88</x>
-        <y>350</y>
+        <y>390</y>
         <width>81</width>
         <height>27</height>
        </rect>
@@ -1224,10 +1209,10 @@
      <widget class="QLabel" name="label_28">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>380</y>
-        <width>67</width>
-        <height>17</height>
+        <x>190</x>
+        <y>390</y>
+        <width>41</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
@@ -1238,7 +1223,7 @@
       <property name="geometry">
        <rect>
         <x>190</x>
-        <y>316</y>
+        <y>350</y>
         <width>67</width>
         <height>31</height>
        </rect>
@@ -1250,8 +1235,8 @@
      <widget class="QDoubleSpinBox" name="dsb_gM">
       <property name="geometry">
        <rect>
-        <x>230</x>
-        <y>320</y>
+        <x>240</x>
+        <y>350</y>
         <width>81</width>
         <height>27</height>
        </rect>
@@ -1266,8 +1251,8 @@
      <widget class="QDoubleSpinBox" name="dsb_gP">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>380</y>
+        <x>240</x>
+        <y>390</y>
         <width>81</width>
         <height>27</height>
        </rect>
@@ -1276,32 +1261,30 @@
        <double>1.000000000000000</double>
       </property>
      </widget>
-     <widget class="QPushButton" name="b_saveConfigFile">
+     <widget class="QLabel" name="label_15">
       <property name="geometry">
        <rect>
-        <x>180</x>
-        <y>360</y>
-        <width>99</width>
-        <height>51</height>
+        <x>10</x>
+        <y>26</y>
+        <width>91</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>Save config
-file</string>
+       <string>Current file:</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="b_loadConfigFile">
+     <widget class="QLabel" name="l_currentConfigFile">
       <property name="geometry">
        <rect>
-        <x>280</x>
-        <y>360</y>
-        <width>91</width>
-        <height>51</height>
+        <x>10</x>
+        <y>50</y>
+        <width>171</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>Load config
-file</string>
+       <string/>
       </property>
      </widget>
     </widget>
@@ -1309,7 +1292,7 @@ file</string>
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>520</x>
+      <x>560</x>
       <y>480</y>
       <width>361</width>
       <height>20</height>
@@ -1328,6 +1311,12 @@ file</string>
       <height>101</height>
      </rect>
     </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
     <property name="text">
      <string/>
     </property>
@@ -1340,12 +1329,12 @@ file</string>
      <rect>
       <x>10</x>
       <y>120</y>
-      <width>491</width>
+      <width>531</width>
       <height>551</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="bsgMainTab">
      <attribute name="title">
@@ -1355,9 +1344,9 @@ file</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>160</y>
-        <width>471</width>
-        <height>351</height>
+        <y>50</y>
+        <width>511</width>
+        <height>461</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -1369,24 +1358,45 @@ file</string>
      <widget class="QPushButton" name="b_runBSG">
       <property name="geometry">
        <rect>
-        <x>350</x>
-        <y>90</y>
-        <width>111</width>
-        <height>61</height>
+        <x>260</x>
+        <y>10</y>
+        <width>101</width>
+        <height>31</height>
        </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>OpenHandCursor</cursorShape>
+      </property>
+      <property name="statusTip">
+       <string>Run the spectrum shape generator</string>
       </property>
       <property name="text">
        <string>Run!</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
       </property>
      </widget>
      <widget class="QLineEdit" name="le_outputName">
       <property name="geometry">
        <rect>
-        <x>350</x>
-        <y>40</y>
+        <x>120</x>
+        <y>10</y>
         <width>113</width>
         <height>27</height>
        </rect>
+      </property>
+      <property name="statusTip">
+       <string>Choose the output name of all files generated (omit extension)</string>
       </property>
       <property name="text">
        <string>output</string>
@@ -1395,224 +1405,17 @@ file</string>
      <widget class="QLabel" name="label_10">
       <property name="geometry">
        <rect>
-        <x>350</x>
-        <y>10</y>
+        <x>10</x>
+        <y>0</y>
         <width>121</width>
-        <height>21</height>
+        <height>41</height>
        </rect>
+      </property>
+      <property name="statusTip">
+       <string>Choose the output name of all files generated (omit extension)</string>
       </property>
       <property name="text">
        <string>Output name:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_30">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>40</y>
-        <width>101</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Ini file:</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="b_changeIni">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>40</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Change</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_31">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>121</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Config file:</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="b_changeConfig">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>70</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Change</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="l_bsgIni">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>40</y>
-        <width>161</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(blank)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_33">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>121</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Profile file:</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="b_changeProfile">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>100</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Change</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="l_bsgConfig">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>70</y>
-        <width>141</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(blank)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="l_bsgProfile">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>100</y>
-        <width>141</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(blank)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_41">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>16</y>
-        <width>121</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>BSG executable:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="l_bsgExec">
-      <property name="geometry">
-       <rect>
-        <x>126</x>
-        <y>10</y>
-        <width>101</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>BSG</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="b_changeBSGExec">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>10</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Change</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_42">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>130</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Exchange data:</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="l_bsgExchange">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>130</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>(blank)</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="b_bsgExchange">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>130</y>
-        <width>81</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Change</string>
       </property>
      </widget>
     </widget>
@@ -1625,7 +1428,7 @@ file</string>
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>471</width>
+        <width>511</width>
         <height>511</height>
        </rect>
       </property>
@@ -1636,7 +1439,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>30</y>
+         <y>20</y>
          <width>131</width>
          <height>22</height>
         </rect>
@@ -1673,7 +1476,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>60</y>
+         <y>50</y>
          <width>151</width>
          <height>22</height>
         </rect>
@@ -1689,7 +1492,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>120</y>
+         <y>110</y>
          <width>141</width>
          <height>17</height>
         </rect>
@@ -1708,7 +1511,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>90</y>
+         <y>80</y>
          <width>181</width>
          <height>22</height>
         </rect>
@@ -1724,7 +1527,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>150</y>
+         <y>140</y>
          <width>151</width>
          <height>22</height>
         </rect>
@@ -1740,7 +1543,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>180</y>
+         <y>170</y>
          <width>171</width>
          <height>22</height>
         </rect>
@@ -1756,7 +1559,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>240</y>
+         <y>230</y>
          <width>151</width>
          <height>31</height>
         </rect>
@@ -1790,7 +1593,7 @@ file</string>
       <widget class="QCheckBox" name="cb_recoil">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>30</y>
          <width>141</width>
          <height>22</height>
@@ -1806,7 +1609,7 @@ file</string>
       <widget class="QCheckBox" name="cb_Q">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>60</y>
          <width>141</width>
          <height>22</height>
@@ -1841,7 +1644,7 @@ file</string>
       <widget class="QCheckBox" name="cb_screening">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>120</y>
          <width>171</width>
          <height>22</height>
@@ -1857,7 +1660,7 @@ file</string>
       <widget class="QCheckBox" name="cb_exchange">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>150</y>
          <width>171</width>
          <height>22</height>
@@ -1874,7 +1677,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>210</y>
+         <y>200</y>
          <width>121</width>
          <height>27</height>
         </rect>
@@ -1884,7 +1687,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>280</y>
+         <y>270</y>
          <width>141</width>
          <height>17</height>
         </rect>
@@ -1992,7 +1795,7 @@ file</string>
       <widget class="QPushButton" name="b_enable_all">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>10</x>
          <y>470</y>
          <width>101</width>
          <height>31</height>
@@ -2005,7 +1808,7 @@ file</string>
       <widget class="QPushButton" name="b_disable_all">
        <property name="geometry">
         <rect>
-         <x>370</x>
+         <x>120</x>
          <y>470</y>
          <width>101</width>
          <height>31</height>
@@ -2015,36 +1818,10 @@ file</string>
         <string>Disable All</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="b_load_profile">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>470</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Load Profile</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="b_save_profile">
-       <property name="geometry">
-        <rect>
-         <x>130</x>
-         <y>470</y>
-         <width>121</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Save Profile</string>
-       </property>
-      </widget>
       <widget class="QCheckBox" name="cb_mismatch">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>180</y>
          <width>181</width>
          <height>31</height>
@@ -2079,7 +1856,7 @@ file</string>
       <widget class="QLabel" name="label_34">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>250</y>
          <width>41</width>
          <height>21</height>
@@ -2092,7 +1869,7 @@ file</string>
       <widget class="QLabel" name="label_35">
        <property name="geometry">
         <rect>
-         <x>360</x>
+         <x>370</x>
          <y>240</y>
          <width>41</width>
          <height>41</height>
@@ -2105,7 +1882,7 @@ file</string>
       <widget class="QLabel" name="label_36">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>240</x>
          <y>280</y>
          <width>61</width>
          <height>31</height>
@@ -2118,7 +1895,7 @@ file</string>
       <widget class="QDoubleSpinBox" name="dsb_bAc">
        <property name="geometry">
         <rect>
-         <x>280</x>
+         <x>290</x>
          <y>250</y>
          <width>69</width>
          <height>27</height>
@@ -2128,7 +1905,7 @@ file</string>
       <widget class="QDoubleSpinBox" name="dsb_dAc">
        <property name="geometry">
         <rect>
-         <x>400</x>
+         <x>420</x>
          <y>250</y>
          <width>69</width>
          <height>27</height>
@@ -2138,7 +1915,7 @@ file</string>
       <widget class="QDoubleSpinBox" name="dsb_lambda">
        <property name="geometry">
         <rect>
-         <x>280</x>
+         <x>290</x>
          <y>280</y>
          <width>69</width>
          <height>27</height>
@@ -2180,7 +1957,7 @@ file</string>
       <widget class="QDoubleSpinBox" name="dsb_begin">
        <property name="geometry">
         <rect>
-         <x>290</x>
+         <x>300</x>
          <y>350</y>
          <width>121</width>
          <height>27</height>
@@ -2193,16 +1970,16 @@ file</string>
         <double>10000.000000000000000</double>
        </property>
        <property name="value">
-        <double>0.100000000000000</double>
+        <double>0.000000000000000</double>
        </property>
       </widget>
       <widget class="QLabel" name="label_39">
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>376</y>
+         <y>380</y>
          <width>41</width>
-         <height>31</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="text">
@@ -2212,8 +1989,8 @@ file</string>
       <widget class="QDoubleSpinBox" name="dsb_end">
        <property name="geometry">
         <rect>
-         <x>290</x>
-         <y>380</y>
+         <x>300</x>
+         <y>390</y>
          <width>121</width>
          <height>27</height>
         </rect>
@@ -2226,7 +2003,7 @@ file</string>
        <property name="geometry">
         <rect>
          <x>240</x>
-         <y>406</y>
+         <y>430</y>
          <width>41</width>
          <height>31</height>
         </rect>
@@ -2238,8 +2015,8 @@ file</string>
       <widget class="QDoubleSpinBox" name="dsb_step">
        <property name="geometry">
         <rect>
-         <x>290</x>
-         <y>410</y>
+         <x>300</x>
+         <y>430</y>
          <width>121</width>
          <height>27</height>
         </rect>
@@ -2247,11 +2024,164 @@ file</string>
        <property name="suffix">
         <string> keV</string>
        </property>
+       <property name="value">
+        <double>0.100000000000000</double>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="cb_enforceNME">
+       <property name="geometry">
+        <rect>
+         <x>370</x>
+         <y>280</y>
+         <width>121</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Enforce</string>
+       </property>
       </widget>
      </widget>
     </widget>
    </widget>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>944</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <widget class="QMenu" name="menuOpen">
+     <property name="title">
+      <string>Open</string>
+     </property>
+     <addaction name="a_loadIni"/>
+     <addaction name="a_loadConfig"/>
+    </widget>
+    <widget class="QMenu" name="menuSave">
+     <property name="title">
+      <string>Save</string>
+     </property>
+     <addaction name="a_saveIni"/>
+     <addaction name="a_saveConfig"/>
+    </widget>
+    <widget class="QMenu" name="menuComponent_paths">
+     <property name="title">
+      <string>Component paths</string>
+     </property>
+     <addaction name="a_bsgExec"/>
+     <addaction name="a_exchangeData"/>
+    </widget>
+    <addaction name="a_new"/>
+    <addaction name="menuComponent_paths"/>
+    <addaction name="menuOpen"/>
+    <addaction name="menuSave"/>
+    <addaction name="a_exit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="a_feedback"/>
+    <addaction name="a_about"/>
+   </widget>
+   <widget class="QMenu" name="menuPlotting">
+    <property name="title">
+     <string>Plotting</string>
+    </property>
+    <addaction name="a_clearPlots"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menuPlotting"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="a_exit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="a_loadIni">
+   <property name="text">
+    <string>Ini file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="a_loadConfig">
+   <property name="text">
+    <string>Config file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="a_about">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="a_feedback">
+   <property name="text">
+    <string>Submit feedback</string>
+   </property>
+  </action>
+  <action name="a_saveIni">
+   <property name="text">
+    <string>Ini file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+I</string>
+   </property>
+  </action>
+  <action name="a_saveConfig">
+   <property name="text">
+    <string>Config file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="a_new">
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="a_bsgExec">
+   <property name="text">
+    <string>BSG executable</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="a_exchangeData">
+   <property name="text">
+    <string>Exchange data</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="a_clearPlots">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

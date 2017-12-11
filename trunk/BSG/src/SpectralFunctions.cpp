@@ -132,26 +132,34 @@ std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
   if (decayType == GAMOW_TELLER) {
     double M = A * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV;
 
-    double x = std::sqrt(2.) / 3. * 10. * ratioM121 -
-               gP / gA * 25. / 3. /
-                   std::pow(NUCLEON_MASS_KEV / ELECTRON_MASS_KEV * R, 2.);
+    double Lambda = std::sqrt(2.)/3.*10.*ratioM121;
 
-    double NSC0 = -1. / 45. * R * R * x +
+    double phi = gP/gA/sqr(2.*M*R);
+
+    double NSC0 = -1. / 45. * R * R * Lambda +
                   1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) +
                   betaType * 2. / 5. * ALPHA * Z / M / R / fc1 *
                       (betaType * 2. * fb + fd) -
-                  betaType * 2. / 35. * ALPHA * Z * W0 * R * x;
+                  betaType * 2. / 35. * ALPHA * Z * W0 * R * Lambda;
 
     double NSC1 = betaType * 4. / 3. * fb / M / fc1 -
-                  2. / 45. * W0 * R * R * x +
-                  betaType * ALPHA * Z * R * 2. / 35. * x;
+                  2. / 45. * W0 * R * R * Lambda +
+                  betaType * ALPHA * Z * R * 2. / 35. * Lambda;
 
     double NSCm1 = -1. / 3. / M / fc1 * (betaType * 2. * fb + fd) +
-                   2. / 45. * W0 * R * R * x;
+                   2. / 45. * W0 * R * R * Lambda;
 
-    double NSC2 = 2. / 45. * R * R * x;
+    double NSC2 = 2. / 45. * R * R * Lambda;
+
+    double gamma = std::sqrt(1.-sqr(ALPHA*Z));
+
+    double P0 = betaType*2./25.*ALPHA*Z*R*W0 + 51./250.*sqr(ALPHA*Z);
+    double P1 = betaType*2./25.*ALPHA*Z*R;
+    double Pm1 = -2./3.*gamma*W0*R*R+betaType*26./25.*ALPHA*Z*R*gamma;
 
     cNS = NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
+
+    cNS += P0 + P1 * W + Pm1 / W;
   }
 
   return std::make_tuple(cShape, cNS);

@@ -150,7 +150,7 @@ void Generator::InitializeShapeParameters() {
   hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
   debugFileLogger->debug("hoFit: {}", hoFit);
 
-  baseShape = GetBSGOpt(std::string, shape);
+  baseShape = GetBSGOpt(std::string, Spectrum.Shape);
 
   vOld.resize(3);
   vNew.resize(3);
@@ -163,10 +163,10 @@ void Generator::InitializeShapeParameters() {
     vNew[1] = -4./3./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 3./2.);
     vNew[2] = (2.-7.*hoFit)/5./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 5./3.);
   } else {
-    if (OptExists(vold) && OptExists(vnew)) {
+    if (OptExists(Spectrum.vold) && OptExists(Spectrum.vnew)) {
       debugFileLogger->debug("Found v and v'");
-      vOld = GetBSGOpt(std::vector<double>, vold);
-      vNew = GetBSGOpt(std::vector<double>, vnew);
+      vOld = GetBSGOpt(std::vector<double>, Spectrum.vold);
+      vNew = GetBSGOpt(std::vector<double>, Spectrum.vnew);
     } else if (OptExists(vold) || OptExists(vnew)) {
       consoleLogger->error("ERROR: Both old and new potential expansions must be given.");
     }
@@ -322,28 +322,28 @@ void Generator::InitializeNSMInfo() {
 void Generator::GetMatrixElements() {
   debugFileLogger->info("Calculating matrix elements");
   double M101 = 1.0;
-  if (!OptExists(ratioM121)) {
+  if (!OptExists(Spectrum.Lambda)) {
     M101 = nsm->CalculateMatrixElement(false, 1, 0, 1);
     double M121 = nsm->CalculateMatrixElement(false, 1, 2, 1);
     ratioM121 = M121 / M101;
   } else {
-    ratioM121 = GetBSGOpt(double, ratioM121);
+    ratioM121 = GetBSGOpt(double, Spectrum.Lambda);
   }
 
   fc1 = gA * M101;
 
   bAc = dAc = 0;
-  if (!OptExists(weakmagnetism)) {
+  if (!OptExists(Spectrum.WeakMagnetism)) {
     debugFileLogger->info("Calculating Weak Magnetism");
     bAc = nsm->CalculateWeakMagnetism();
   } else {
-    bAc = GetBSGOpt(double, weakmagnetism);
+    bAc = GetBSGOpt(double, Spectrum.WeakMagnetism);
   }
-  if (!OptExists(inducedtensor)) {
+  if (!OptExists(Spectrum.InducedTensor)) {
     debugFileLogger->info("Calculating Induced Tensor");
     dAc = nsm->CalculateInducedTensor();
   } else {
-    dAc = GetBSGOpt(double, inducedtensor);
+    dAc = GetBSGOpt(double, Spectrum.InducedTensor);
   }
   debugFileLogger->info("Weak magnetism: {}", bAc);
   debugFileLogger->info("Induced tensor: {}", dAc);
@@ -359,79 +359,81 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
 
   double Wv = W0 - W + 1;
 
-  if (!OptExists(phase)) {
+  if (GetBSGOpt(bool, Spectrum.Phasespace)) {
     result *= SF::PhaseSpace(W, W0, motherSpinParity, daughterSpinParity);
     neutrinoResult *=
         SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
 
-  if (!OptExists(fermi)) {
+  if (GetBSGOpt(bool, Spectrum.Fermi)) {
     result *= SF::FermiFunction(W, Z, R, betaType);
     neutrinoResult *= SF::FermiFunction(Wv, Z, R, betaType);
   }
-  if (!OptExists(C)) {
+  if (GetBSGOpt(bool, Spectrum.C)) {
     if (OptExists(connect)) {
       result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
-                                gP, fc1, fb, fd, ratioM121, !OptExists(isovector), spsi, spsf);
+                                gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), spsi, spsf);
       neutrinoResult *=
           SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                          fc1, fb, fd, ratioM121, !OptExists(isovector), spsi, spsf);
+                          fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), spsi, spsf);
     } else {
       result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
-                                gP, fc1, fb, fd, ratioM121, !OptExists(isovector));
+                                gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector));
       neutrinoResult *=
           SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                          fc1, fb, fd, ratioM121, !OptExists(isovector));
+                          fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector));
     }
   }
-  if (!OptExists(relativistic)) {
+  if (GetBSGOpt(bool, Spectrum.Relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, betaType, decayType);
     neutrinoResult *=
         SF::RelativisticCorrection(Wv, W0, Z, A, R, betaType, decayType);
   }
-  if (!OptExists(deformation)) {
+  if (GetBSGOpt(bool, Spectrum.ESDeformation)) {
     result *=
         SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType);
     neutrinoResult *=
         SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType);
   }
-  if (!OptExists(l0)) {
+  if (GetBSGOpt(bool, Spectrum.ESFiniteSize)) {
     result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
   }
-  if (!OptExists(U)) {
+  if (GetBSGOpt(bool, Spectrum.ESShape)) {
     result *= SF::UCorrection(W, Z, R, betaType, baseShape, vOld, vNew);
     neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, baseShape, vOld, vNew);
   }
-  if (!OptExists(Q)) {
+  if (GetBSGOpt(bool, Spectrum.CoulombRecoil)) {
     result *= SF::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
     neutrinoResult *=
         SF::QCorrection(Wv, W0, Z, A, betaType, decayType, mixingRatio);
   }
-  if (!OptExists(radiative)) {
+  if (GetBSGOpt(bool, Spectrum.Radiative)) {
     result *= SF::RadiativeCorrection(W, W0, Z, R, betaType, gA, gM);
     neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
-  if (!OptExists(recoil)) {
+  if (GetBSGOpt(bool, Spectrum.Recoil)) {
     result *= SF::RecoilCorrection(W, W0, A, decayType, mixingRatio);
     neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
   }
-  if (!OptExists(screening)) {
+  if (GetBSGOpt(bool, Spectrum.Screening)) {
     result *= SF::AtomicScreeningCorrection(W, Z, betaType);
     neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, betaType);
   }
-  if (!OptExists(exchange)) {
+  if (GetBSGOpt(bool, Spectrum.Exchange)) {
     if (betaType == BETA_MINUS) {
       result *= SF::AtomicExchangeCorrection(W, exPars);
       neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
     }
   }
-  if (!OptExists(mismatch)) {
+  if (GetBSGOpt(bool, Spectrum.AtomicMismatch)) {
     if (atomicEnergyDeficit == 0.) {
       result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
       neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
     }
   }
+  result = std::max(0., result);
+  neutrinoResult = std::max(0., neutrinoResult);
   rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
 
   return std::make_tuple(result, neutrinoResult);
@@ -439,9 +441,9 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
 
 std::vector<std::vector<double> > Generator::CalculateSpectrum() {
   debugFileLogger->info("Calculating spectrum");
-  double beginEn = GetBSGOpt(double, begin);
-  double endEn = GetBSGOpt(double, end);
-  double stepEn = GetBSGOpt(double, step);
+  double beginEn = GetBSGOpt(double, Spectrum.Begin);
+  double endEn = GetBSGOpt(double, Spectrum.End);
+  double stepEn = GetBSGOpt(double, Spectrum.Step);
 
   double beginW = beginEn / ELECTRON_MASS_KEV + 1.;
   double endW = endEn / ELECTRON_MASS_KEV + 1.;
@@ -489,47 +491,48 @@ void Generator::PrepareOutputFile() {
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
   }
   l->info("\nMatrix Element Summary\n{:->30}", "");
-  if (OptExists(weakmagnetism)) l->info("{:25}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
+  if (OptExists(Spectrum.WeakMagnetism)) l->info("{:25}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
   else l->info("{:35}: {}", "b/Ac (weak magnetism)", bAc);
-  if (OptExists(inducedtensor)) l->info("{:25}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
+  if (OptExists(Spectrum.Inducedtensor)) l->info("{:25}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
   else l->info("{:35}: {}", "d/Ac (induced tensor)", dAc);
-  if (OptExists(ratioM121)) l->info("{:25}: {} ({})", "AM121/AM101", ratioM121, "given");
+  if (OptExists(Spectrum.Lambda)) l->info("{:25}: {} ({})", "AM121/AM101", ratioM121, "given");
   else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
   l->info("Full breakfown written in {}.nme", GetBSGOpt(std::string, output));
 
   l->info("\nSpectral corrections\n{:->30}", "");
-  l->info("{:25}: {}", "Phase space", !OptExists(phase));
-  l->info("{:25}: {}", "Fermi function", !OptExists(fermi));
-  l->info("{:25}: {}", "L0 correction", !OptExists(l0));
-  l->info("{:25}: {}", "C correction", !OptExists(C));
-  l->info("{:25}: {}", "Isovector correction", !OptExists(isovector));
-  l->info("{:25}: {}", "Relativistic terms", !OptExists(relativistic));
-  l->info("{:25}: {}", "Deformation", !OptExists(deformation));
-  l->info("{:25}: {}", "U correction", !OptExists(U));
-  l->info("    Shape: {}", GetBSGOpt(std::string, shape));
-  if (OptExists(vold) && OptExists(vnew)) {
+  l->info("{:25}: {}", "Phase space", GetBSGOpt(bool, Spectrum.Phasespace));
+  l->info("{:25}: {}", "Fermi function", GetBSGOpt(bool, Spectrum.Fermi));
+  l->info("{:25}: {}", "L0 correction", GetBSGOpt(bool, Spectrum.ESFiniteSize));
+  l->info("{:25}: {}", "C correction", GetBSGOpt(bool, Spectrum.C));
+  l->info("{:25}: {}", "Isovector correction", GetBSGOpt(bool, Spectrum.Isovector));
+  l->info("    Connected: {}", GetBSGOpt(bool, Spectrum.Connect));
+  l->info("{:25}: {}", "Relativistic terms", GetBSGOpt(bool, Spectrum.Relativistic));
+  l->info("{:25}: {}", "Deformation", GetBSGOpt(bool, Spectrum.ESDeformation));
+  l->info("{:25}: {}", "U correction", GetBSGOpt(bool, Spectrum.ESShape));
+  l->info("    Shape: {}", GetBSGOpt(std::string, Spectrum.Shape));
+  if (OptExists(Spectrum.vold) && OptExists(Spectrum.vnew)) {
     l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
     l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);
   } else {
     l->info("    v : not given");
     l->info("    v': not given");
   }
-  l->info("{:25}: {}", "Q correction", !OptExists(Q));
-  l->info("{:25}: {}", "Radiative correction", !OptExists(radiative));
-  l->info("{:25}: {}", "Nuclear recoil", !OptExists(recoil));
-  l->info("{:25}: {}", "Atomic screening", !OptExists(screening));
-  l->info("{:25}: {}", "Atomic exchange", !OptExists(exchange));
-  l->info("{:25}: {}", "Atomic mismatch", !OptExists(mismatch));
-  l->info("{:25}: {}", "Export neutrino", !OptExists(neutrino));
+  l->info("{:25}: {}", "Q correction", GetBSGOpt(bool, Spectrum.CoulombRecoil));
+  l->info("{:25}: {}", "Radiative correction", GetBSGOpt(bool, Spectrum.Radiative));
+  l->info("{:25}: {}", "Nuclear recoil", GetBSGOpt(bool, Spectrum.Recoil));
+  l->info("{:25}: {}", "Atomic screening", GetBSGOpt(bool, Spectrum.Screening));
+  l->info("{:25}: {}", "Atomic exchange", GetBSGOpt(bool, Spectrum.Exchange));
+  l->info("{:25}: {}", "Atomic mismatch", GetBSGOpt(bool, Spectrum.AtomicMismatch));
+  l->info("{:25}: {}", "Export neutrino", GetBSGOpt(bool, Spectrum.Neutrino));
 
-  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n", GetBSGOpt(double, begin), GetBSGOpt(double, end) > 0 ? GetBSGOpt(double, end) : (W0-1.)*ELECTRON_MASS_KEV, GetBSGOpt(double, step));
+  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n", GetBSGOpt(double, Spectrum.Begin), GetBSGOpt(double, Spectrum.End) > 0 ? GetBSGOpt(double, Spectrum.End) : (W0-1.)*ELECTRON_MASS_KEV, GetBSGOpt(double, Spectrum.Step));
 
-  if (!OptExists(neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
+  if (GetBSGOpt(bool, Spectrum.Neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
   else l->info("{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW");
 
   for (int i = 0; i < spectrum.size(); i++) {
-    if (!OptExists(neutrino)) {
+    if (GetBSGOpt(bool, Spectrum.Neutrino)) {
       l->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", spectrum[i][0], (spectrum[i][0]-1.)*ELECTRON_MASS_KEV, spectrum[i][1], spectrum[i][2]);
     } else {
       l->info("{:<10f}\t{:<10f}\t{:<10f}", spectrum[i][0], (spectrum[i][0]-1.)*ELECTRON_MASS_KEV, spectrum[i][1]);
