@@ -17,118 +17,7 @@ import numpy as np
 
 import os
 
-def loadDeformation(Z, A, filename = 'FRDM2012/FRDM2012.dat'):
-    """Load deformation data from Moeller et al., arXiv:1508.06294
-
-    :param Z: Atomic number
-    :param A: Mass number
-    :param filename: location and name to data file (Default value = 'FRDM2012/FRDM2012.dat')
-
-    """
-    deformation = np.zeros(4)
-    with open(filename, 'r') as f:
-        for line in f:
-            d = np.array([float(s) for s in line.split()])
-            if d[0] == Z and d[2] == A:
-                deformation = d[7:11]
-                break
-    return deformation
-    
-def loadChargeRadius(Z, A, filename = 'ChargeRadii/nuclear_charge_radii.txt'):
-    """Load experimental or parametrically deduced charge radius
-    Parametrisation from Bao et al., PHYSICAL REVIEW C 94, 064315 (2016)
-
-    :param Z: Atomic number
-    :param A: Mass number
-    :param filename: filename for data (Default value = 'ChargeRadii/nuclear_charge_radii.txt')
-
-    """
-    radius = 0.
-    radii = np.array(np.genfromtxt(filename, dtype=None, skip_header=12, \
-    missing_values='-', filling_values=0.0, names=True, autostrip=True))
-    try:
-        if 'A' in radii.dtype.names:
-            possibleRadii = list(radii[(radii['Z'] == Z) & (radii['A'] == A)][0])[3:]
-        else:
-            possibleRadii = list(radii[(radii['Z'] == Z) & (radii['N'] == A-Z)][0])[2:]
-        if possibleRadii[0] > 0:
-            radius = possibleRadii[0]
-        else:
-            radius = possibleRadii[2]
-    except IndexError:
-        print("IndexError: Z: {0} A: {1}".format(Z, A))
-        radius = UF.getEltonNuclearRadius(A)
-    return radius
-    
-def writeIniFile(Zm, Zd, A, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, \
-beta6d, mRad, dRad, mJpi, dJpi, phl=None, dE=0.0, mE=0.0, name=None, prefix='', **kwargs):
-    
-    if not name:
-        name = '%sZ%d_A%d_Q%.0f.ini' % (prefix, Zm, A, Q)
-    config = ConfigParser.RawConfigParser(allow_no_value=True)
-    config.optionxform = str
-    config.add_section('Transition')
-    config.add_section('Mother')
-    config.add_section('Daughter')
-    config.set('Transition', 'Process', process)
-    config.set('Transition', 'Type', decayType)
-    config.set('Transition', 'MixingRatio', 0.0)
-    config.set('Transition', 'QValue', Q)
-    if phl:
-        config.set('Transition', 'PartialHalflife', phl)
-    config.set('Mother', 'Z', Zm)
-    config.set('Mother', 'A', A)
-    config.set('Mother', 'Radius', mRad)
-    config.set('Mother', 'beta2', beta2m)
-    config.set('Mother', 'beta4', beta4m)
-    config.set('Mother', 'beta6', beta6m)
-    config.set('Mother', 'SpinParity', mJpi)
-    config.set('Mother', 'ExcitationEnergy', mE)
-    config.set('Daughter', 'Z', Zd)
-    config.set('Daughter', 'A', A)
-    config.set('Daughter', 'Radius', dRad)
-    config.set('Daughter', 'beta2', beta2d)
-    config.set('Daughter', 'beta4', beta4d)
-    config.set('Daughter', 'beta6', beta6d)
-    config.set('Daughter', 'SpinParity', dJpi)
-    config.set('Daughter', 'ExcitationEnergy', dE)
-    with open(name, 'wb') as configFile:
-        config.write(configFile)
-    
-def writeConfigFile(name, directory, computational, constants, spectrumCheckBoxes,\
-spectrumDSB, spectrumNME, enforceNME, spectrumComboBoxes):
-    config = ConfigParser.RawConfigParser(allow_no_value=True)
-    config.optionxform = str
-    config.add_section('Spectrum')
-    config.add_section('General')
-    config.add_section('Computational')
-    config.add_section('Constants')
-    config.set('General', 'Folder', directory)
-    for key in computational:
-        try:
-            config.set('Computational', computational[key], key.value())
-        except:
-            try:
-                config.set('Computational', computational[key], key.isChecked())
-            except:
-                try:
-                    config.set('Computational', computational[key], key.currentText())
-                except:
-                    pass
-    for key in constants:
-        config.set('Constants', constants[key], key.value())
-        
-    for key in spectrumCheckBoxes:
-        config.set('Spectrum', spectrumCheckBoxes[key], key.isChecked())
-    for key in spectrumDSB:
-        config.set('Spectrum', spectrumDSB[key], key.value())
-    if enforceNME:
-        for key in spectrumNME:
-            config.set('Spectrum', spectrumNME[key], key.value())
-    for key in spectrumComboBoxes:
-        config.set('Spectrum', spectrumComboBoxes[key], key.currentText())
-    with open(name, 'wb') as configFile:
-        config.write(configFile)
+import Utility as ut
         
 def setCheckBoxState(cb, b):
     if (cb.isChecked() and not b) or (not cb.isChecked() and b):
@@ -187,12 +76,25 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.cb_nmeMethod.addItem("ESP")
         self.ui.cb_potential.addItems(("SHO", "WS", "DWS"))
         
+        self.ui.a_new.triggered.connect(self.newDecay)
+        
         self.ui.a_loadIni.triggered.connect(self.loadIniFile)
         self.ui.a_loadConfig.triggered.connect(self.loadConfigFile)
         self.ui.a_saveConfig.triggered.connect(self.writeConfigFile)
         self.ui.a_saveIni.triggered.connect(self.writeIniFile)
         self.ui.a_bsgExec.triggered.connect(self.changeBSGExec)
         self.ui.a_exchangeData.triggered.connect(self.changeBSGExchange)
+        
+        self.ui.a_exit.triggered.connect(self.close)
+        
+        self.ui.a_clearPlots.triggered.connect(self.clearPlots)
+        
+        self.deformationFile = None
+        self.radiiFile = None
+        self.ensdfFolder = None
+        self.ui.a_loadDeformation.triggered.connect(self.loadDeformation)
+        self.ui.a_loadRadii.triggered.connect(self.loadRadii)
+        self.ui.a_findTransition.triggered.connect(self.loadESNDFBranches)
         
         self.ui.a_about.triggered.connect(self.about)
         self.ui.a_feedback.triggered.connect(self.submitFeedback)
@@ -236,8 +138,83 @@ class BSG_UI(QtGui.QMainWindow):
                 self.log("Found ExchangeData.dat")
                 self.exchangePath = fullPath
                 
+    def newDecay(self):
+        isotope, ok = QtGui.QInputDialog.getText(self, 'Isotope', 'Enter the isotope name (e.g. 238U)')
+        if not ok:
+            return
+        import re
+        A = int(re.findall(r'\d+', isotope)[0])
+        name = isotope.replace(str(A), '').capitalize()
+        Z = ut.atoms.index(name)+1
+        
+        self.ui.sb_AM.setValue(A)
+        self.ui.sb_ZM.setValue(Z)
+        
+        button = QtGui.QMessageBox.question(self, 'ENSDF search', 'Search for transitions in ENSDF database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        
+        if button == QtGui.QMessageBox.Yes:
+            self.loadESNDFBranches(Z, A)
+        else:
+            process = QtGui.QInputDialog.getItem(self, "Choose beta process", "Beta process", ('B-', 'B+', 'EC'), editable=False)[0]
+            self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(process))
+            self.ui.sb_AD.setValue(A)
+            self.ui.sb_ZD.setValue(Z+1 if process == 'B-' else Z-1)
+
+        button = QtGui.QMessageBox.question(self, 'Deformation', 'Enter deformation info from the Moeller database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        
+        if button == QtGui.QMessageBox.Yes:
+            self.loadDeformation()
+            
+        button = QtGui.QMessageBox.question(self, "Charge radii", 'Load charge radii from database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        
+        if button == QtGui.QMessageBox.Yes:
+            self.loadRadii()
+            
+                
     def clearPlots(self):
-        pass
+        self.ui.gv_plotSpectrum.clear()
+        
+    def loadESNDFBranches(self, Z, A):
+        print('Entered ensdfBranches')
+        if not self.ensdfFolder:
+            self.ensdfFolder = QtGui.QFileDialog.getExistingDirectory(self, "Choose the ENSDF directory", ".")
+            if self.ensdfFolder == '':
+                self.ensdfFolder = None
+                return
+        fullPath = self.ensdfFolder + '/ensdf.{:03d}'.format(A)
+        
+        bc = ut.buildBetaBranches(fullPath, Z, A)
+        items = []
+        for i in bc.branches:
+            s = '{}'
+            items.append(s)
+        
+        
+    def loadDeformation(self):
+        if not self.deformationFile:
+            self.deformationFile = QtGui.QFileDialog.getOpenFileName(self, "Choose the deformation file")[0]
+        if self.deformationFile == '':
+            return
+        mDef = ut.loadDeformation(self.ui.sb_ZM.value(), self.ui.sb_AM.value(), self.deformationFile)
+        dDef = ut.loadDeformation(self.ui.sb_ZD.value(), self.ui.sb_AD.value(), self.deformationFile)
+        
+        self.ui.dsb_Beta2M.setValue(mDef[0])
+        self.ui.dsb_Beta4M.setValue(mDef[1])
+        self.ui.dsb_Beta6M.setValue(mDef[2])
+        self.ui.dsb_Beta2D.setValue(dDef[0])
+        self.ui.dsb_Beta4D.setValue(dDef[1])
+        self.ui.dsb_Beta6D.setValue(dDef[2])
+        
+    def loadRadii(self):
+        if not self.radiiFile:
+            self.radiiFile = QtGui.QFileDialog.getOpenFileName(self, "Choose the radii file")[0]
+        if self.radiiFile == '':
+            return
+        mRad = ut.loadChargeRadius(self.ui.sb_ZM.value(), self.ui.sb_AM.value(), self.radiiFile)
+        dRad = ut.loadChargeRadius(self.ui.sb_ZD.value(), self.ui.sb_AD.value(), self.radiiFile)
+        
+        self.ui.dsb_RM.setValue(mRad)
+        self.ui.dsb_RD.setValue(dRad)
         
     def runBSG(self):
         self.status("Calculating...")
@@ -342,7 +319,7 @@ class BSG_UI(QtGui.QMainWindow):
         if filename == '':
             return
         
-        writeIniFile(Zm, Zd, Am, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, beta6d, mRad, dRad, mJpi, dJpi, name=filename)
+        ut.writeIniFile(Zm, Zd, Am, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, beta6d, mRad, dRad, mJpi, dJpi, name=filename)
         self.log('Ini file written to %s.' % filename)
     def loadIniFile(self, filename = None):
         if not filename:
@@ -385,7 +362,7 @@ class BSG_UI(QtGui.QMainWindow):
         if filename == '':
             return
         try:
-            writeConfigFile(filename, self.ui.b_chooseConfigFolder.text(), self.computational,\
+            ut.writeConfigFile(filename, self.ui.b_chooseConfigFolder.text(), self.computational,\
             self.constants, self.spectrumCheckBoxes, self.spectrumDSB, self.spectrumNME,\
             self.ui.cb_enforceNME.isChecked(), self.spectrumComboBoxes)
             self.log("Config file written to %s." % filename)
