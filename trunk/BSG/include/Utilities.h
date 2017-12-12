@@ -182,13 +182,12 @@ inline double Simpson(double x[], double y[], int size) {
     result += 1. / 3. * h * (y[i] + 4. * l->GetValue(xN[0] + h) + y[i + 2]);
     if (result != result) result = 0.;
   }
-  // TODO add result for last values
   return result;
 }
 
 inline double Simpson(std::vector<std::vector<double> > values) {
   double result = 0.;
-  for (int i = 0; i < values.size()-2; i++) {
+  for (int i = 0; i < values.size()-2; i += 2) {
     double xN[] = {values[i][0], values[i+1][0], values[i+2][0]};
     double yN[] = {values[i][1], values[i+1][1], values[i+2][1]};
     double h = (xN[2] - xN[0]) / 2.;

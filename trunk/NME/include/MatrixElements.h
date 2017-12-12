@@ -297,7 +297,6 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
       }
     }
   }
-  cout << "Result: " << result << endl;
   return result;
 }
 

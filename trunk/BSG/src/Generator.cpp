@@ -473,6 +473,19 @@ double Generator::CalculateLogFtValue(double partialHalflife) {
   return logFt;
 }
 
+double Generator::CalculateMeanEnergy() {
+  debugFileLogger->debug("Calculating mean energy");
+  std::vector<std::vector<double> > weightedSpectrum;
+  for (int i =0; i < spectrum.size(); i++) {
+    std::vector<double> entry = {spectrum[i][0], spectrum[i][0]*spectrum[i][1]};
+    weightedSpectrum.push_back(entry);
+  }
+  double weightedF = utilities::Simpson(weightedSpectrum);
+  double f = utilities::Simpson(spectrum);
+  debugFileLogger->debug("Weighted f: {} Clean f: {}", weightedF, f);
+  return weightedF/f;
+}
+
 void Generator::PrepareOutputFile() {
   ShowBSGInfo();
 
@@ -490,6 +503,7 @@ void Generator::PrepareOutputFile() {
     l->info("Partial halflife: not given");
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
   }
+  l->info("Mean energy: {} keV", (CalculateMeanEnergy()-1.)*ELECTRON_MASS_KEV);
   l->info("\nMatrix Element Summary\n{:->30}", "");
   if (OptExists(Spectrum.WeakMagnetism)) l->info("{:25}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
   else l->info("{:35}: {}", "b/Ac (weak magnetism)", bAc);

@@ -104,6 +104,7 @@ void NS::NuclearStructureManager::InitializeConstants() {
 
   nmeResultsLogger->info("NME input overview\n{:=>30}", "");
   nmeResultsLogger->info("Using information from {}\n\n", GetNMEOpt(std::string, input));
+  nmeResultsLogger->info("Nuclear potential: {}", potential);
   nmeResultsLogger->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", Am, utilities::atoms[int(Zm-1)], motherSpinParity, motherExcitationEn, Ad, utilities::atoms[int(Zd-1)], daughterSpinParity, daughterExcitationEn);
   debugFileLogger->debug("Leaving InitializeConstants");
 }

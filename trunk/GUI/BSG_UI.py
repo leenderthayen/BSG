@@ -137,6 +137,12 @@ class BSG_UI(QtGui.QMainWindow):
             elif f == 'ExchangeData.dat':
                 self.log("Found ExchangeData.dat")
                 self.exchangePath = fullPath
+            elif f == 'FRDM2012.dat':
+                self.log('Found FRDM2012.dat')
+                self.deformationFile = fullPath
+            elif f == 'ChargeRadii.dat':
+                self.log('Found ChargeRadii.dat')
+                self.radiiFile = fullPath
                 
     def newDecay(self):
         isotope, ok = QtGui.QInputDialog.getText(self, 'Isotope', 'Enter the isotope name (e.g. 238U)')
@@ -173,13 +179,11 @@ class BSG_UI(QtGui.QMainWindow):
         button = QtGui.QMessageBox.question(self, "Save as", 'Save transition in ini file?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         
         if button == QtGui.QMessageBox.Yes:
-            filename = self.writeIniFile()
-            self.iniName = filename
-            self.ui.l_iniFilename.setText(filename.split('/')[-1])
-            self.ui.l_iniFilename.setToolTip(filename)
+            self.writeIniFile()
                 
     def clearPlots(self):
         self.ui.gv_plotSpectrum.clear()
+        self.currentPlotIndex = 0
         
     def loadESNDFBranches(self, Z, A):
         print('Entered ensdfBranches')
@@ -192,17 +196,14 @@ class BSG_UI(QtGui.QMainWindow):
         
         bc = ut.buildBetaBranches(fullPath, Z, A)
         items = []
-        index = 0
         for i in bc.branches:
             s = '{}: {}{} ([{}] {}) -> {}{} ([{}] {}); Endpoint: {} keV'.format(i.process, A, ut.atoms[Z-1], i.motherLevel.Jpi, i.motherLevel.E,\
             A, ut.atoms[Z], i.daughterLevel.Jpi, i.daughterLevel.E, i.E)
             
-            if index%2 == 0:
-                items.append(s)
-            index += 1
+            items.append(s)
         
         choice  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)[0]
-        branch = bc.branches[2*items.index(choice)]
+        branch = bc.branches[items.index(choice)]
         
         self.ui.sb_ZM.setValue(Z)
         self.ui.sb_AM.setValue(A)
@@ -213,6 +214,12 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.dsb_motherEn.setValue(branch.motherLevel.E)
         self.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
         self.ui.dsb_Q.setValue(branch.E-branch.motherLevel.E+branch.daughterLevel.E)
+        mJpi = branch.motherLevel.Jpi
+        self.ui.dsb_JM.setValue(float(mJpi.split('/2')[0])/2. if '/2' in mJpi else float(mJpi[:-1]))
+        dJpi = branch.daughterLevel.Jpi
+        self.ui.dsb_JD.setValue(float(dJpi.split('/2')[0])/2. if '/2' in dJpi else float(dJpi[:-1]))
+        self.ui.cb_PiM.setCurrentIndex(self.ui.cb_PiM.findText(mJpi[-1]))
+        self.ui.cb_PiD.setCurrentIndex(self.ui.cb_PiD.findText(dJpi[-1]))
         
         
     def loadDeformation(self):
@@ -224,11 +231,11 @@ class BSG_UI(QtGui.QMainWindow):
         dDef = ut.loadDeformation(self.ui.sb_ZD.value(), self.ui.sb_AD.value(), self.deformationFile)
         
         self.ui.dsb_Beta2M.setValue(mDef[0])
-        self.ui.dsb_Beta4M.setValue(mDef[1])
-        self.ui.dsb_Beta6M.setValue(mDef[2])
+        self.ui.dsb_Beta4M.setValue(mDef[2])
+        self.ui.dsb_Beta6M.setValue(mDef[3])
         self.ui.dsb_Beta2D.setValue(dDef[0])
-        self.ui.dsb_Beta4D.setValue(dDef[1])
-        self.ui.dsb_Beta6D.setValue(dDef[2])
+        self.ui.dsb_Beta4D.setValue(dDef[2])
+        self.ui.dsb_Beta6D.setValue(dDef[3])
         
     def loadRadii(self):
         if not self.radiiFile:
@@ -265,7 +272,7 @@ class BSG_UI(QtGui.QMainWindow):
         if self.ui.cb_enforceNME.isChecked():
             for key in self.spectrumNME:
                 command += " --Spectrum.{0}={1}".format(self.spectrumNME[key], key.value())
-        print(command)
+        #print(command)
         try:
             self.sh.run(command)
             if self.sh.output(raw=True) != '':
@@ -306,6 +313,11 @@ class BSG_UI(QtGui.QMainWindow):
         for key in self.spectrumCheckBoxes:
             if key.isChecked():
                 key.toggle()
+                
+    def setCurrentIniFile(self, filename):
+        self.iniName = filename
+        self.ui.l_iniFilename.setText(filename.split('/')[-1])
+        self.ui.l_iniFilename.setToolTip(filename)
         
     def writeIniFile(self):
         Zm = self.ui.sb_ZM.value()
@@ -325,7 +337,7 @@ class BSG_UI(QtGui.QMainWindow):
         Q = self.ui.dsb_Q.value()
         decayType = self.ui.cb_type.currentText()
         mJ = self.ui.dsb_JM.value()
-        dJ = self.ui.dsb_JM.value()
+        dJ = self.ui.dsb_JD.value()
         
         mRad = self.ui.dsb_RM.value()
         dRad = self.ui.dsb_RD.value()
@@ -337,16 +349,22 @@ class BSG_UI(QtGui.QMainWindow):
         beta4d = self.ui.dsb_Beta4D.value()
         beta6d = self.ui.dsb_Beta6D.value()
         
+        mE = self.ui.dsb_motherEn.value()
+        dE = self.ui.dsb_daughterEn.value()
+        
         mJpi = int(mJ*2)*(1 if self.ui.cb_PiM.currentText() == "+" else -1)
         dJpi = int(dJ*2)*(1 if self.ui.cb_PiD.currentText() == "+" else -1)
+        
+        phl = self.ui.dsb_halflife.value()
+        phl = phl if phl > 0 else None
         
         filename = QtGui.QFileDialog.getSaveFileName(self, "Save .ini file")[0]
         if filename == '':
             return
         
-        ut.writeIniFile(Zm, Zd, Am, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, beta6d, mRad, dRad, mJpi, dJpi, name=filename)
+        ut.writeIniFile(Zm, Zd, Am, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, beta6d, mRad, dRad, mJpi, dJpi, mE=mE, dE=dE, name=filename, phl=phl)
         self.log('Ini file written to %s.' % filename)
-        
+        self.setCurrentIniFile(filename)
         return filename
         
     def loadIniFile(self, filename = None):
@@ -378,6 +396,10 @@ class BSG_UI(QtGui.QMainWindow):
             self.ui.dsb_Beta2D.setValue(config.getfloat('Daughter', 'Beta2'))
             self.ui.dsb_Beta4D.setValue(config.getfloat('Daughter', 'Beta6'))
             self.ui.dsb_Beta6D.setValue(config.getfloat('Daughter', 'Beta6'))
+            try:
+                self.ui.dsb_halflife.setValue(config.getfloat('Transition', 'PartialHalflife'))
+            except ConfigParser.NoOptionError:
+                pass
             self.ui.l_iniFilename.setText(filename.split('/')[-1])
             self.ui.l_iniFilename.setToolTip(filename)
             

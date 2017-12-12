@@ -102,6 +102,8 @@ class Generator {
    */
   double CalculateLogFtValue(double partialHalflife);
 
+  double CalculateMeanEnergy();
+
  public:
   /**
    * Constructor for Generator.

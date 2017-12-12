@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWindow.ui'
 #
-# Created: Tue Dec 12 15:25:57 2017
+# Created: Tue Dec 12 19:56:03 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -225,6 +225,7 @@ class Ui_MainWindow(object):
         self.label_30.setObjectName("label_30")
         self.dsb_halflife = QtGui.QDoubleSpinBox(self.groupBox)
         self.dsb_halflife.setGeometry(QtCore.QRect(70, 90, 101, 27))
+        self.dsb_halflife.setDecimals(4)
         self.dsb_halflife.setMaximum(1000000000.0)
         self.dsb_halflife.setObjectName("dsb_halflife")
         self.label_25 = QtGui.QLabel(self.groupBox)
