@@ -352,6 +352,9 @@
          <height>21</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Excitation energy of the parent level</string>
+       </property>
        <property name="text">
         <string>Energy:</string>
        </property>
@@ -364,6 +367,9 @@
          <width>101</width>
          <height>27</height>
         </rect>
+       </property>
+       <property name="statusTip">
+        <string>Excitation energy of the parent level</string>
        </property>
        <property name="suffix">
         <string> keV</string>
@@ -713,6 +719,9 @@
          <height>21</height>
         </rect>
        </property>
+       <property name="statusTip">
+        <string>Excitation energy of the child level</string>
+       </property>
        <property name="text">
         <string>Energy:</string>
        </property>
@@ -725,6 +734,9 @@
          <width>111</width>
          <height>27</height>
         </rect>
+       </property>
+       <property name="statusTip">
+        <string>Excitation energy of the child level</string>
        </property>
        <property name="suffix">
         <string> keV</string>
