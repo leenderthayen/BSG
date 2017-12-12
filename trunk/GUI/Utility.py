@@ -237,7 +237,7 @@ class BetaBranch:
 
 
     """
-    def __init__(self, E, dE, IB, dIB, motherLevel, daughterLevel, process):
+    def __init__(self, E, dE, IB, dIB, motherLevel, daughterLevel, process = 'B-'):
         """Initialize a new beta branch
         
         :param E: Endpoint energy in keV

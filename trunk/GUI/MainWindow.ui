@@ -359,7 +359,7 @@
         <string>Energy:</string>
        </property>
       </widget>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox">
+      <widget class="QDoubleSpinBox" name="dsb_motherEn">
        <property name="geometry">
         <rect>
          <x>68</x>
@@ -726,7 +726,7 @@
         <string>Energy:</string>
        </property>
       </widget>
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+      <widget class="QDoubleSpinBox" name="dsb_daughterEn">
        <property name="geometry">
         <rect>
          <x>70</x>

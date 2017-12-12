@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWindow.ui'
 #
-# Created: Tue Dec 12 12:11:23 2017
+# Created: Tue Dec 12 15:25:57 2017
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -101,12 +101,12 @@ class Ui_MainWindow(object):
         self.label_31 = QtGui.QLabel(self.group_M)
         self.label_31.setGeometry(QtCore.QRect(10, 260, 67, 21))
         self.label_31.setObjectName("label_31")
-        self.doubleSpinBox = QtGui.QDoubleSpinBox(self.group_M)
-        self.doubleSpinBox.setGeometry(QtCore.QRect(68, 260, 101, 27))
-        self.doubleSpinBox.setMaximum(10000.0)
-        self.doubleSpinBox.setSingleStep(1.0)
-        self.doubleSpinBox.setProperty("value", 0.0)
-        self.doubleSpinBox.setObjectName("doubleSpinBox")
+        self.dsb_motherEn = QtGui.QDoubleSpinBox(self.group_M)
+        self.dsb_motherEn.setGeometry(QtCore.QRect(68, 260, 101, 27))
+        self.dsb_motherEn.setMaximum(10000.0)
+        self.dsb_motherEn.setSingleStep(1.0)
+        self.dsb_motherEn.setProperty("value", 0.0)
+        self.dsb_motherEn.setObjectName("dsb_motherEn")
         self.groupBox_3 = QtGui.QGroupBox(self.iniTab)
         self.groupBox_3.setGeometry(QtCore.QRect(10, 0, 351, 61))
         self.groupBox_3.setObjectName("groupBox_3")
@@ -187,10 +187,10 @@ class Ui_MainWindow(object):
         self.label_33 = QtGui.QLabel(self.group_M_2)
         self.label_33.setGeometry(QtCore.QRect(10, 260, 67, 21))
         self.label_33.setObjectName("label_33")
-        self.doubleSpinBox_2 = QtGui.QDoubleSpinBox(self.group_M_2)
-        self.doubleSpinBox_2.setGeometry(QtCore.QRect(70, 260, 111, 27))
-        self.doubleSpinBox_2.setMaximum(10000.0)
-        self.doubleSpinBox_2.setObjectName("doubleSpinBox_2")
+        self.dsb_daughterEn = QtGui.QDoubleSpinBox(self.group_M_2)
+        self.dsb_daughterEn.setGeometry(QtCore.QRect(70, 260, 111, 27))
+        self.dsb_daughterEn.setMaximum(10000.0)
+        self.dsb_daughterEn.setObjectName("dsb_daughterEn")
         self.groupBox = QtGui.QGroupBox(self.iniTab)
         self.groupBox.setGeometry(QtCore.QRect(10, 60, 371, 131))
         self.groupBox.setObjectName("groupBox")
@@ -704,8 +704,8 @@ class Ui_MainWindow(object):
         self.dsb_Beta6M.setStatusTip(QtGui.QApplication.translate("MainWindow", "Beta6 deformation", None, QtGui.QApplication.UnicodeUTF8))
         self.label_31.setStatusTip(QtGui.QApplication.translate("MainWindow", "Excitation energy of the parent level", None, QtGui.QApplication.UnicodeUTF8))
         self.label_31.setText(QtGui.QApplication.translate("MainWindow", "Energy:", None, QtGui.QApplication.UnicodeUTF8))
-        self.doubleSpinBox.setStatusTip(QtGui.QApplication.translate("MainWindow", "Excitation energy of the parent level", None, QtGui.QApplication.UnicodeUTF8))
-        self.doubleSpinBox.setSuffix(QtGui.QApplication.translate("MainWindow", " keV", None, QtGui.QApplication.UnicodeUTF8))
+        self.dsb_motherEn.setStatusTip(QtGui.QApplication.translate("MainWindow", "Excitation energy of the parent level", None, QtGui.QApplication.UnicodeUTF8))
+        self.dsb_motherEn.setSuffix(QtGui.QApplication.translate("MainWindow", " keV", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_3.setTitle(QtGui.QApplication.translate("MainWindow", "File info", None, QtGui.QApplication.UnicodeUTF8))
         self.label_11.setText(QtGui.QApplication.translate("MainWindow", "Current file:", None, QtGui.QApplication.UnicodeUTF8))
         self.l_iniFilename.setStatusTip(QtGui.QApplication.translate("MainWindow", "Current file used for the transition", None, QtGui.QApplication.UnicodeUTF8))
@@ -733,8 +733,8 @@ class Ui_MainWindow(object):
         self.dsb_Beta6D.setStatusTip(QtGui.QApplication.translate("MainWindow", "Beta6 deformation", None, QtGui.QApplication.UnicodeUTF8))
         self.label_33.setStatusTip(QtGui.QApplication.translate("MainWindow", "Excitation energy of the child level", None, QtGui.QApplication.UnicodeUTF8))
         self.label_33.setText(QtGui.QApplication.translate("MainWindow", "Energy:", None, QtGui.QApplication.UnicodeUTF8))
-        self.doubleSpinBox_2.setStatusTip(QtGui.QApplication.translate("MainWindow", "Excitation energy of the child level", None, QtGui.QApplication.UnicodeUTF8))
-        self.doubleSpinBox_2.setSuffix(QtGui.QApplication.translate("MainWindow", " keV", None, QtGui.QApplication.UnicodeUTF8))
+        self.dsb_daughterEn.setStatusTip(QtGui.QApplication.translate("MainWindow", "Excitation energy of the child level", None, QtGui.QApplication.UnicodeUTF8))
+        self.dsb_daughterEn.setSuffix(QtGui.QApplication.translate("MainWindow", " keV", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Transition", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Process:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Type:", None, QtGui.QApplication.UnicodeUTF8))

@@ -170,6 +170,13 @@ class BSG_UI(QtGui.QMainWindow):
         if button == QtGui.QMessageBox.Yes:
             self.loadRadii()
             
+        button = QtGui.QMessageBox.question(self, "Save as", 'Save transition in ini file?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        
+        if button == QtGui.QMessageBox.Yes:
+            filename = self.writeIniFile()
+            self.iniName = filename
+            self.ui.l_iniFilename.setText(filename.split('/')[-1])
+            self.ui.l_iniFilename.setToolTip(filename)
                 
     def clearPlots(self):
         self.ui.gv_plotSpectrum.clear()
@@ -185,9 +192,27 @@ class BSG_UI(QtGui.QMainWindow):
         
         bc = ut.buildBetaBranches(fullPath, Z, A)
         items = []
+        index = 0
         for i in bc.branches:
-            s = '{}'
-            items.append(s)
+            s = '{}: {}{} ([{}] {}) -> {}{} ([{}] {}); Endpoint: {} keV'.format(i.process, A, ut.atoms[Z-1], i.motherLevel.Jpi, i.motherLevel.E,\
+            A, ut.atoms[Z], i.daughterLevel.Jpi, i.daughterLevel.E, i.E)
+            
+            if index%2 == 0:
+                items.append(s)
+            index += 1
+        
+        choice  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)[0]
+        branch = bc.branches[2*items.index(choice)]
+        
+        self.ui.sb_ZM.setValue(Z)
+        self.ui.sb_AM.setValue(A)
+        self.ui.sb_ZD.setValue(Z+1 if branch.process == 'B-' else Z-1)
+        self.ui.sb_AD.setValue(A)
+        self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(branch.process))
+        self.ui.cb_type.setCurrentIndex(1)
+        self.ui.dsb_motherEn.setValue(branch.motherLevel.E)
+        self.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
+        self.ui.dsb_Q.setValue(branch.E-branch.motherLevel.E+branch.daughterLevel.E)
         
         
     def loadDeformation(self):
@@ -321,6 +346,9 @@ class BSG_UI(QtGui.QMainWindow):
         
         ut.writeIniFile(Zm, Zd, Am, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d, beta6d, mRad, dRad, mJpi, dJpi, name=filename)
         self.log('Ini file written to %s.' % filename)
+        
+        return filename
+        
     def loadIniFile(self, filename = None):
         if not filename:
             filename = QtGui.QFileDialog.getOpenFileName(self, "Choose .ini file")[0]
