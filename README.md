@@ -1,0 +1,2 @@
+# BSG
+Beta Spectrum Generator
