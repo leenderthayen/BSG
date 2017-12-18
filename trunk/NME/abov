@@ -1,0 +1,832 @@
+ABOVNILSSON ORBITS. NILSSON ORBITS FOR A PARTICLE IN A WOODS-SAXON      ABOV0000
+1   POTENTIAL WITH Y20 AND Y40 DEFORMATIONS, AND COUPLED TO CORE        ABOV0000
+2   ROTATIONAL STATES.  HIRD, B.                                        ABOV0000
+REF. IN COMP. PHYS. COMMUN. 6 (1973) 30                                 ABOV0000
+//             ),'  B.HIRD        ',MSGLEVEL=(2,0),                     ABOV0001
+//             CLASS=A                                                  ABOV0002
+//  EXEC PROC=FORTGCLG,REGION.FORT=100K,REGION.GO=100K,TIME=(2,0)       ABOV0003
+//FORT.SYSIN DD *                                                       ABOV0004
+C     ABOVNILSSON ORBITS                                                ABOV0005
+C     FOR A PARTICLE IN A WOODS-SAXON POTENTIAL WITH Y(2,0) AND Y(4,0)  ABOV0006
+C     DEFORMATIONS, AND COUPLED TO CORE ROTATIONAL STATES.              ABOV0007
+C                                                                       ABOV0008
+C     SUBPROGRAMMES USED BY MAIN PROGRAMME:-                            ABOV0009
+C       SAXON  CALCULATE A TABLE OF RADIAL MATRIX ELEMENTS.             ABOV0010
+C       EIGEN  DIAGONALISE A SQUARE SYMMETRIC MATRIX.                   ABOV0011
+C       CLEB   ABMAGEOMETRICAL COEFFICIENT.                             ABOV0012
+C       Y      SPHERICAL HARMONIC MATRIX ELEMENT <L''M''!Y(L,M)!L'M'>.  ABOV0013
+C       MINUS  (-1)**J                                                  ABOV0014
+C                                                                       ABOV0015
+C     METHOD - MATRIX DIAGONALIZATION.                                  ABOV0016
+C        FIRST DIAGONALIZATION IS OF SPHERICAL WOODS-SAXON HAMILTONIAN  ABOV0017
+C             WITH HARMONIC OSCILLATOR BASIS.                           ABOV0018
+C        SECOND DIAGONALIZATION IS OF DEFORMED HAMILTONIAN WITH         ABOV0019
+C             SPHERICAL WOODS-SAXON EIGENSTATES AS BASIS.               ABOV0020
+C        THIRD DIAGONALIZATION IS OF BAND MIXING AND CORE HAMILTONIAN   ABOV0021
+C             WITH DEFORMED PARTICLE EIGENSTATES AS A BASIS.            ABOV0022
+C                                                                       ABOV0023
+C     REFERENCES:-                                                      ABOV0024
+C     S.G.NILSSON, 1955 MAT.FYS.MEDD.DAN.VID.SELSK. 29 NO 16.           ABOV0025
+C     A.K.KERMAN, 1956 MAT.FYS.MEDD.DAN.VID.SELSK. 30 NO 15.            ABOV0026
+C     K.T.HECHT AND G.R.SATCHLER, NUCLEAR PHYSICS, 32(1962)286          ABOV0027
+C     W.SCHOLZ AND F.B.MALIK, PHYS.REV., 147(1966)836.                  ABOV0028
+C                                                                       ABOV0029
+C     NOTATION:-                                                        ABOV0030
+C     ENERGIES IN MEV.  LENGTHS IN FM. MASS IN A.M.U. Z IN ELECTRONIC   ABOV0031
+C     CHARGE UNITS.                                                     ABOV0032
+C     V0,R0,A0,V0S = WOODS-SAXON PARAMETERS.                            ABOV0033
+C     AMU = ATOMIC WEIGHT OF ODD PARTICLE + CORE.                       ABOV0034
+C     Z = ZERO FOR A NEUTRON STATE; = CORE CHARGE FOR A PROTON STATE.   ABOV0035
+C     NMAX = MAXIMUM RADIAL QUANTUM NUMBER IN HARMONIC OSCILLATOR BASIS.ABOV0036
+C     NMAX = ODD;EVEN FOR NEGATIVE;POSITIVE PARITY     NMAX < 14        ABOV0037
+C     BETA2 = SPHEROIDAL DEFORMATION                                    ABOV0038
+C     BETA4 = HEXADECAPOLE DEFORMATION.                                 ABOV0039
+C     ROT = UNIT OF ROTATIONAL ENERGY OF THE CORE.                      ABOV0040
+C     ROTI(I) = ROTATIONAL ENERGY FOR THIS VALUE OF I ONLY.             ABOV0041
+C     ROTO(OMEGA) = ROTATIONAL ENERGY FOR THIS OMEGA ONLY.              ABOV0042
+C     SPIN = MAXIMUM VALUE OF TOTAL SPIN I OF SYSTEM.                   ABOV0043
+C     ALL EIGENSTATES WITH SPINS UP TO INPUT VALUE OF SPIN ARE FOUND.   ABOV0044
+C     N = RADIAL QUANTUM NUMBER.                                        ABOV0045
+C     L = ANGULAR MOMENTUM QUANTUM NUMBER.                              ABOV0046
+C     LA = LAMBDA = COMPONENT OF L ALONG SYMMETRY AXIS.                 ABOV0047
+C     IX2 = 2*SIGMA = 2*COMPONENT OF INTRINSIC SPIN ALONG SYMMETRY AXIS.ABOV0048
+C     JX2 = 2*J, WHERE J = L + INTRINSIC SPIN.                          ABOV0049
+C     SW(1,NN) = TABLE OF <N',L!F(R)!N,L>                               ABOV0050
+C     SW(2,NN) = TABLE OF <N',L!(1/R)*D(F(R))/D(R)!N,L>.                ABOV0051
+C     SDW(NNP) = TABLE OF <N',L'!D(F(R)/D(R)!N,L>.                      ABOV0052
+C                                                                       ABOV0053
+C     INPUT:-                                                           ABOV0054
+CARD 1:V0,R0,A0 V0S,AMU,Z,NMAX                            (6F10.6,I3)   ABOV0055
+C                                                                       ABOV0056
+C     OPTION:-                                                          ABOV0057
+C        POSITIVE:- RADIAL INTEGRALS CALCULATED AND PUNCHED ON 105 CARDSABOV0058
+C IF V0 <            (FIRST CARD PUNCHED IS NEW CARD 1 WITH V0 NEGATIVE)ABOV0059
+C        NEGATIVE:- THE RADIAL INTEGRALS ARE READ OFF CARDS 2 TO 106.   ABOV0060
+C                                                                       ABOV0061
+CARD 2(OR 107)SPIN,BETA2,BETA4,ROT,DBETA2,DBETA4,DROT,NBETA2,NBETA4,NROTABOV0062
+C                                                        (7F5.3,3I3)    ABOV0063
+C     OPTIONS:-                                                         ABOV0064
+C     BETA2 IS INCREASED NBETA2 TIMES BY INCREMENT DBETA2.              ABOV0065
+C     BETA4 IS INCREASED NBETA4 TIMES BY INCREMENT DBETA4.              ABOV0066
+C      ROT  IS INCREASED  NROT  TIMES BY INCREMENT  DROT.               ABOV0067
+C                                                                       ABOV0068
+C        POSITIVE:-THIS VALUE USED IN ALL TERMS, CARDS 3 & 4 ARE OMITTEDABOV0069
+C IF ROT<                                                               ABOV0070
+C            ZERO:-READ CARDS 3 & 4 FOR I & OMEGA DEPENDENT ROT VALUES. ABOV0071
+C                                                                       ABOV0072
+CARD 3(OR 108):-ROTI(I) FOR  DIAGONAL I(I+1) TERMS ONLY.       (7F5.3)  ABOV0073
+C                        (SPIN + 1/2) VALUES OF ROTI REQUIRED.          ABOV0074
+CARD 4(OR 109):-ROTO(OMEGA) FOR CORIOLIS AND DECOUPLING TERMS. (7F5.3)  ABOV0075
+C                        (SPIN + 1/2) VALUES OF ROTO REQUIRED.          ABOV0076
+C     IF ANY ROTO IS ZERO THE BAND MIXING IS OMITTED                    ABOV0077
+C                                                                       ABOV0078
+C                                                                       ABOV0079
+CARD 3 OR 5:- EITHER BLANK CARD TO TERMINATE, OR NEW CARD 2 ETC.        ABOV0080
+C-----------------------------------------------------------------------ABOV0081
+C                                                                       ABOV0082
+      MINUS(J)=1+4*(IABS(J)/2)-2*IABS(J)                                ABOV0083
+C                                                                       ABOV0084
+      DIMENSION SW(2,84),SDW(462),R(1600),A(40,56),AM(820),B(820),      ABOV0085
+     1D(820),N(56),L(56),LA(56),IX2(56),JX2(56),CNU(35,56),E(35),LK(35),ABOV0086
+     2LKK(35),KN(7,35),K1(7),ROTO(7),RROTO(7),ROTI(7),                  ABOV0087
+     3ED(40),K2(40),K3(40),K4(40)                                       ABOV0088
+      COMMON FACLOG(500),RAC,IA,IB,IC,ID,IE,IF,L9(9),U9,KSELC           ABOV0089
+      DATA CNU/1960*0.0/,SW/168*0.0/,SDW/462*0.0/                       ABOV0090
+      IR=1                                                              ABOV0091
+      IW=3                                                              ABOV0092
+      READ(IR,100)V0,R0,A0,V0S,AMU,Z,NMAX                               ABOV0093
+      WRITE(IW,101)V0,R0,A0,V0S,AMU,Z,NMAX                              ABOV0094
+      IF(V0.GT.0.0) CALL SAXON(V0,R0,A0,V0S,AMU,Z,NMAX,SW,SDW)          ABOV0095
+      IF(V0.LT.0.0) READ(IR,102)SW,SDW                                  ABOV0096
+C                                                                       ABOV0097
+C     DIAGONALIZE SPHERICAL PART OF WOODS SAXON INTERACTION IN H.O.BASISABOV0098
+      II=0                                                              ABOV0099
+      K=0                                                               ABOV0100
+      NMAXP1=NMAX+1                                                     ABOV0101
+C     MIN=1 FOR EVEN PARITY, MIN=2 FOR ODD PARITY.                      ABOV0102
+      MIN=(NMAXP1/2)-(NMAX/2)+1                                         ABOV0103
+C                                                                       ABOV0104
+C     DIAGONALIZE EACH L-VALUE SEPARATELY.                              ABOV0105
+      DO 6 LI=MIN,NMAXP1,2                                              ABOV0106
+      NIM=II                                                            ABOV0107
+      NI=II+1                                                           ABOV0108
+      NK=K+1                                                            ABOV0109
+C                                                                       ABOV0110
+C     SET UP QUANTUM NUMBERS OF THE HARMONIC OSCILLATOR BASIS.          ABOV0111
+      DO 1 NN=LI,NMAXP1,2                                               ABOV0112
+      DO 1 I=1,2                                                        ABOV0113
+      II=II+1                                                           ABOV0114
+      N(II)=NN-1                                                        ABOV0115
+      L(II)=LI-1                                                        ABOV0116
+      LA(II)=2-I                                                        ABOV0117
+      IX2(II)=2*I-3                                                     ABOV0118
+      JX2(II)=2*L(II)+IX2(II)                                           ABOV0119
+      IF(L(II).LT.LA(II)) II=II-1                                       ABOV0120
+    1 CONTINUE                                                          ABOV0121
+      IF(II.EQ.NIM) GO TO 6                                             ABOV0122
+C                                                                       ABOV0123
+C     SET UP MATRIX                                                     ABOV0124
+      KK=0                                                              ABOV0125
+      DO 2 I=NI,II                                                      ABOV0126
+      DO 2 J=NI,I                                                       ABOV0127
+      KK=KK+1                                                           ABOV0128
+      AM(KK)=0.0                                                        ABOV0129
+      IF(JX2(J).NE.JX2(I)) GO TO 2                                      ABOV0130
+C     IDENTIFY RADIAL MATRIX ELEMENTS.                                  ABOV0131
+      NN=(N(I)/2)*(N(I)/2+1)*(N(I)/2+2)/6+(N(J)/2)*(N(J)/2+1)/2+L(I)/2+1ABOV0132
+      AM(KK)=SW(1,NN)+SW(2,NN)*IX2(J)*(L(J)+LA(J))                      ABOV0133
+    2 CONTINUE                                                          ABOV0134
+C                                                                       ABOV0135
+    3 CALL EIGEN(AM,R,II-NIM,0)                                         ABOV0136
+C                                                                       ABOV0137
+C     LABELS ARE I=STATE, J=COMPONENT OF STATE.                         ABOV0138
+      DO 5 I=NI,II                                                      ABOV0139
+C     REJECT ANY STATES WITH ENERGY > 10 MEV.                           ABOV0140
+      N0=(I-NIM)*(I-NIM+1)/2                                            ABOV0141
+      IF(AM(N0).GT.10.0) GO TO 5                                        ABOV0142
+      K=K+1                                                             ABOV0143
+      IF(K.GT.35) GO TO 36                                              ABOV0144
+C     E=SPHERICAL WOODS-SAXON EIGENVALUES: CNU=EXPANSION COEFFICIENTS.  ABOV0145
+      E(K)=AM(N0)                                                       ABOV0146
+      LK(K)=L(I)                                                        ABOV0147
+      K3(K)=JX2(I)                                                      ABOV0148
+      DO 4 J=NI,II                                                      ABOV0149
+      N0=(II-NIM)*(I-NI)+J-NIM                                          ABOV0150
+    4 CNU(K,J)=R(N0)                                                    ABOV0151
+    5 CONTINUE                                                          ABOV0152
+C                                                                       ABOV0153
+C     II = SIZE OF HARMONIC OSCILLATOR BASIS.                           ABOV0154
+C     K = SIZE OF WOODS-SAXON BASIS FOR DEFORMED STATE DIAGONALIZATION. ABOV0155
+      IF(NK.EQ.K+1) II=NIM                                              ABOV0156
+    6 CONTINUE                                                          ABOV0157
+C                                                                       ABOV0158
+      IF(K.EQ.0) RETURN                                                 ABOV0159
+C                                                                       ABOV0160
+C     LIST EIGENSTATES AND EXPANSION COEFFICIENS, 12 ON ONE LINE.       ABOV0161
+      WRITE(IW,104)                                                     ABOV0162
+      DO 7 KKK=1,K,12                                                   ABOV0163
+      KKKK=MIN0(K,KKK+11)                                               ABOV0164
+      WRITE(IW,105)(E(I),I=KKK,KKKK)                                    ABOV0165
+      WRITE(IW,106)(K3(I),I=KKK,KKKK)                                   ABOV0166
+      WRITE(IW,107)                                                     ABOV0167
+      DO 7 J=1,II                                                       ABOV0168
+    7 WRITE(IW,108)N(J),JX2(J),(CNU(I,J),I=KKK,KKKK)                    ABOV0169
+C                                                                       ABOV0170
+C     INITALIZE CLEBSCH-GORDON FACLOG TABLE.                            ABOV0171
+      KSELC=1                                                           ABOV0172
+      FACLOG(1)=0.0                                                     ABOV0173
+      FACLOG(2)=0.0                                                     ABOV0174
+      X=1.0                                                             ABOV0175
+      DO 8 I=3,50                                                       ABOV0176
+      X=X+1.0                                                           ABOV0177
+    8 FACLOG(I)=FACLOG(I-1)+ALOG(X)                                     ABOV0178
+C                                                                       ABOV0179
+C-----------------------------------------------------------------------ABOV0180
+C                                                                       ABOV0181
+    9 READ(IR,103)SPIN,BETA2,BETA4,ROT,DBETA2,DBETA4,DROT,NBETA2,NBETA4,ABOV0182
+     *NROT                                                              ABOV0183
+      IF(SPIN.EQ.0.0) RETURN                                            ABOV0184
+      WRITE(IW,109)SPIN,BETA2,BETA4,ROT,DBETA2,DBETA4,DROT,NBETA2,NBETA4ABOV0185
+     *,NROT                                                             ABOV0186
+C                                                                       ABOV0187
+      NBETA2=NBETA2+1                                                   ABOV0188
+      NBETA4=NBETA4+1                                                   ABOV0189
+      NROT=NROT+1                                                       ABOV0190
+      IF(ABS(SPIN).GT.6.5) SPIN=6.5                                     ABOV0191
+      ISX2=ABS(2.*SPIN)                                                 ABOV0192
+      ISPIN=(ISX2+1)/2                                                  ABOV0193
+      DO 10 I=1,ISPIN                                                   ABOV0194
+      ROTI(I)=ROT                                                       ABOV0195
+   10 ROTO(I)=ROT                                                       ABOV0196
+      IF(ROT.GT.0.0) GO TO 11                                           ABOV0197
+      READ(IR,103)(ROTI(I),I=1,ISPIN)                                   ABOV0198
+      WRITE(IW,110)(ROTI(I),I=1,ISPIN)                                  ABOV0199
+      READ(IR,103)(ROTO(I),I=1,ISPIN)                                   ABOV0200
+      WRITE(IW,111)(ROTO(I),I=1,ISPIN)                                  ABOV0201
+   11 KK=0                                                              ABOV0202
+      KKKK=0                                                            ABOV0203
+C     CYCLE OMEGA IN SERIES (2*INTEGER + 1/2) FROM -SPIN TO +SPIN.      ABOV0204
+      IOM=1                                                             ABOV0205
+      DO 16 IIOM=1,ISPIN                                                ABOV0206
+      IOM=-IOM-2*MINUS(IIOM)                                            ABOV0207
+      IIIOM=4*(IABS(IOM)/4)+2-MIN                                       ABOV0208
+      KKK=0                                                             ABOV0209
+      DO 13 I=1,K                                                       ABOV0210
+      KKK=KKK+1                                                         ABOV0211
+      LKK(KKK)=LK(I)                                                    ABOV0212
+      KN(IIOM,KKK)=I                                                    ABOV0213
+C                                                                       ABOV0214
+C     CALCULATE A(N,L,LA) FROM C(N,J)                                   ABOV0215
+      X=0.0                                                             ABOV0216
+      DO 12 J=1,II                                                      ABOV0217
+      IF(L(J).NE.LKK(KKK)) GO TO 12                                     ABOV0218
+      IA=2*L(J)                                                         ABOV0219
+      IB=1                                                              ABOV0220
+      IC=JX2(J)                                                         ABOV0221
+      ID=2*(LA(J)+IIOM-1)                                               ABOV0222
+      IE=IX2(J)                                                         ABOV0223
+      IF=ID+IE                                                          ABOV0224
+      CALL CLEB                                                         ABOV0225
+      X1=CNU(I,J)*RAC                                                   ABOV0226
+      IC=IC-2*IE                                                        ABOV0227
+      N0=J-IE                                                           ABOV0228
+      CALL CLEB                                                         ABOV0229
+      IF(JX2(J).GT.IIIOM) X1=X1+CNU(I,N0)*RAC                           ABOV0230
+      A(KKK,J)=X1                                                       ABOV0231
+      X=X+X1*X1                                                         ABOV0232
+   12 CONTINUE                                                          ABOV0233
+C     REJECT STATES WITH NO NONZERO COMPONENTS                          ABOV0234
+      IF(X.LT.0.1) KKK=KKK-1                                            ABOV0235
+   13 CONTINUE                                                          ABOV0236
+      KKKK=KKKK+KKK                                                     ABOV0237
+      IF(KKKK.GT.40) GO TO 36                                           ABOV0238
+      K1(IIOM)=KKK                                                      ABOV0239
+      IF(KKK.EQ.0) GO TO 16                                             ABOV0240
+C                                                                       ABOV0241
+C     CALCULATE DEFORMATION INDEPENDENT PARTS OF THE DEFORMED MATRIX.   ABOV0242
+      DO 15 I=1,KKK                                                     ABOV0243
+      DO 15 J=1,I                                                       ABOV0244
+      KK=KK+1                                                           ABOV0245
+      B(KK)=0.0                                                         ABOV0246
+      D(KK)=0.0                                                         ABOV0247
+C                                                                       ABOV0248
+C     SUM OVER !N,L,LA> BASIS                                           ABOV0249
+      DO 15 N1=1,II                                                     ABOV0250
+      DO 15 N2=1,II                                                     ABOV0251
+C     A!N,L,LAMBDA> IS DIAGONAL IN L AND LAMBDA.                        ABOV0252
+      IF(L(N1).NE.LKK(I).OR.L(N2).NE.LKK(J).OR.(L(N1)-L(N2))/5.NE.0.OR. ABOV0253
+     *  LA(N1).NE.LA(N2)) GO TO 15                                      ABOV0254
+      NI=N(N1)/2+1                                                      ABOV0255
+      NJ=N(N2)/2+1                                                      ABOV0256
+      LI=L(N1)/2+1                                                      ABOV0257
+      LJ=L(N2)/2+1                                                      ABOV0258
+      IF(NI.GE.NJ) GO TO 14                                             ABOV0259
+      NN=NI                                                             ABOV0260
+      NI=NJ                                                             ABOV0261
+      NJ=NN                                                             ABOV0262
+      NN=LI                                                             ABOV0263
+      LI=LJ                                                             ABOV0264
+      LJ=NN                                                             ABOV0265
+C     IDENTIFY RADIAL MATRIX ELEMENTS.                                  ABOV0266
+   14 NNP=NI*(NI-1)                                                     ABOV0267
+      NNP=(3*NNP*NNP+2*NNP*(2*NI-1))/24+NI*NJ*(NJ-1)/2+(LI-1)*NJ+LJ     ABOV0268
+      X=A(I,N1)*SDW(NNP)*A(J,N2)                                        ABOV0269
+      LP=L(N1)                                                          ABOV0270
+      LAP=LA(N1)+IIOM-1                                                 ABOV0271
+      LL=L(N2)                                                          ABOV0272
+      LLA=LA(N2)+IIOM-1                                                 ABOV0273
+      B(KK)=B(KK)+X*Y(LP,LAP,2,0,LL,LLA)                                ABOV0274
+      D(KK)=D(KK)+X*Y(LP,LAP,4,0,LL,LLA)                                ABOV0275
+   15 CONTINUE                                                          ABOV0276
+   16 CONTINUE                                                          ABOV0277
+C-----------------------------------------------------------------------ABOV0278
+C                                                                       ABOV0279
+C     CYCLE DEFORMATIONS.                                               ABOV0280
+      DO 35 M2=1,NBETA2                                                 ABOV0281
+      BBETA2=BETA2+(M2-1)*DBETA2                                        ABOV0282
+      DO 35 M4=1,NBETA4                                                 ABOV0283
+      BBETA4=BETA4+(M4-1)*DBETA4                                        ABOV0284
+C                                                                       ABOV0285
+      K=0                                                               ABOV0286
+      KK=0                                                              ABOV0287
+C     CYCLE OMEGA IN SERIES (2*INTEGER + 1/2) FROM -SPIN TO +SPIN.      ABOV0288
+      IOM=1                                                             ABOV0289
+      DO 20 IIOM=1,ISPIN                                                ABOV0290
+      IOM=-IOM-2*MINUS(IIOM)                                            ABOV0291
+      KKK=K1(IIOM)                                                      ABOV0292
+      IF(KKK.EQ.0) GO TO 20                                             ABOV0293
+C     ASSEMBLE MATRIX ELEMENTS.                                         ABOV0294
+      NK=0                                                              ABOV0295
+      DO 18 I=1,KKK                                                     ABOV0296
+      DO 17 J=1,I                                                       ABOV0297
+      NK=NK+1                                                           ABOV0298
+      KK=KK+1                                                           ABOV0299
+   17 AM(NK)=BBETA2*B(KK)+BBETA4*D(KK)                                  ABOV0300
+      N0=KN(IIOM,I)                                                     ABOV0301
+   18 AM(NK)=AM(NK)+E(N0)                                               ABOV0302
+C                                                                       ABOV0303
+      CALL EIGEN(AM,R,KKK,0)                                            ABOV0304
+C                                                                       ABOV0305
+C     EXPRESS !MU> STATES IN !N,J> BASIS.                               ABOV0306
+C     ED=DEFORMED WOODS-SAXON EIGENVALUES: A=EXPANSION COEFFICIENTS.    ABOV0307
+      N0=0                                                              ABOV0308
+      DO 19 MU=1,KKK                                                    ABOV0309
+      N0=N0+MU                                                          ABOV0310
+      K=K+1                                                             ABOV0311
+      K2(K)=IOM                                                         ABOV0312
+      K3(K)=IABS(IOM)                                                   ABOV0313
+      K4(K)=KKK-MU+1                                                    ABOV0314
+      ED(K)=AM(N0)                                                      ABOV0315
+      DO 19 J=1,II                                                      ABOV0316
+      A(K,J)=0.0                                                        ABOV0317
+      NK=KKK*(MU-1)                                                     ABOV0318
+      DO 19 NU=1,KKK                                                    ABOV0319
+      I=KN(IIOM,NU)                                                     ABOV0320
+      NK=NK+1                                                           ABOV0321
+   19 A(K,J)=A(K,J)+R(NK)*CNU(I,J)                                      ABOV0322
+   20 CONTINUE                                                          ABOV0323
+C                                                                       ABOV0324
+C     LIST EIGENSTATES AND EXPANSION COEFFICIENTS, 12 ON ONE LINE.      ABOV0325
+      WRITE(IW,112)BBETA2,BBETA4                                        ABOV0326
+      DO 21 KKK=1,K,12                                                  ABOV0327
+      KKKK=MIN0(K,KKK+11)                                               ABOV0328
+      WRITE(IW,105)(ED(I),I=KKK,KKKK)                                   ABOV0329
+      WRITE(IW,113)(K3(I),K4(I),I=KKK,KKKK)                             ABOV0330
+      WRITE(IW,107)                                                     ABOV0331
+      DO 21 J=1,II                                                      ABOV0332
+   21 WRITE(IW,108)N(J),JX2(J),(A(MU,J),MU=KKK,KKKK)                    ABOV0333
+C-----------------------------------------------------------------------ABOV0334
+C                                                                       ABOV0335
+C      BAND MIXING                                                      ABOV0336
+      DO 35 MM=1,NROT                                                   ABOV0337
+      DO 22 IIOM=1,ISPIN                                                ABOV0338
+      RROTO(IIOM)=ROTO(IIOM)+(MM-1)*DROT                                ABOV0339
+C     MISS OUT BAND MIXING SECTION IF THERE IS NO ROTATIONAL ENERGY.    ABOV0340
+      IF(RROTO(IIOM).LE.0.0) GO TO 35                                   ABOV0341
+   22 CONTINUE                                                          ABOV0342
+C     CYCLE SPIN VALUES FORM 1/2 UP TO SPIN.                            ABOV0343
+      DO 34 IISPIN=1,ISX2,2                                             ABOV0344
+      IIOM=(IISPIN+1)/2                                                 ABOV0345
+C                                                                       ABOV0346
+C SET UP BAND MIXED MATRIX IN !N,J> BASIS.                              ABOV0347
+      KKK=0                                                             ABOV0348
+      KK=0                                                              ABOV0349
+      DO 28 MU1=1,K                                                     ABOV0350
+      IF(K3(MU1).GT.IISPIN) GO TO 29                                    ABOV0351
+      IOM1=K2(MU1)                                                      ABOV0352
+      N0=(K3(MU1)+1)/2                                                  ABOV0353
+      X1=RROTO(N0)                                                      ABOV0354
+      KKK=KKK+1                                                         ABOV0355
+      DO 27 MU2=1,MU1                                                   ABOV0356
+      IF(K3(MU2).GT.IISPIN) GO TO 28                                    ABOV0357
+      IOM2=K2(MU2)                                                      ABOV0358
+      KK=KK+1                                                           ABOV0359
+      AM(KK)=0.0                                                        ABOV0360
+      N0=(K3(MU2)+1)/2                                                  ABOV0361
+      X2=RROTO(N0)                                                      ABOV0362
+      IF((IOM1+IOM2)/3.NE.0) GO TO 24                                   ABOV0363
+      DO 23 J=1,II                                                      ABOV0364
+      JJ=JX2(J)                                                         ABOV0365
+      IF(IOM1+IOM2.EQ.-2) X=(JJ-IOM1)*(JJ+IOM1+2)*(IISPIN-IOM1)         ABOV0366
+     1 *(IISPIN+IOM1+2)                                                 ABOV0367
+      IF(IOM1+IOM2.EQ.+2) X=(JJ+IOM1)*(JJ-IOM1+2)*(IISPIN+IOM1)         ABOV0368
+     1 *(IISPIN-IOM1+2)                                                 ABOV0369
+      IF(X.LT.1.0E-30) X=1.0E-30                                        ABOV0370
+      X=-SQRT(X*X1*X2)                                                  ABOV0371
+      IF(IOM1*IOM2.LT.0) X=X*MINUS((JJ-1)/2)                            ABOV0372
+   23 AM(KK)=AM(KK)+X*A(MU1,J)*A(MU2,J)*MINUS((IISPIN-JJ)/2)            ABOV0373
+   24 IF(IOM1.NE.IOM2) GO TO 26                                         ABOV0374
+      DO 25 J=1,II                                                      ABOV0375
+   25 AM(KK)=AM(KK)+A(MU1,J)*A(MU2,J)*JX2(J)*(JX2(J)+2)*X1              ABOV0376
+   26 AM(KK)=AM(KK)/4.0                                                 ABOV0377
+   27 CONTINUE                                                          ABOV0378
+      AM(KK)=AM(KK)+(ROTI(IIOM)+(MM-1)*DROT)*IISPIN*(IISPIN+2)/4.0      ABOV0379
+     *                      -X1*IOM1*IOM1/2.0 + ED(MU1)                 ABOV0380
+   28 CONTINUE                                                          ABOV0381
+C                                                                       ABOV0382
+   29 WRITE(IW,114)BBETA2,BBETA4,IISPIN                                 ABOV0383
+      WRITE(IW,115)                                                     ABOV0384
+      WRITE(IW,116)(I,I=1,IISPIN,2)                                     ABOV0385
+      WRITE(IW,117)(RROTO(I),I=1,IIOM)                                  ABOV0386
+C                                                                       ABOV0387
+C     WRITE OUT MATRIX ELEMENTS. UP TO 12 ON ONE LINE.                  ABOV0388
+      WRITE(IW,118)                                                     ABOV0389
+      DO 31 JJJ=1,KKK,12                                                ABOV0390
+      DO 30 JJ=JJJ,KKK,12                                               ABOV0391
+      KKKK=MIN0(KKK,JJ+11)                                              ABOV0392
+      DO 30 I=JJ,KKKK                                                   ABOV0393
+      JJJJ=I*(I-1)/2+JJJ                                                ABOV0394
+      JJJJJ=MIN0(I*(I+1)/2,JJJJ+11)                                     ABOV0395
+   30 WRITE(IW,119)K3(I),K4(I),(AM(J),J=JJJJ,JJJJJ)                     ABOV0396
+   31 WRITE(IW,120)                                                     ABOV0397
+C                                                                       ABOV0398
+      CALL EIGEN(AM,R,KKK,0)                                            ABOV0399
+C                                                                       ABOV0400
+C     LIST EIGENSTATES AND EXPANSION COEFFICIENS, 12 ON ONE LINE.       ABOV0401
+      DO 33 JJ=1,KKK,12                                                 ABOV0402
+      KKKK=MIN0(KKK,JJ+11)                                              ABOV0403
+      KKK2=KKK*KKKK                                                     ABOV0404
+      DO 32 I=JJ,KKKK                                                   ABOV0405
+      J=I*(I+1)/2                                                       ABOV0406
+      AM(I)=AM(J)                                                       ABOV0407
+   32 L(I)=KKK-I+1                                                      ABOV0408
+      WRITE(IW,105)(AM(I),I=JJ,KKKK)                                    ABOV0409
+      WRITE(IW,121)(L(I),I=JJ,KKKK)                                     ABOV0410
+      WRITE(IW,122)                                                     ABOV0411
+      DO 33 J=1,KKK                                                     ABOV0412
+      JJJ=KKK*(JJ-1)+J                                                  ABOV0413
+   33 WRITE(IW,119)K3(J),K4(J),(R(I),I=JJJ,KKK2,KKK)                    ABOV0414
+      WRITE(IW,120)                                                     ABOV0415
+C                                                                       ABOV0416
+   34 CONTINUE                                                          ABOV0417
+   35 CONTINUE                                                          ABOV0418
+      GO TO 9                                                           ABOV0419
+   36 WRITE(IW,123)                                                     ABOV0420
+      RETURN                                                            ABOV0421
+C                                                                       ABOV0422
+  100 FORMAT(6F10.6,I3)                                                 ABOV0423
+  101 FORMAT(36H         DEFORMED WOODS-SAXON STATES/16H    INPUT DATA:/ABOV0424
+     *7H  VO = ,F7.3,13H MEV.   RO = ,F7.3,12H FM.   AO = ,F7.3,        ABOV0425
+     *13H FM.    VS = ,F7.3,5H MEV,/7H   A = ,F5.1,14H A.M.U.    Z =,F5.ABOV0426
+     *1,14H        NMAX =,I3)                                           ABOV0427
+  102 FORMAT(6E13.6)                                                    ABOV0428
+  103 FORMAT(7F5.3,3I3)                                                 ABOV0429
+  104 FORMAT(68H0      SPHERICAL WOODS-SAXON EXPANSION IN HARMONIC OSCILABOV0430
+     *LATOR BASIS.)                                                     ABOV0431
+  105 FORMAT(15H0 ENERGY (MEV) ,12F8.3)                                 ABOV0432
+  106 FORMAT(6H     J,9X,12(4H    ,I2,2H/2))                            ABOV0433
+  107 FORMAT(11H0C( N , J ))                                            ABOV0434
+  108 FORMAT(2H !,2I3,3H/2>,4X,12F8.4,(1H ,14X,12F8.4))                 ABOV0435
+  109 FORMAT(16H0   INPUT DATA:-/9H   SPIN =,F5.1,3X,8HBETA2 = ,F7.2,10HABOV0436
+     *   BETA4 =,F7.3,8H   ROT =,F7.3/1H ,15X,8HDBETA2 =,F7.3,11H   DBETABOV0437
+     *A4 =,F7.3,8H  DROT =,F7.3/1H ,15X,8HNBETA2 =,I4,14H      NBETA4 =,ABOV0438
+     *I4,11H     NROT =,I4)                                             ABOV0439
+  110 FORMAT(1H0,14X,11HROT(SPIN) =,7F7.3)                              ABOV0440
+  111 FORMAT(1H ,13X,12HROT(OMEGA) =,7F7.3)                             ABOV0441
+  112 FORMAT(44H1  DEFORMED STATES: NO BAND MIXING   BETA2 =,F10.4,     ABOV0442
+     *12H     BETA4 =,F10.4)                                            ABOV0443
+  113 FORMAT(11H0 OMEGA!MU>,4X,12(I2,3H/2!,I2,1H>))                     ABOV0444
+  114 FORMAT(40H1  BAND MIXED DEFORMED STATES:   BETA2 =,F10.4,10H   BETABOV0445
+     *A4 =,F10.4,10H    SPIN =,I4,2H/2)                                 ABOV0446
+  115 FORMAT(1H ,32X,36HROTATIONAL ENERGY UNIT VALUES, (MEV))           ABOV0447
+  116 FORMAT(1H ,36X,10HOMEGA  =  ,7(I4,2H/2))                          ABOV0448
+  117 FORMAT(1H ,32X,14HROT(OMEGA) =  ,7F6.3)                           ABOV0449
+  118 FORMAT(32H0OMEGA!MU>       MATRIX ELEMENTS)                       ABOV0450
+  119 FORMAT(1H ,I2,3H/2!,I2,1H>,6X,12F8.3)                             ABOV0451
+  120 FORMAT(1H0)                                                       ABOV0452
+  121 FORMAT(8H STATE #,5X,12(6H      ,I2))                             ABOV0453
+  122 FORMAT(55H0OMEGA!MU>      EXPANSION COEFFICIENTS IN UNMIXED BASIS)ABOV0454
+  123 FORMAT(29H0DIMENSIONED SPACE INADEQUATE)                          ABOV0455
+      END                                                               ABOV0456
+      SUBROUTINE SAXON(V0,R0,A0,V0S,AMU,Z,NMAX,SW,SDW)                  ABOV0457
+C     TABLE OF INTEGRALS OF SAXON-WOODS POTENTIALS  IN HARMONIC         ABOV0458
+C     OSCILLATOR BASIS. THE H.O.PARAMETER TWONU IS CHOSEN TO MATCH THE  ABOV0459
+C     SAXON-WOODS  POTENTIAL AT THE HALF WAY RADIUS RO.                 ABOV0460
+C     SUBPROGRAMMES REQUIRED:- FUNCTION V , FUNCTION VNORM.             ABOV0461
+      DIMENSION FINT(3),S(3,4),SW(2,84),SDW(462)                        ABOV0462
+C                                                                       ABOV0463
+      IP=2                                                              ABOV0464
+      IW=3                                                              ABOV0465
+      II=0                                                              ABOV0466
+      JJ=0                                                              ABOV0467
+      NDX=300                                                           ABOV0468
+      N=NDX/4-2                                                         ABOV0469
+      A=AMU**.333333                                                    ABOV0470
+      RO=A*ABS(R0)                                                      ABOV0471
+      AO=A0                                                             ABOV0472
+COMPTON WAVELENGTH OF PION = 1.4133 FM.                                 ABOV0473
+      VOS=V0S*1.4133*1.4133                                             ABOV0474
+      TWONU=0.154666*SQRT(V0)/RO                                        ABOV0475
+      T=TWONU*20.899*AMU/(AMU-1.)                                       ABOV0476
+C     (ELECTRONIC CHARGE)**2 = 1.439978 MEV-FM.                         ABOV0477
+      ZZ=Z*1.439978                                                     ABOV0478
+      ZCONST=1.5*ZZ/RO                                                  ABOV0479
+      ZIN=0.5*ZZ/(RO**3)                                                ABOV0480
+      DX=(RO+8.*AO)/NDX                                                 ABOV0481
+      DFO=EXP(DX/AO)                                                    ABOV0482
+C                                                                       ABOV0483
+      WRITE(IW,101)                                                     ABOV0484
+CYCLE N,L,VALUES,  NNI>=NNJ, NNI>=LLI,  NNJ>=LLJ.                       ABOV0485
+C ALL N,L VALUES EITHER ODD, OR EVEN.                                   ABOV0486
+      NMAXP1=NMAX+1                                                     ABOV0487
+C     NMIN=1 FOR EVEN PARITY; NMIN=2 FOR ODD PARITY.                    ABOV0488
+      NMIN=(NMAXP1/2)-((NMAXP1-1)/2)+1                                  ABOV0489
+      DO 12 NNI=NMIN,NMAXP1,2                                           ABOV0490
+      DO 12 NNJ=NMIN,NNI,2                                              ABOV0491
+      DO 12 LLI=NMIN,NNI,2                                              ABOV0492
+      DO 12 LLJ=NMIN,NNJ,2                                              ABOV0493
+      NI=NNI-1                                                          ABOV0494
+      NJ=NNJ-1                                                          ABOV0495
+      LI=LLI-1                                                          ABOV0496
+      LJ=LLJ-1                                                          ABOV0497
+C                                                                       ABOV0498
+      KK=1                                                              ABOV0499
+      IF(LI.NE.LJ) KK=3                                                 ABOV0500
+C                                                                       ABOV0501
+C   START INTEGRATION LOOP                                              ABOV0502
+      R=DX                                                              ABOV0503
+      FO=DFO/EXP(RO/AO)                                                 ABOV0504
+      DO 1 J=1,3                                                        ABOV0505
+    1 FINT(J)=0.0                                                       ABOV0506
+    2 M=-N-2                                                            ABOV0507
+    3 DO 4 I=1,4                                                        ABOV0508
+C    START INTEGRAND                                                    ABOV0509
+      R2=R*R*TWONU                                                      ABOV0510
+      PSI2=V(NI,LI,R2)*V(NJ,LJ,R2)*(R2**((LI+LJ)/2))*R*R/EXP(R2)        ABOV0511
+      F=1./(1.+FO)                                                      ABOV0512
+      DFDR=-FO*F*F/AO                                                   ABOV0513
+      IF(R.LE.RO) S(1,I)=-PSI2*(V0*F+T*R2+ZIN*R*R-ZCONST)               ABOV0514
+      IF(R.GT.RO) S(1,I)=-PSI2*(V0*F+T*R2-ZZ/R)                         ABOV0515
+      S(2,I)=PSI2*DFDR/R                                                ABOV0516
+      S(3,I)=PSI2*DFDR                                                  ABOV0517
+C    END INTEGRAND.                                                     ABOV0518
+C                                                                       ABOV0519
+      FO=FO*DFO                                                         ABOV0520
+      R=R+DX                                                            ABOV0521
+      DO 4 J=KK,3                                                       ABOV0522
+    4 FINT(J)=FINT(J)+S(J,I)                                            ABOV0523
+      M=M+2                                                             ABOV0524
+      IF(M/N)6,3,5                                                      ABOV0525
+    5 R=R+4.*DX                                                         ABOV0526
+      DX=-DX                                                            ABOV0527
+      FO=FO*(DFO**4)                                                    ABOV0528
+      DFO=1./DFO                                                        ABOV0529
+      GO TO 2                                                           ABOV0530
+    6 DO 7 I=2,4                                                        ABOV0531
+      DO 7 L=I,4                                                        ABOV0532
+      K=4+I-L                                                           ABOV0533
+      DO 7 J=KK,3                                                       ABOV0534
+    7 S(J,K)=S(J,K)-S(J,K-1)                                            ABOV0535
+      DO 8 J=KK,3                                                       ABOV0536
+    8 FINT(J)=FINT(J)-S(J,1)/2.+S(J,2)/12.-S(J,3)/24.+19.*S(J,4)/720.   ABOV0537
+      IF(DX)9,9,3                                                       ABOV0538
+    9 DX=-DX                                                            ABOV0539
+      DFO=1./DFO                                                        ABOV0540
+C    END INTEGRATION LOOP.                                              ABOV0541
+C                                                                       ABOV0542
+      X=VNORM(NI,LI)*VNORM(NJ,LJ)                                       ABOV0543
+      IF(KK.EQ.3) GO TO 11                                              ABOV0544
+      II=II+1                                                           ABOV0545
+      SW(1,II)=FINT(1)*X*DX*(TWONU**1.5)                                ABOV0546
+      IF(NI.EQ.NJ) SW(1,II)=SW(1,II)+2.*T*(NI+1.5)                      ABOV0547
+      SW(2,II)=FINT(2)*X*DX*(TWONU**1.5)*VOS                            ABOV0548
+   11 JJ=JJ+1                                                           ABOV0549
+      SDW(JJ)=FINT(3)*X*DX*(TWONU**1.5) *V0*RO                          ABOV0550
+      IF(KK.EQ.1)WRITE(IW,102)NI,LI,NJ,LJ,II,JJ,(SW(J,II),J=1,2),SDW(JJ)ABOV0551
+      IF(KK.EQ.3)WRITE(IW,103)NI,LI,NJ,LJ,   JJ,                 SDW(JJ)ABOV0552
+   12 CONTINUE                                                          ABOV0553
+      VO=-V0                                                            ABOV0554
+      WRITE(IP,100)VO,R0,A0,V0S,AMU,Z,NMAX,SW,SDW                       ABOV0555
+  100 FORMAT(6F10.6,I3/(6E13.6))                                        ABOV0556
+  101 FORMAT(59H0    <N'L'! !  N L >   LABELS       RADIAL INTEGRALS  (MABOV0557
+     *EV)/1H ,21X,47HNN  NN'          <F>     <(DF/DR)/R>    <DF/DR>/)  ABOV0558
+  102 FORMAT(6H     <,2I2,4H! ! ,2I2,2H >,2I4,5H =   ,3F12.5)           ABOV0559
+  103 FORMAT(6H     <,2I2,4H! ! ,2I2,6H >    ,I4,2H =,27X,F12.5)        ABOV0560
+      RETURN                                                            ABOV0561
+      END                                                               ABOV0562
+      FUNCTION V(N,L,X)                                                 ABOV0563
+C  ASSOCIATED LAGUERRE POLYNOMIALS, DESHALIT AND TALMI, PAGE 40.        ABOV0564
+      M=(N-L)/2                                                         ABOV0565
+      V=1.0                                                             ABOV0566
+      F=1.0                                                             ABOV0567
+      MK=1                                                              ABOV0568
+      MM=1                                                              ABOV0569
+      IF(M)3,3,1                                                        ABOV0570
+    1 DO 2 K=1,M                                                        ABOV0571
+      MK=(M+1-K)*MK                                                     ABOV0572
+      F=-2.*F*X/K                                                       ABOV0573
+      MM=(2*N-4*M+1+2*K)*MM                                             ABOV0574
+    2 V=V+F*MK/MM                                                       ABOV0575
+    3 RETURN                                                            ABOV0576
+      END                                                               ABOV0577
+      FUNCTION VNORM(N,L)                                               ABOV0578
+C NORMALISATION FOR LAGUERRE POLINOMIALS.                               ABOV0579
+CYCLE LAGUERRE POLYNOMIALS UPWARDS, FIRST IN N, THEN IN L.              ABOV0580
+C BOTH N AND L MUST BE BOTH ODD, OR BOTH EVEN                           ABOV0581
+C L MUST BE NOT GREATER THAN N                                          ABOV0582
+C V(0,0)=2/(PI**.25)                                                    ABOV0583
+C V(1,1)=SQRT(2/3)*2/(PI**.25)                                          ABOV0584
+      MINUS=(N-L)/2                                                     ABOV0585
+      EMINUS=1+4*(MINUS/2)-2*MINUS                                      ABOV0586
+      VNORM=1.50225*EMINUS                                              ABOV0587
+      K=(N+1)/2-(N/2)+1                                                 ABOV0588
+C QUANTUM NUMBERS ODD OR EVEN.                                          ABOV0589
+      IF(K-1)2,2,1                                                      ABOV0590
+    1 VNORM=VNORM*0.816496                                              ABOV0591
+    2 IF(N.LE.1) RETURN                                                 ABOV0592
+      DO 3 J=K,N,2                                                      ABOV0593
+    3 VNORM=VNORM*SQRT(FLOAT(J+K+1)/(J-K+2))                            ABOV0594
+      IF(L.LE.1) RETURN                                                 ABOV0595
+      DO 4 J=K,L,2                                                      ABOV0596
+    4 VNORM=VNORM*2.*SQRT(FLOAT((J+N+2)*(N-J+1)))/((2*J+3)*(2*J+1))     ABOV0597
+      RETURN                                                            ABOV0598
+      END                                                               ABOV0599
+C                                                                       ABOV0600
+C     ..................................................................ABOV0601
+C                                                                       ABOV0602
+C        SUBROUTINE EIGEN                                               ABOV0603
+C                                                                       ABOV0604
+C        PURPOSE                                                        ABOV0605
+C           COMPUTE EIGENVALUES AND EIGENVECTORS OF A REAL SYMMETRIC    ABOV0606
+C           MATRIX                                                      ABOV0607
+C                                                                       ABOV0608
+C        USAGE                                                          ABOV0609
+C           CALL EIGEN(A,R,N,MV)                                        ABOV0610
+C                                                                       ABOV0611
+C        DESCRIPTION OF PARAMETERS                                      ABOV0612
+C           A - ORIGINAL MATRIX (SYMMETRIC), DESTROYED IN COMPUTATION.  ABOV0613
+C               RESULTANT EIGENVALUES ARE DEVELOPED IN DIAGONAL OF      ABOV0614
+C               MATRIX A IN DESCENDING ORDER.                           ABOV0615
+C           R - RESULTANT MATRIX OF EIGENVECTORS (STORED COLUMNWISE,    ABOV0616
+C               IN SAME SEQUENCE AS EIGENVALUES)                        ABOV0617
+C           N - ORDER OF MATRICES A AND R                               ABOV0618
+C           MV- INPUT CODE                                              ABOV0619
+C                   0   COMPUTE EIGENVALUES AND EIGENVECTORS            ABOV0620
+C                   1   COMPUTE EIGENVALUES ONLY (R NEED NOT BE         ABOV0621
+C                       DIMENSIONED BUT MUST STILL APPEAR IN CALLING    ABOV0622
+C                       SEQUENCE)                                       ABOV0623
+C                                                                       ABOV0624
+C        REMARKS                                                        ABOV0625
+C           ORIGINAL MATRIX A MUST BE REAL SYMMETRIC (STORAGE MODE=1)   ABOV0626
+C           MATRIX A CANNOT BE IN THE SAME LOCATION AS MATRIX R         ABOV0627
+C                                                                       ABOV0628
+C        SUBROUTINES AND FUNCTION SUBPROGRAMS REQUIRED                  ABOV0629
+C           NONE                                                        ABOV0630
+C                                                                       ABOV0631
+C        METHOD                                                         ABOV0632
+C           DIAGONALIZATION METHOD ORIGINATED BY JACOBI AND ADAPTED     ABOV0633
+C           BY VON NEUMANN FOR LARGE COMPUTERS AS FOUND IN 'MATHEMATICALABOV0634
+C           METHODS FOR DIGITAL COMPUTERS', EDITED BY A. RALSTON AND    ABOV0635
+C           H.S. WILF, JOHN WILEY AND SONS, NEW YORK, 1962, CHAPTER 7   ABOV0636
+C                                                                       ABOV0637
+C     ..................................................................ABOV0638
+C                                                                       ABOV0639
+      SUBROUTINE EIGEN(A,R,N,MV)                                        ABOV0640
+      DIMENSION A(1),R(1)                                               ABOV0641
+C                                                                       ABOV0642
+C        ...............................................................ABOV0643
+C                                                                       ABOV0644
+C        IF A DOUBLE PRECISION VERSION OF THIS ROUTINE IS DESIRED, THE  ABOV0645
+C        C IN COLUMN 1 SHOULD BE REMOVED FROM THE DOUBLE PRECISION      ABOV0646
+C        STATEMENT WHICH FOLLOWS.                                       ABOV0647
+C                                                                       ABOV0648
+C     DOUBLE PRECISION A,R,ANORM,ANRMX,THR,X,Y,SINX,SINX2,COSX,         ABOV0649
+C    1                 COSX2,SINCS,RANGE                                ABOV0650
+C                                                                       ABOV0651
+C        THE C MUST ALSO BE REMOVED FROM DOUBLE PRECISION STATEMENTS    ABOV0652
+C        APPEARING IN OTHER ROUTINES USED IN CONJUNCTION WITH THIS      ABOV0653
+C        ROUTINE.                                                       ABOV0654
+C                                                                       ABOV0655
+C        THE DOUBLE PRECISION VERSION OF THIS SUBROUTINE MUST ALSO      ABOV0656
+C        CONTAIN DOUBLE PRECISION FORTRAN FUNCTIONS.  SQRT IN STATEMENTSABOV0657
+C        40, 68, 75, AND 78 MUST BE CHANGED TO DSQRT.  ABS IN STATEMENT ABOV0658
+C        62 MUST BE CHANGED TO DABS. THE CONSTANT IN STATEMENT 5 SHOULD ABOV0659
+C        BE CHANGED TO 1.0D-12.                                         ABOV0660
+C                                                                       ABOV0661
+C        ...............................................................ABOV0662
+C                                                                       ABOV0663
+C        GENERATE IDENTITY MATRIX                                       ABOV0664
+C                                                                       ABOV0665
+    5 RANGE=1.0E-6                                                      ABOV0666
+      IF(MV-1) 10,25,10                                                 ABOV0667
+   10 IQ=-N                                                             ABOV0668
+      DO 20 J=1,N                                                       ABOV0669
+      IQ=IQ+N                                                           ABOV0670
+      DO 20 I=1,N                                                       ABOV0671
+      IJ=IQ+I                                                           ABOV0672
+      R(IJ)=0.0                                                         ABOV0673
+      IF(I-J) 20,15,20                                                  ABOV0674
+   15 R(IJ)=1.0                                                         ABOV0675
+   20 CONTINUE                                                          ABOV0676
+C                                                                       ABOV0677
+C        COMPUTE INITIAL AND FINAL NORMS (ANORM AND ANORMX)             ABOV0678
+C                                                                       ABOV0679
+   25 ANORM=0.0                                                         ABOV0680
+      DO 35 I=1,N                                                       ABOV0681
+      DO 35 J=I,N                                                       ABOV0682
+      IF(I-J) 30,35,30                                                  ABOV0683
+   30 IA=I+(J*J-J)/2                                                    ABOV0684
+      ANORM=ANORM+A(IA)*A(IA)                                           ABOV0685
+   35 CONTINUE                                                          ABOV0686
+      IF(ANORM) 165,165,40                                              ABOV0687
+   40 ANORM=1.414*SQRT(ANORM)                                           ABOV0688
+      ANRMX=ANORM*RANGE/FLOAT(N)                                        ABOV0689
+C                                                                       ABOV0690
+C        INITIALIZE INDICATORS AND COMPUTE THRESHOLD, THR               ABOV0691
+C                                                                       ABOV0692
+      IND=0                                                             ABOV0693
+      THR=ANORM                                                         ABOV0694
+   45 THR=THR/FLOAT(N)                                                  ABOV0695
+   50 L=1                                                               ABOV0696
+   55 M=L+1                                                             ABOV0697
+C                                                                       ABOV0698
+C        COMPUTE SIN AND COS                                            ABOV0699
+C                                                                       ABOV0700
+   60 MQ=(M*M-M)/2                                                      ABOV0701
+      LQ=(L*L-L)/2                                                      ABOV0702
+      LM=L+MQ                                                           ABOV0703
+   62 IF( ABS(A(LM))-THR) 130,65,65                                     ABOV0704
+   65 IND=1                                                             ABOV0705
+      LL=L+LQ                                                           ABOV0706
+      MM=M+MQ                                                           ABOV0707
+      X=0.5*(A(LL)-A(MM))                                               ABOV0708
+   68 Y=-A(LM)/ SQRT(A(LM)*A(LM)+X*X)                                   ABOV0709
+      IF(X) 70,75,75                                                    ABOV0710
+   70 Y=-Y                                                              ABOV0711
+   75 SINX=Y/ SQRT(2.0*(1.0+( SQRT(1.0-Y*Y))))                          ABOV0712
+      SINX2=SINX*SINX                                                   ABOV0713
+   78 COSX= SQRT(1.0-SINX2)                                             ABOV0714
+      COSX2=COSX*COSX                                                   ABOV0715
+      SINCS =SINX*COSX                                                  ABOV0716
+C                                                                       ABOV0717
+C        ROTATE L AND M COLUMNS                                         ABOV0718
+C                                                                       ABOV0719
+      ILQ=N*(L-1)                                                       ABOV0720
+      IMQ=N*(M-1)                                                       ABOV0721
+      DO 125 I=1,N                                                      ABOV0722
+      IQ=(I*I-I)/2                                                      ABOV0723
+      IF(I-L) 80,115,80                                                 ABOV0724
+   80 IF(I-M) 85,115,90                                                 ABOV0725
+   85 IM=I+MQ                                                           ABOV0726
+      GO TO 95                                                          ABOV0727
+   90 IM=M+IQ                                                           ABOV0728
+   95 IF(I-L) 100,105,105                                               ABOV0729
+  100 IL=I+LQ                                                           ABOV0730
+      GO TO 110                                                         ABOV0731
+  105 IL=L+IQ                                                           ABOV0732
+  110 X=A(IL)*COSX-A(IM)*SINX                                           ABOV0733
+      A(IM)=A(IL)*SINX+A(IM)*COSX                                       ABOV0734
+      A(IL)=X                                                           ABOV0735
+  115 IF(MV-1) 120,125,120                                              ABOV0736
+  120 ILR=ILQ+I                                                         ABOV0737
+      IMR=IMQ+I                                                         ABOV0738
+      X=R(ILR)*COSX-R(IMR)*SINX                                         ABOV0739
+      R(IMR)=R(ILR)*SINX+R(IMR)*COSX                                    ABOV0740
+      R(ILR)=X                                                          ABOV0741
+  125 CONTINUE                                                          ABOV0742
+      X=2.0*A(LM)*SINCS                                                 ABOV0743
+      Y=A(LL)*COSX2+A(MM)*SINX2-X                                       ABOV0744
+      X=A(LL)*SINX2+A(MM)*COSX2+X                                       ABOV0745
+      A(LM)=(A(LL)-A(MM))*SINCS+A(LM)*(COSX2-SINX2)                     ABOV0746
+      A(LL)=Y                                                           ABOV0747
+      A(MM)=X                                                           ABOV0748
+C                                                                       ABOV0749
+C        TESTS FOR COMPLETION                                           ABOV0750
+C                                                                       ABOV0751
+C        TEST FOR M = LAST COLUMN                                       ABOV0752
+C                                                                       ABOV0753
+  130 IF(M-N) 135,140,135                                               ABOV0754
+  135 M=M+1                                                             ABOV0755
+      GO TO 60                                                          ABOV0756
+C                                                                       ABOV0757
+C        TEST FOR L = SECOND FROM LAST COLUMN                           ABOV0758
+C                                                                       ABOV0759
+  140 IF(L-(N-1)) 145,150,145                                           ABOV0760
+  145 L=L+1                                                             ABOV0761
+      GO TO 55                                                          ABOV0762
+  150 IF(IND-1) 160,155,160                                             ABOV0763
+  155 IND=0                                                             ABOV0764
+      GO TO 50                                                          ABOV0765
+C                                                                       ABOV0766
+C        COMPARE THRESHOLD WITH FINAL NORM                              ABOV0767
+C                                                                       ABOV0768
+  160 IF(THR-ANRMX) 165,165,45                                          ABOV0769
+C                                                                       ABOV0770
+C        SORT EIGENVALUES AND EIGENVECTORS                              ABOV0771
+C                                                                       ABOV0772
+  165 IQ=-N                                                             ABOV0773
+      DO 185 I=1,N                                                      ABOV0774
+      IQ=IQ+N                                                           ABOV0775
+      LL=I+(I*I-I)/2                                                    ABOV0776
+      JQ=N*(I-2)                                                        ABOV0777
+      DO 185 J=I,N                                                      ABOV0778
+      JQ=JQ+N                                                           ABOV0779
+      MM=J+(J*J-J)/2                                                    ABOV0780
+      IF(A(LL)-A(MM)) 170,185,185                                       ABOV0781
+  170 X=A(LL)                                                           ABOV0782
+      A(LL)=A(MM)                                                       ABOV0783
+      A(MM)=X                                                           ABOV0784
+      IF(MV-1) 175,185,175                                              ABOV0785
+  175 DO 180 K=1,N                                                      ABOV0786
+      ILR=IQ+K                                                          ABOV0787
+      IMR=JQ+K                                                          ABOV0788
+      X=R(ILR)                                                          ABOV0789
+      R(ILR)=R(IMR)                                                     ABOV0790
+  180 R(IMR)=X                                                          ABOV0791
+  185 CONTINUE                                                          ABOV0792
+      RETURN                                                            ABOV0793
+      END                                                               ABOV0794
+C  FUNCTION TO CALCULATE THE MATRIX ELEMENTS OF SPHERICAL HARMONICS.    ABOV0795
+C                     M                                                 ABOV0796
+C        < L', LA' ! Y  ! L , LA >                                      ABOV0797
+C                     L                                                 ABOV0798
+      FUNCTION Y(LP,LAP,L,M,LL,LA)                                      ABOV0799
+      COMMON FACLOG(500),RAC,IA,IB,IC,ID,IE,IF,L9(9),U9,KSELC           ABOV0800
+      Y=0                                                               ABOV0801
+      IF(LAP.NE.M+LA) RETURN                                            ABOV0802
+      X=FLOAT((2*L+1)*(2*LL+1))/(12.566375*FLOAT(2*LP+1))               ABOV0803
+      IF(X.LT.1.0E-30) RETURN                                           ABOV0804
+      KSELC=1                                                           ABOV0805
+      IA=2*LL                                                           ABOV0806
+      IB=2*L                                                            ABOV0807
+      IC=2*LP                                                           ABOV0808
+      ID=2*LA                                                           ABOV0809
+      IE=2*M                                                            ABOV0810
+      IF=2*(LA+M)                                                       ABOV0811
+      CALL CLEB                                                         ABOV0812
+      Y=SQRT(X)*RAC                                                     ABOV0813
+      ID=0                                                              ABOV0814
+      IE=0                                                              ABOV0815
+      IF=0                                                              ABOV0816
+      CALL CLEB                                                         ABOV0817
+      Y=Y*RAC                                                           ABOV0818
+      RETURN                                                            ABOV0819
+      END                                                               ABOV0820
+/*                                                                      ABOV0821
+//GO.FT02F001 DD SYSOUT=B,DCB=(RECFM=FB,LRECL=80,BLKSIZE=960)           ABOV0822
+//GO.SYSIN DD *                                                         ABOV0823
+ 53.000000  1.250000  0.650000  7.200000 25.000000  0.0       4         ABOV0824
+ 1.50 .400 .050 .150  0.0  0.0  0.0  0  0  0                            ABOV0825
+                                                                        ABOV0826
+/*                                                                      ABOV0827
+                                                                        ABOV****
