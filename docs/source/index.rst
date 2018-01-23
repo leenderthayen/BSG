@@ -14,6 +14,14 @@ The BSG library is a C++ program designed to calculate the allowed beta spectrum
 
    intro
 
+API Reference
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   API_reference
+
 
 Indices and tables
 ==================
