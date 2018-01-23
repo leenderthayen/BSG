@@ -16,17 +16,15 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
 sys.path.append("/usr/local/lib/python2.7/dist-packages/breathe/")
-# sys.path.insert(0, os.path.abspath('.'))
 
-
+import os
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 
 if read_the_docs_build:
 
-    subprocess.call('doxygen', shell=True)
+    subprocess.call('cd ../../doxygen; doxygen', shell=True)
 
 # -- General configuration ------------------------------------------------
 
@@ -43,7 +41,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
     'breathe']
 
-breathe_projects = {"BSG": "/home/svn/BSG-git/xml/"}
+breathe_projects = {"BSG": "/home/svn/BSG-git/doxygen/xml/"}
 
 breathe_default_project = "BSG"
 
