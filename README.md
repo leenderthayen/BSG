@@ -2,7 +2,7 @@ BSG -- Beta Spectrum Generator
 ==============================
 ![alt text](https://img.shields.io/badge/License-MIT-blue.svg 'License')
 ![alt text](https://img.shields.io/badge/Python-2.7-blue.svg 'Python version')
-![alt text](https://img.shields.io/badge/Linux-supported-green.svg 'Supported OS')
+![alt text](https://img.shields.io/badge/Linux-Supported-brightgreen.svg 'Supported OS')
 
 Purpose
 -------
@@ -23,6 +23,7 @@ Installation requires C++11.
 
 The Python GUI makes use of the following libraries:
 * [NumPy](http://www.numpy.org/)
+* [Qt4](http://doc.qt.io/archives/qt-4.8/)
 * [PySide](http://wiki.qt.io/PySide)
 * [PyQtGraph](http://www.pyqtgraph.org/)
 * [shell](https://pypi.python.org/pypi/shell/1.0.1)

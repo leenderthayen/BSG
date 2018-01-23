@@ -1,0 +1,27 @@
+Transition from 67Cu [-3/2] (0 keV) to 67Zn [-5/2] (0 keV)
+Q Value: 561.7 keV      Effective endpoint energy: 561.693 keV
+Process: B-     Type: Gamow-Teller
+Partial halflife: 1.11294e+06 s
+Calculated log ft value: 6.24694
+Mean energy: 183.122 keV
+
+Matrix Element Summary
+------------------------------
+b/Ac (weak magnetism)              : 2.72211
+d/Ac (induced tensor)              : -1.37881
+AM121/AM101                        : -0.306603
+
+Spectral corrections
+------------------------------
+Phase space              : true
+Fermi function           : true
+....
+
+Spectrum calculated from 0 keV to 561.693 keV with step size 0.1 keV
+
+W [m_ec2]       E [keV]         dN_e/dW         dN_v/dW
+1.000000        0.000000        0.000000        0.000000
+1.000196        0.100000        0.000000        0.000000
+1.000391        0.200000        0.715832        0.000000
+1.000587        0.300000        1.960272        0.000001
+....
