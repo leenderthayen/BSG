@@ -17,10 +17,31 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import sys
-sys.path.append("/usr/local/lib/python2.7/dist-packages/breathe/")
+#sys.path.append("/usr/local/lib/python2.7/dist-packages/breathe/")
 
 import os
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+# -- General configuration ------------------------------------------------
+
+# If your documentation needs a minimal Sphinx version, state it here.
+#
+# needs_sphinx = '1.0'
+
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+# ones.
+extensions = ['breathe',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.githubpages',
+    'sphinx.ext.ifconfig']
+
+breathe_projects = {"BSG": "../../doxygen/xml/"}
+
+breathe_default_project = "BSG"
+
 
 if read_the_docs_build:
     sys.path.append('../../')
@@ -35,27 +56,6 @@ else:
     release = '\'latest\''
 
     documentation_build = "development"
-
-# -- General configuration ------------------------------------------------
-
-# If your documentation needs a minimal Sphinx version, state it here.
-#
-# needs_sphinx = '1.0'
-
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
-# ones.
-extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.ifconfig',
-    'breathe']
-
-breathe_projects = {"BSG": "../../doxygen/xml/"}
-
-breathe_default_project = "BSG"
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
