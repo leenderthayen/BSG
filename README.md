@@ -30,4 +30,4 @@ The Python GUI makes use of the following libraries:
 
 Installation
 ------------
-A CMake script is provided to automate the installation. Detailed documentation can be found here.
+A CMake script is provided to automate the installation. Detailed documentation can be found [here](http://bsg.readthedocs.io).
