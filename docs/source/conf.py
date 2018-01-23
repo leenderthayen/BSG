@@ -16,7 +16,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
+import os
 import sys
 sys.path.append("/usr/local/lib/python2.7/dist-packages/breathe/")
 # sys.path.insert(0, os.path.abspath('.'))

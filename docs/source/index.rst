@@ -8,9 +8,11 @@ Welcome to BSG's documentation!
 
 The BSG library is a C++ program designed to calculate the allowed beta spectrum shape coming from nuclear beta decay to high precision.
 
+Overview
+--------
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
    intro
 
@@ -27,5 +29,4 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
