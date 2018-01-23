@@ -191,6 +191,7 @@ texinfo_documents = [
      'Miscellaneous'),
 ]
 
+import subprocess
 
 def run_doxygen(folder):
     """Run the doxygen make command in the designated folder"""
