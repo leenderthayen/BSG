@@ -3,6 +3,7 @@ BSG -- Beta Spectrum Generator
 ![alt text](https://img.shields.io/badge/License-MIT-blue.svg 'License')
 ![alt text](https://img.shields.io/badge/Python-2.7-blue.svg 'Python version')
 ![alt text](https://img.shields.io/badge/Linux-Supported-brightgreen.svg 'Supported OS')
+![alt text](http://bsg.readthedocs.io/en/latest/?badge=latest, 'Documentation status')
 
 Purpose
 -------
