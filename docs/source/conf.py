@@ -22,10 +22,19 @@ sys.path.append("/usr/local/lib/python2.7/dist-packages/breathe/")
 import os
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 
-import subprocess
 if read_the_docs_build:
+    sys.path.append('../../')
 
-    subprocess.call('cd ../doxygen; doxygen', shell=True)
+    version = '\'latest\''
+    release = '\'latest\''
+    documentation_build = "readthedocs_latest"
+else:
+    sys.path.append('../')
+
+    version = '\'latest\''
+    release = '\'latest\''
+
+    documentation_build = "development"
 
 # -- General configuration ------------------------------------------------
 
@@ -42,7 +51,7 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
     'breathe']
 
-breathe_projects = {"BSG": "/home/svn/BSG-git/doxygen/xml/"}
+breathe_projects = {"BSG": "../../doxygen/xml/"}
 
 breathe_default_project = "BSG"
 
@@ -180,4 +189,41 @@ texinfo_documents = [
 ]
 
 
+def run_doxygen(folder):
+    """Run the doxygen make command in the designated folder"""
 
+    try:
+        retcode = subprocess.call("cd %s; make DOXYGEN=doxygen" % folder, shell=True)
+        if retcode < 0:
+            sys.stderr.write("doxygen terminated by signal %s" % (-retcode))
+    except OSError as e:
+        sys.stderr.write("doxygen execution failed: %s" % e)
+
+
+def generate_doxygen_xml(app):
+    """Run the doxygen make commands if we're on the ReadTheDocs server"""
+
+    read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+
+    if read_the_docs_build:
+
+        # Attempt to build the doxygen files on the RTD server. Explicitly override the path/name used
+        # for executing doxygen to simply be 'doxygen' to stop the makefiles looking for the executable.
+        # This is because the `which doxygen` effort seemed to fail when tested on the RTD server.
+        run_doxygen("../../doxygen")
+
+
+def setup(app):
+
+    # Approach borrowed from the Sphinx docs
+    app.add_object_type(
+            'confval',
+            'confval',
+            objname='configuration value',
+            indextemplate='pair: %s; configuration value'
+            )
+
+    # Add hook for building doxygen xml when needed
+    app.connect("builder-inited", generate_doxygen_xml)
+
+app.add_config_value('documentation_build', 'development', True)
