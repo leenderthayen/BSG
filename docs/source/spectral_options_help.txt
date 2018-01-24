@@ -1,0 +1,50 @@
+Spectrum shape options:
+  -f [ --Spectrum.Fermi ] arg (=1)      Turn off the Fermi Function.
+  -p [ --Spectrum.Phasespace ] arg (=1) Turn off the phase space factor. 
+  -l [ --Spectrum.ESFiniteSize ] arg (=1)
+                                        Turn off L0 correction.
+  -C [ --Spectrum.C ] arg (=1)          Turn off C correction.
+  -I [ --Spectrum.Isovector ] arg (=1)  Turn off the isovector correction to C
+  -R [ --Spectrum.Relativistic ] arg (=1)
+                                        Turn off relativistic corrections.
+  -D [ --Spectrum.ESDeformation ] arg (=1)
+                                        Turn off deformation corrections.
+  -U [ --Spectrum.ESShape ] arg (=1)    Turn off U correction.
+  -Q [ --Spectrum.CoulombRecoil ] arg (=1)
+                                        Turn off Q correction.
+  -r [ --Spectrum.Radiative ] arg (=1)  Turn off radiative corrections.
+  -n [ --Spectrum.Recoil ] arg (=1)     Turn off kinematic recoil corrections.
+  -s [ --Spectrum.Screening ] arg (=1)  Turn off atomic screening.
+  -x [ --Spectrum.Exchange ] arg (=1)   Turn off atomic exchange.
+  -m [ --Spectrum.AtomicMismatch ] arg (=1)
+                                        Turn off the atomic mismatch 
+                                        correction.
+  -b [ --Spectrum.WeakMagnetism ] arg   Specify the b/Ac1 value in the Holstein
+                                        formalism.
+  -d [ --Spectrum.InducedTensor ] arg   Specify the d/Ac1 value in the Holstein
+                                        formalism.
+  -L [ --Spectrum.Lambda ] arg          Specify the ratio of matrix elements 
+                                        M121/M101 in the Behrens-Buhring 
+                                        formalism.
+  -B [ --Spectrum.Begin ] arg (=0.1)
+                                        Specify the starting energy in keV from
+                                        which to start the spectrum 
+                                        calculation.
+  -E [ --Spectrum.End ] arg (=0)        Specify the last energy in keV for 
+                                        which to calculate the spectrum.
+  -S [ --Spectrum.Step ] arg (=0.1)
+                                        Specify the stepsize in keV.
+  -v [ --Spectrum.Neutrino ] arg (=1)   Turn off the generation of the neutrino
+                                        spectrum.
+  --Spectrum.Connect arg (=1)           Turn on the connection between BSG and 
+                                        NME for the calculation the C_I 
+                                        correction, thereby using the single 
+                                        particle states from the latter
+  --Spectrum.Shape arg (=Fermi)         Set the base shape name for the 
+                                        electrostatic finite size correction.
+  --Spectrum.vnew arg                   Set the first three coefficients of the
+                                        radial power expansion of the new 
+                                        nuclear electrostatic potential
+  --Spectrum.vold arg                   Set the first three coefficients of the
+                                        radial power expansion of the old 
+                                        nuclear electrostatic potential

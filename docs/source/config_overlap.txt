@@ -1,0 +1,11 @@
+[General]
+;Folder to put the output results
+Folder=.
+
+[Constants]
+;Axial vector coupling constant
+gA=1.2723
+;Induced pseudoscalar coupling constant, relative to the nucleon mass
+gP=0.0
+;Weak magnetism coupling constant
+gM=4.706
