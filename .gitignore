@@ -1,2 +1,3 @@
 /docs/build/
-/doxygen
+/docs/doxygen/*/
+*.sh

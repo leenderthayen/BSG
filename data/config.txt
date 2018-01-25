@@ -1,6 +1,5 @@
 [General]
 Folder=.
-Prefix=
 
 [Computational]
 Method=ESP
