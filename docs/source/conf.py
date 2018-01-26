@@ -38,7 +38,7 @@ extensions = ['breathe',
     'sphinx.ext.githubpages',
     'sphinx.ext.ifconfig']
 
-breathe_projects = {"BSG": "../../doxygen/xml/"}
+breathe_projects = {"BSG": "../doxygen/xml/"}
 
 breathe_default_project = "BSG"
 
@@ -214,7 +214,7 @@ def generate_doxygen_xml(app):
         # Attempt to build the doxygen files on the RTD server. Explicitly override the path/name used
         # for executing doxygen to simply be 'doxygen' to stop the makefiles looking for the executable.
         # This is because the `which doxygen` effort seemed to fail when tested on the RTD server.
-        run_doxygen("../../doxygen")
+        run_doxygen("../doxygen")
 
 
 def setup(app):

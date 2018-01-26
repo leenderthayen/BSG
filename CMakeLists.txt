@@ -10,7 +10,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "in-source build detected")
 endif()
 
-cmake_minimum_required(version 2.8)
+cmake_minimum_required(VERSION 2.8)
 project(BSG)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules ${CMAKE_MODULE_PATH})

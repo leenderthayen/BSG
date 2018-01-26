@@ -1,4 +1,4 @@
-set(nme_sources src/NMEOptions.cpp src/NuclearStructureManager.cpp)
+set(nme_sources src/NMEOptions.cc src/NuclearStructureManager.cc)
 set(nme_headers include/MatrixElements.h include/NilssonOrbits.h include/NMEOptions.h include/NuclearStructureManager.h include/NuclearUtilities.h)
 
 add_library(nme ${nme_sources})

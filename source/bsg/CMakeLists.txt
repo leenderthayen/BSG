@@ -1,4 +1,4 @@
-set(bsg_sources src/Generator.cpp src/OptionContainer.cpp src/SpectralFunctions.cpp src/Utilities.cpp)
+set(bsg_sources src/Generator.cc src/OptionContainer.cc src/SpectralFunctions.cc src/Utilities.cc)
 set(bsg_headers include/ChargeDistributions.h include/Constants.h include/Generator.h include/OptionContainer.h include/Screening.h include/SpectralFunctions.h include/Utilities.h)
 
 add_library(bsg ${bsg_sources})

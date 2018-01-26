@@ -1,3 +1,3 @@
-add_executable(BSG BSG.cc)
+add_executable(bsg_exec BSG.cc)
 
-target_link_libraries(BSG bsg)
+target_link_libraries(bsg_exec bsg)
