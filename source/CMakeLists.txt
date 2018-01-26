@@ -14,12 +14,11 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 find_package(Threads)
 
-find_path(SPDLOG_INCLUDES spdlog.h
-          /home/leendert/spdlog/include/spdlog
+find_path(SPDLOG_INCLUDES spdlog.h PATHS
           /usr/local/include
           /usr/include)
 
-if(${SPDLOG_INCLUDES})
+if(${SPDLOG_INCLUDES} STREQUAL "SPDLOG_INCLUDES-NOTFOUND")
 	message(FATAL_ERROR "The spdlog.h file was not found. Add it to your PATH.")
 endif()
 
@@ -50,8 +49,7 @@ export(TARGETS nme bsg bsg_exec nme_exec FILE ${PROJECT_BINARY_DIR}/bsg-exports.
 install(FILES ${PROJECT_BINARY_DIR}/BSGConfig.h ${PROJECT_BINARY_DIR}/NMEConfig.h DESTINATION include)
  
 install(EXPORT BSGTargets DESTINATION lib)
-#  FILE "${PROJECT_BINARY_DIR}/BSGTargets.cmake")
- 
+
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
 #export(PACKAGE BSG)
