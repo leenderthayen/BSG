@@ -38,3 +38,24 @@ In order to use the Python GUI, one requires
 
 Installation
 ------------
+
+The libraries do not allow an in-source build. Please run cmake from a separate build folder. Installing should be as simple as running
+
+.. code-block:: bash
+
+   mkdir build && cd build
+   cmake ../
+
+All available options can be revised using the graphical ``ccmake`` program. In case the ``spdlog.h`` file was not found, the directory in which it resides can be added to the ``PATH`` environment variable. Running cmake again should resolve the issue. After this one only has to build all targets using
+
+.. code-block:: bash
+
+   make
+
+Installation is optional, and can be run using
+
+.. code-block:: bash
+
+   make install
+
+This may require sudo priviliges.

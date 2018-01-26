@@ -1,0 +1,12 @@
+dist: trusty
+sudo: require
+
+language: cpp
+compiler: gcc
+
+addons:
+  apt:
+    packages:
+      - cmake-data
+      - cmake
+      - libboost-dev
