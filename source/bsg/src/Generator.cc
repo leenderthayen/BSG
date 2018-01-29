@@ -161,7 +161,11 @@ void Generator::InitializeConstants() {
 
 void Generator::InitializeShapeParameters() {
   debugFileLogger->debug("Entered InitializeShapeParameters");
-  hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
+  if (!OptExists(Spectrum.ModGaussFit)) {
+    hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
+  } else {
+    hoFit = GetBSGOpt(double, Spectrum.ModGaussFit);
+  }
   debugFileLogger->debug("hoFit: {}", hoFit);
 
   baseShape = GetBSGOpt(std::string, Spectrum.Shape);

@@ -135,7 +135,6 @@ NMEOptions::NMEOptions(int argc, char** argv) {
   else {
     po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
   }
-  po::store(po::parse_environment(envOptions, "BSG_"), vm);
   po::notify(vm);
 
   }

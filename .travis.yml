@@ -10,6 +10,9 @@ addons:
       - cmake-data
       - cmake
       - libboost-dev
+      - libgsl0-dev
+      - libboost-program-options-dev
+      - spdlog
 
 before_script:
   - mkdir build

@@ -108,6 +108,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Turn off atomic screening.")("Spectrum.Exchange,x",
                                     po::value<bool>()->default_value(true),
                                     "Turn off atomic exchange.")(
+      "Spectrum.ModGaussFit,M", po::value<double>(),
+      "Use a specific 'A' value for the Modified Gaussian fit")(
       "Spectrum.AtomicMismatch,m", po::value<bool>()->default_value(true),
       "Turn off the atomic mismatch correction.")(
       "Spectrum.WeakMagnetism,b", po::value<double>(),
@@ -174,18 +176,17 @@ OptionContainer::OptionContainer(int argc, char** argv) {
      */
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
-      spdlog::get("console")->error("ERROR: {} cannot be found.", configName);
+      std::cerr << "ERROR: " << configName << " cannot be found.\n\n"
+                << std::endl;
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);
     }
-    /** Parse .ini file
-     */
     std::ifstream inputStream(inputName.c_str());
     if (!inputStream.is_open()) {
-      spdlog::get("console")->error("ERROR: {} cannot be found.", inputName);
+      std::cerr << "ERROR: " << inputName << " cannot be found.\n\n"
+                << std::endl;
     } else {
-      po::store(po::parse_config_file(inputStream, transitionOptions, true),
-                vm);
+      po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
     }
     po::notify(vm);
   }

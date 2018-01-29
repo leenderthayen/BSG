@@ -14,15 +14,19 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 find_package(Threads)
 
-find_path(SPDLOG_INCLUDES spdlog.h PATHS
-          /usr/local/include
-          /usr/include)
+find_package(spdlog)
+if(NOT ${spdlog_FOUND})
+  message(STATUS "spdlog not found through find_package. Checking manually in PATH.")
+  find_path(spdlog_INCLUDES spdlog.h PATHS
+            /usr/local/include
+            /usr/include)
 
-if(${SPDLOG_INCLUDES} STREQUAL "SPDLOG_INCLUDES-NOTFOUND")
-	message(FATAL_ERROR "The spdlog.h file was not found. Add it to your PATH.")
+  if(${SPDLOG_INCLUDES} STREQUAL "SPDLOG_INCLUDES-NOTFOUND")
+  	message(FATAL_ERROR "The spdlog.h file was not found. Add it to your PATH.")
+  endif()
 endif()
 
-include_directories(${SPDLOG_INCLUDES})
+include_directories(${spdlog_INCLUDES})
 
 # Configure the version header files
 configure_file("${PROJECT_SOURCE_DIR}/cmake/Templates/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSGConfig.h")

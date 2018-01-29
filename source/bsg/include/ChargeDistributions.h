@@ -6,12 +6,10 @@
 #include "gsl/gsl_sf_gamma.h"
 
 #include <complex>
-#include <iostream>
-#include <chrono>
 
 #include "TMath.h"
 #include "TF1.h"
-#include "TH1.h"
+#include "TGraph.h"
 
 /**
  * Namespace containing all kinds of utility functions related to 
@@ -371,36 +369,34 @@ inline double GetDerivDeformedChargeDist(double r, double a, double b) {
  * @see ChargeMG_f
  */
 inline double FitHODist(int Z, double rms) {
-  auto start = std::chrono::steady_clock::now();
+  //auto start = std::chrono::steady_clock::now();
   TF1* funcMG = new TF1("ChargeMG", ChargeMG_f, 0, 5 * rms, 2);
   funcMG->SetParameters(5.0, std::sqrt(5. / 3.) * rms);
   funcMG->FixParameter(1, std::sqrt(5. / 3.) * rms);
 
-  TF1* funcHO = new TF1("ChargeHO", ChargeHO_f, 0, 5 * rms, 2);
-  funcHO->SetParameters(rms, (double)Z);
-  TH1F* histHO = new TH1F("stats", "my pdf", 100, 0, 5 * rms);
-
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Functions milliseconds since start: " << elapsed.count() << "\n";
-
-  double N = 1E5;
-  for (Int_t i = 0; i < N; i++) {
-    histHO->Fill(funcHO->GetRandom());
+  /*auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Functions milliseconds since start: " << elapsed.count() << "\n";*/
+  Double_t x[50], y[50];
+  Int_t n = 50;
+  for (Int_t i = 0; i < n; i++) {
+    x[i] = i * 5 * rms / n;
+    y[i] = ChargeHO(x[i], rms, Z, true);
   }
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Filling milliseconds since start: " << elapsed.count() << "\n";
-  histHO->Scale(1. / histHO->Integral(), "width");
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Integral milliseconds since start: " << elapsed.count() << "\n";
-  histHO->Fit("ChargeMG", "WQ0");
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Fitting milliseconds since start: " << elapsed.count() << "\n";
+
+  TGraph* gr = new TGraph(n, x, y);
+
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Filling milliseconds since start: " << elapsed.count() << "\n";*/
+
+  gr->Fit(funcMG, "WQ0");
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Fitting milliseconds since start: " << elapsed.count() << "\n";*/
 
   double A = funcMG->GetParameter(0);
 
   delete funcMG;
-  delete funcHO;
-  delete histHO;
+  //delete funcHO;
+  //delete histHO;
   return A;
 }
 }
