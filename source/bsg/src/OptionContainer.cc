@@ -126,7 +126,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Specify the stepsize in keV.")(
       "Spectrum.Neutrino,v", po::value<bool>()->default_value(true),
       "Turn off the generation of the neutrino spectrum.")(
-      "Spectrum.Connect", po::value<bool>()->default_value(true),
+      "Spectrum.Connect", po::value<bool>()->default_value(false),
       "Turn on the connection between BSG and NME for the calculation the C_I "
       "correction, thereby using the single particle states from the latter")(
       "Spectrum.Shape", po::value<std::string>()->default_value("Fermi"),
