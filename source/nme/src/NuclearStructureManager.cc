@@ -162,17 +162,23 @@ void NS::NuclearStructureManager::SetMotherNucleus(int Z, int A, int dJ,
 void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
   debugFileLogger->debug("Entered Initialize");
   method = m;
-  potential = p;
-  // Extreme Single particle
+  // Extreme Single-particle
   if (boost::iequals(method, "ESP")) {
+    potential = p;
     SingleParticleState spsi, spsf;
     int dKi, dKf;
     double obdme = 1.;
     GetESPStates(spsi, spsf, dKi, dKf);
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
+  } else if (boost::iequals(method, "CUSTOMHO"){
+    
   }
   initialized = true;
   debugFileLogger->debug("Leaving Initialize");
+}
+
+void NS::NuclearStructureManager::BuildDensityMatrixFromFile(std::string filename) {
+  std::vector<std::vector<std::string> > dataList = GeneralUtilities::getCSVData(filename, ";");
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,

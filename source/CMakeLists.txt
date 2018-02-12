@@ -18,10 +18,11 @@ find_package(spdlog)
 if(NOT ${spdlog_FOUND})
   message(STATUS "spdlog not found through find_package. Checking manually in PATH.")
   find_path(spdlog_INCLUDES spdlog.h PATHS
+	    ~/spdlog/include/spdlog
             /usr/local/include
             /usr/include)
 
-  if(${SPDLOG_INCLUDES} STREQUAL "SPDLOG_INCLUDES-NOTFOUND")
+  if(${spdlog_INCLUDES} STREQUAL "spdlog_INCLUDES-NOTFOUND")
   	message(FATAL_ERROR "The spdlog.h file was not found. Add it to your PATH.")
   endif()
 endif()

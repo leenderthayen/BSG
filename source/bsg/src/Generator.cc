@@ -34,26 +34,26 @@ void ShowBSGInfo() {
 }
 
 Generator::Generator() {
-  auto start = std::chrono::steady_clock::now();
+  //auto start = std::chrono::steady_clock::now();
   InitializeLoggers();
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Loggers milliseconds since start: " << elapsed.count() << "\n";
+  /*auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Loggers milliseconds since start: " << elapsed.count() << "\n";*/
   InitializeConstants();
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Constants milliseconds since start: " << elapsed.count() << "\n";
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Constants milliseconds since start: " << elapsed.count() << "\n";*/
   InitializeShapeParameters();
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Shape milliseconds since start: " << elapsed.count() << "\n";
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Shape milliseconds since start: " << elapsed.count() << "\n";*/
   InitializeL0Constants();
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "L0 milliseconds since start: " << elapsed.count() << "\n";
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "L0 milliseconds since start: " << elapsed.count() << "\n";*/
   LoadExchangeParameters();
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Exchange milliseconds since start: " << elapsed.count() << "\n";
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "Exchange milliseconds since start: " << elapsed.count() << "\n";*/
 
   InitializeNSMInfo();
-  elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "NSM milliseconds since start: " << elapsed.count() << "\n";
+  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+  std::cout << "NSM milliseconds since start: " << elapsed.count() << "\n";*/
 }
 
 Generator::~Generator() { delete nsm; }

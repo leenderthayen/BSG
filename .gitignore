@@ -2,3 +2,4 @@
 /docs/doxygen/*/
 *.sh
 /build
+*.pyc
