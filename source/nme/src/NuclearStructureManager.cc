@@ -9,6 +9,7 @@
 #include "gsl/gsl_sf_coupling.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <fstream>
 
 #include "NMEConfig.h"
@@ -103,9 +104,13 @@ void NS::NuclearStructureManager::InitializeConstants() {
   potential = GetNMEOpt(std::string, Computational.Potential);
 
   nmeResultsLogger->info("NME input overview\n{:=>30}", "");
-  nmeResultsLogger->info("Using information from {}\n\n", GetNMEOpt(std::string, input));
+  nmeResultsLogger->info("Using information from {}\n\n",
+                         GetNMEOpt(std::string, input));
   nmeResultsLogger->info("Nuclear potential: {}", potential);
-  nmeResultsLogger->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", Am, utilities::atoms[int(Zm-1)], motherSpinParity, motherExcitationEn, Ad, utilities::atoms[int(Zd-1)], daughterSpinParity, daughterExcitationEn);
+  nmeResultsLogger->info(
+      "Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", Am,
+      utilities::atoms[int(Zm - 1)], motherSpinParity, motherExcitationEn, Ad,
+      utilities::atoms[int(Zd - 1)], daughterSpinParity, daughterExcitationEn);
   debugFileLogger->debug("Leaving InitializeConstants");
 }
 
@@ -170,15 +175,47 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
     double obdme = 1.;
     GetESPStates(spsi, spsf, dKi, dKf);
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
-  } else if (boost::iequals(method, "CUSTOMHO"){
-    
+    initialized = true;
+  } else if (boost::iequals(method, "CUSTOMSHO")) {
+    if (!NMEOptExists(Transition.DensityMatrixFile)) {
+      debugFileLogger->debug(
+          "Density matrix file was not specified in"
+          "transition .ini file. Initializing using Method=ESP.");
+      Initialize("ESP", p);
+    } else {
+      initialized = BuildDensityMatrixFromFile(
+          GetNMEOpt(std::string, Transition.DensityMatrixFile));
+    }
   }
-  initialized = true;
   debugFileLogger->debug("Leaving Initialize");
 }
 
-void NS::NuclearStructureManager::BuildDensityMatrixFromFile(std::string filename) {
-  std::vector<std::vector<std::string> > dataList = GeneralUtilities::getCSVData(filename, ";");
+bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
+    std::string filename) {
+  std::vector<std::vector<std::string> > dataList = GetCSVData(filename, ",");
+  for (auto const& line : dataList) {
+    if (line.size() < 7) {
+      consoleLogger->error("Density Matrix File {} incomplete! Aborting.",
+                           filename);
+      exit(EXIT_FAILURE);
+    }
+    int djf = atoi(line[0].c_str());
+    int nf = atoi(line[1].c_str());
+    int lf = atoi(line[2].c_str());
+    int dji = atoi(line[3].c_str());
+    int ni = atoi(line[4].c_str());
+    int li = atoi(line[5].c_str());
+    double obdme = atof(line[6].c_str());
+    WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
+    WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
+    std::vector<WFComp> fComps = {fW};
+    std::vector<WFComp> iComps = {iW};
+    SingleParticleState spsf = {daughter.dJ, -1, sign(daughter.dJ), lf, nf, 0,
+                                -betaType, 0.0, fComps};
+    SingleParticleState spsi = {mother.dJ, -1, sign(mother.dJ), li, ni, 0,
+                                betaType, 0.0, iComps};
+    AddOneBodyTransition(obdme, dji, djf, spsi, spsf);
+  }
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
@@ -355,10 +392,10 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
     int dT3f = daughter.A - 2 * daughter.Z;
     int dTi = std::abs(dT3i);
     int dTf = std::abs(dT3f);
-    if (NMOptExists(Mother.Isospin)) {
+    if (NMEOptExists(Mother.Isospin)) {
       dTi = GetNMEOpt(int, Mother.Isospin);
     }
-    if (NMOptExists(NuclearPropertiesDaughterIsospin)) {
+    if (NMEOptExists(NuclearPropertiesDaughterIsospin)) {
       dTf = GetNMEOpt(int, Daughter.Isospin);
     }
     /*if ((dJi + dT3i) / 2 % 2 == 0) {

@@ -89,25 +89,27 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Spectrum.Phasespace,p", po::value<bool>()->default_value(true),
       "Turn off the phase space factor. ")(
       "Spectrum.ESFiniteSize,l", po::value<bool>()->default_value(true),
-      "Turn off L0 correction.")("Spectrum.C,C", po::value<bool>()->default_value(true),
-                                 "Turn off C correction.")(
+      "Turn off L0 correction.")(
+      "Spectrum.C,C", po::value<bool>()->default_value(true),
+      "Turn off C correction.")(
       "Spectrum.Isovector,I", po::value<bool>()->default_value(true),
       "Turn off the isovector correction to C")(
       "Spectrum.Relativistic,R", po::value<bool>()->default_value(true),
       "Turn off relativistic corrections.")(
       "Spectrum.ESDeformation,D", po::value<bool>()->default_value(true),
       "Turn off deformation corrections.")(
-      "Spectrum.ESShape,U", po::value<bool>()->default_value(true),
-      "Turn off U correction.")("Spectrum.CoulombRecoil,Q", po::value<bool>()->default_value(true),
-                                "Turn off Q correction.")(
+      "Spectrum.U,U", po::value<bool>()->default_value(true),
+      "Turn off U correction.")(
+      "Spectrum.CoulombRecoil,Q", po::value<bool>()->default_value(true),
+      "Turn off Q correction.")(
       "Spectrum.Radiative,r", po::value<bool>()->default_value(true),
       "Turn off radiative corrections.")(
       "Spectrum.Recoil,n", po::value<bool>()->default_value(true),
       "Turn off kinematic recoil corrections.")(
       "Spectrum.Screening,s", po::value<bool>()->default_value(true),
-      "Turn off atomic screening.")("Spectrum.Exchange,x",
-                                    po::value<bool>()->default_value(true),
-                                    "Turn off atomic exchange.")(
+      "Turn off atomic screening.")(
+      "Spectrum.Exchange,x", po::value<bool>()->default_value(true),
+      "Turn off atomic exchange.")(
       "Spectrum.ModGaussFit,M", po::value<double>(),
       "Use a specific 'A' value for the Modified Gaussian fit")(
       "Spectrum.AtomicMismatch,m", po::value<bool>()->default_value(true),
@@ -118,10 +120,9 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Specify the d/Ac1 value in the Holstein formalism.")(
       "Spectrum.Lambda,L", po::value<double>(),
       "Specify the ratio of matrix elements M121/M101 in the "
-      "Behrens-Buhring formalism.")("Spectrum.Begin,B",
-                                    po::value<double>()->default_value(0.1),
-                                    "Specify the starting energy in keV from "
-                                    "which to start the spectrum calculation.")(
+      "Behrens-Buehring formalism.")(
+      "Spectrum.Begin,B", po::value<double>()->default_value(0.1),
+      "Specify the starting energy in keV from which to start the spectrum calculation.")(
       "Spectrum.End,E", po::value<double>()->default_value(0.),
       "Specify the last energy in keV for which to calculate the spectrum.")(
       "Spectrum.Step,S", po::value<double>()->default_value(0.1),
@@ -131,14 +132,16 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Spectrum.Connect", po::value<bool>()->default_value(false),
       "Turn on the connection between BSG and NME for the calculation the C_I "
       "correction, thereby using the single particle states from the latter")(
-      "Spectrum.Shape", po::value<std::string>()->default_value("Fermi"),
+      "Spectrum.ESShape", po::value<std::string>()->default_value("Fermi"),
       "Set the base shape name for the electrostatic finite size correction.")(
       "Spectrum.vnew", po::value<std::vector<double> >()->multitoken(),
       "Set the first three coefficients of the radial power expansion of the "
       "new nuclear electrostatic potential")(
       "Spectrum.vold", po::value<std::vector<double> >()->multitoken(),
       "Set the first three coefficients of the radial power expansion of the "
-      "old nuclear electrostatic potential");
+      "old nuclear electrostatic potential")(
+      "Spectrum.NSShape", po::value<std::string>()->default_value("ModGauss"),
+      "Set the shape of the weak charge distribution used in the convolutional C correction.");
 
   configOptions.add(spectrumOptions);
   configOptions.add_options()(

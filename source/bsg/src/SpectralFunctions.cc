@@ -7,6 +7,8 @@
 #include <complex>
 #include <stdio.h>
 
+#include "boost/algorithm/string.hpp"
+
 // GNU Scientific Library stuff
 // http://www.gnu.org/software/gsl/
 #include "gsl/gsl_complex_math.h"
@@ -51,14 +53,15 @@ double SpectralFunctions::FermiFunction(double W, int Z, double R,
 }
 
 double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
-                                      double R, int betaType, double hoFit,
+                                      double R, int betaType,
                                       int decayType, double gA, double gP,
                                       double fc1, double fb, double fd,
-                                      double ratioM121, bool addCI) {
+                                      double ratioM121, std::string NSShape,
+                                      double hoFit, bool addCI) {
   double cShape, cNS;
   std::tie(cShape, cNS) =
-      CCorrectionComponents(W, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                            fc1, fb, fd, ratioM121);
+      CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, gA, gP,
+                            fc1, fb, fd, ratioM121, NSShape, hoFit);
   double result = 0.;
   if (addCI) {
     result = cShape * CICorrection(W, W0, Z, A, R, betaType) + cNS;
@@ -69,10 +72,12 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
 }
 
 double SpectralFunctions::CCorrection(
-    double W, double W0, int Z, int A, double R, int betaType, double hoFit,
+    double W, double W0, int Z, int A, double R, int betaType,
     int decayType, double gA, double gP, double fc1, double fb, double fd,
-    double ratioM121, bool addCI, NuclearStructure::SingleParticleState& spsi,
+    double ratioM121, bool addCI, std::string NSShape, double hoFit, 
+    NuclearStructure::SingleParticleState& spsi,
     NuclearStructure::SingleParticleState& spsf) {
+
   double cShape, cNS;
   std::tie(cShape, cNS) =
       CCorrectionComponents(W, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
@@ -87,16 +92,23 @@ double SpectralFunctions::CCorrection(
 }
 
 std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
-    double W, double W0, int Z, int A, double R, int betaType, double hoFit,
-    int decayType, double gA, double gP, double fc1, double fb, double fd,
-    double ratioM121) {
+    double W, double W0, int Z, int A, double R, int betaType, int decayType, 
+    double gA, double gP, double fc1, double fb, double fd,
+    double ratioM121, std::string NSShape, double hoFit) {
   double AC0, AC1, ACm1, AC2;
   double VC0, VC1, VCm1, VC2;
 
-  double F1111 = 0.757 + 0.0069 * (1 - std::exp(-hoFit / 1.008));
-  double F1221 = 0.844 - 0.0182 * (1 - std::exp(-hoFit / 1.1974));
-  double F1222 = 1.219 - 0.0640 * (1 - std::exp(-hoFit / 1.550));
-  double F1211 = -3. / 70;
+  //Uniformly charged sphere results
+  double F1111 = 27./35.;
+  double F1221 = 57./70.;
+  double F1222 = 233./210.;
+  double F1211 = -3./70.;
+
+  if (boost::iequals(NSShape, "ModGauss")) {
+    F1111 = 0.757 + 0.0069 * (1 - std::exp(-hoFit / 1.008));
+    F1221 = 0.844 - 0.0182 * (1 - std::exp(-hoFit / 1.1974));
+    F1222 = 1.219 - 0.0640 * (1 - std::exp(-hoFit / 1.550));
+  }
 
   VC0 = -std::pow(W0 * R, 2.) / 5. -
         betaType * 2. / 9. * ALPHA * Z * W0 * R * F1111 -
@@ -357,11 +369,11 @@ double SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
 }
 
 double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
-                                      std::string baseShape,
+                                      std::string ESShape,
                                       std::vector<double>& v,
                                       std::vector<double>& vp) {
   double result = 1.;
-  if (baseShape == "Fermi") {
+  if (ESShape == "Fermi") {
     double a0 = -5.6E-5 - betaType * 4.94E-5 * Z + 6.23E-8 * std::pow(Z, 2);
     double a1 = 5.17E-6 + betaType * 2.517E-6 * Z + 2.00E-8 * std::pow(Z, 2);
     double a2 = -9.17e-8 + betaType * 5.53E-9 * Z + 1.25E-10 * std::pow(Z, 2);

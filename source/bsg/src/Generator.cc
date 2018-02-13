@@ -34,26 +34,12 @@ void ShowBSGInfo() {
 }
 
 Generator::Generator() {
-  //auto start = std::chrono::steady_clock::now();
   InitializeLoggers();
-  /*auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Loggers milliseconds since start: " << elapsed.count() << "\n";*/
   InitializeConstants();
-  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Constants milliseconds since start: " << elapsed.count() << "\n";*/
   InitializeShapeParameters();
-  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Shape milliseconds since start: " << elapsed.count() << "\n";*/
   InitializeL0Constants();
-  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "L0 milliseconds since start: " << elapsed.count() << "\n";*/
   LoadExchangeParameters();
-  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "Exchange milliseconds since start: " << elapsed.count() << "\n";*/
-
   InitializeNSMInfo();
-  /*elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
-  std::cout << "NSM milliseconds since start: " << elapsed.count() << "\n";*/
 }
 
 Generator::~Generator() { delete nsm; }
@@ -168,12 +154,12 @@ void Generator::InitializeShapeParameters() {
   }
   debugFileLogger->debug("hoFit: {}", hoFit);
 
-  baseShape = GetBSGOpt(std::string, Spectrum.Shape);
+  ESShape = GetBSGOpt(std::string, Spectrum.ESShape);
 
   vOld.resize(3);
   vNew.resize(3);
 
-  if (baseShape == "Modified_Gaussian") {
+  if (ESShape == "Modified_Gaussian") {
     debugFileLogger->debug("Found Modified_Gaussian shape");
     vOld[0] = 3./2.;
     vOld[1] = -1./2.;
@@ -417,9 +403,9 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
     result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
   }
-  if (GetBSGOpt(bool, Spectrum.ESShape)) {
-    result *= SF::UCorrection(W, Z, R, betaType, baseShape, vOld, vNew);
-    neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, baseShape, vOld, vNew);
+  if (GetBSGOpt(bool, Spectrum.U)) {
+    result *= SF::UCorrection(W, Z, R, betaType, ESShape, vOld, vNew);
+    neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, ESShape, vOld, vNew);
   }
   if (GetBSGOpt(bool, Spectrum.CoulombRecoil)) {
     result *= SF::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
@@ -523,11 +509,11 @@ void Generator::PrepareOutputFile() {
   }
   l->info("Mean energy: {} keV", (CalculateMeanEnergy()-1.)*ELECTRON_MASS_KEV);
   l->info("\nMatrix Element Summary\n{:->30}", "");
-  if (OptExists(Spectrum.WeakMagnetism)) l->info("{:25}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
+  if (OptExists(Spectrum.WeakMagnetism)) l->info("{:35}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
   else l->info("{:35}: {}", "b/Ac (weak magnetism)", bAc);
-  if (OptExists(Spectrum.Inducedtensor)) l->info("{:25}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
+  if (OptExists(Spectrum.Inducedtensor)) l->info("{:35}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
   else l->info("{:35}: {}", "d/Ac (induced tensor)", dAc);
-  if (OptExists(Spectrum.Lambda)) l->info("{:25}: {} ({})", "AM121/AM101", ratioM121, "given");
+  if (OptExists(Spectrum.Lambda)) l->info("{:35}: {} ({})", "AM121/AM101", ratioM121, "given");
   else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
   l->info("Full breakfown written in {}.nme", GetBSGOpt(std::string, output));
@@ -537,12 +523,13 @@ void Generator::PrepareOutputFile() {
   l->info("{:25}: {}", "Fermi function", GetBSGOpt(bool, Spectrum.Fermi));
   l->info("{:25}: {}", "L0 correction", GetBSGOpt(bool, Spectrum.ESFiniteSize));
   l->info("{:25}: {}", "C correction", GetBSGOpt(bool, Spectrum.C));
+  l->info("    NS Shape: {}", GetBSGOpt(std::string, Spectrum.NSShape));
   l->info("{:25}: {}", "Isovector correction", GetBSGOpt(bool, Spectrum.Isovector));
   l->info("    Connected: {}", GetBSGOpt(bool, Spectrum.Connect));
   l->info("{:25}: {}", "Relativistic terms", GetBSGOpt(bool, Spectrum.Relativistic));
   l->info("{:25}: {}", "Deformation", GetBSGOpt(bool, Spectrum.ESDeformation));
-  l->info("{:25}: {}", "U correction", GetBSGOpt(bool, Spectrum.ESShape));
-  l->info("    Shape: {}", GetBSGOpt(std::string, Spectrum.Shape));
+  l->info("{:25}: {}", "U correction", GetBSGOpt(bool, Spectrum.U));
+  l->info("    ES Shape: {}", GetBSGOpt(std::string, Spectrum.ESShape));
   if (OptExists(Spectrum.vold) && OptExists(Spectrum.vnew)) {
     l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
     l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);

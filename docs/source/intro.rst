@@ -9,6 +9,12 @@ The library consists of three parts:
 
 Each subsequent item in that list depends on those before it, but not those after it.
 
+The structure can be summarized in the following flowchart
+
+.. image:: flowchart_program.png
+
+Flowchart describing the general structure of the libraries, their required inputs and outputs. The dotted arrow from ``BSG`` to ``NME`` signifies the possible connection between the two libraries when matrix elements are not provided by the user or proper single-particle wave functions are used in the corrections sensitive to the weak charge distribution.
+
 As an example and for user-friendliness, the package comes with a trivial executable for both C++ libraries.
 
 Example code

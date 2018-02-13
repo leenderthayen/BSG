@@ -835,7 +835,8 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
 
   nmeResults->info("\nExplicit wave function composition\n{:->30}", "");
   nmeResults->info("Selected state: {}/2 ({} MeV)",
-                   allStates[index].parity * allStates[index].dO, allStates[index].energy);
+                   allStates[index].parity * allStates[index].dO,
+                   allStates[index].energy);
   if (!(beta2 == 0 & beta4 == 0 & beta6 == 0)) {
     nmeResults->info("Deformed oscillator quantum numbers: [{}{}{}]",
                      allStates[index].nDom, allStates[index].nZ,

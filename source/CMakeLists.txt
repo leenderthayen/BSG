@@ -1,10 +1,10 @@
 set(BSG_VERSION_MAJOR 0)
 set(BSG_VERSION_MINOR 13)
-set(BSG_LAST_UPDATE "January 24, 2018")
+set(BSG_LAST_UPDATE "February 13, 2018")
 
 set(NME_VERSION_MAJOR 0)
 set(NME_VERSION_MINOR 10)
-set(NME_LAST_UPDATE "January 24, 2018")
+set(NME_LAST_UPDATE "February 13, 2018")
  
 find_package(GSL REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})

@@ -52,7 +52,6 @@ double FermiFunction(double W, int Z, double R, int betaType);
  * @param A mass number
  * @param R nuclear radius in natural units
  * @param betaType the BetaType of the transition
- * @param hoFit the fitted A value for the Modified Gaussian distribution
  * @param decayType the DecayType of the transition
  * @param gA the axial vector coupling constant
  * @param gP the induced pseudoscalar coupling constant
@@ -61,14 +60,18 @@ double FermiFunction(double W, int Z, double R, int betaType);
  * @param fd the d form factor as per Holstein
  * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
  * @param addCI boolean to decide whether or not to include the isovector correction to the shape part of C
+ * @param NSShape string, says which charge distribution to use in the C correction
+ * @param hoFit the fitted A value for the Modified Gaussian distribution
  * @param spsi NuclearStructure::SingleParticleState object denoting the initial nucleon state
  * @param spsf NuclearStructure::SingleParticleState object denoting the final nucleon state
  *
- * The C correction describing effects of finite nuclear size and induced currents.
+ * The C correction describing effects of finite nuclear size and induced currents when the connection
+   to the NME library has been made and actual single-particle wave functions will be used in C_I
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
-                   double hoFit, int decayType, double gA, double gP,
-                   double fc1, double fb, double fd, double ratioM121, bool addCI, NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
+                   int decayType, double gA, double gP, double fc1, double fb, 
+                   double fd, double ratioM121, bool addCI, std::string NSShape, 
+                   double hoFit, NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
 
 /**
  * @brief C correction
@@ -78,7 +81,6 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param A mass number
  * @param R nuclear radius in natural units
  * @param betaType the BetaType of the transition
- * @param hoFit the fitted A value for the Modified Gaussian distribution
  * @param decayType the DecayType of the transition
  * @param gA the axial vector coupling constant
  * @param gP the induced pseudoscalar coupling constant
@@ -87,12 +89,15 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param fd the d form factor as per Holstein
  * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
  * @param addCI boolean to decide whether or not to include the isovector correction to the shape part of C
+ * @param NSShape string, says which charge distribution to use in the C correction
+ * @param hoFit the fitted A value for the Modified Gaussian distribution
  *
  * The C correction describing effects of finite nuclear size and induced currents.
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
-                   double hoFit, int decayType, double gA, double gP,
-                   double fc1, double fb, double fd, double ratioM121, bool addCI);
+                   int decayType, double gA, double gP, double fc1, double fb, 
+                   double fd, double ratioM121, bool addCI, std::string NSShape,
+                   double hoFit);
 /**
  * @brief C correction
  * @param W total energy in units of electron mass
@@ -109,13 +114,16 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param fb the b form factor as per Holstein
  * @param fd the d form factor as per Holstein
  * @param ratioM121 the ratio of the @f$^AM_{121}@f$ and @f$ ^AM_{101}@f$ matrix elements in the Behrens-Buehring formalism
+ * @param NSShape string, says which charge distribution to use in the C correction
+ * @param hoFit the fitted A value for the Modified Gaussian distribution
  * @return the value
  *
  * The C correction describing effects of finite nuclear size and induced currents.
+   Return the shape and nuclear-sensitive parts separately in a tuple.
  */
 std::tuple<double, double> CCorrectionComponents(double W, double W0, int Z, int A, double R, int betaType,
-                   double hoFit, int decayType, double gA, double gP,
-                   double fc1, double fb, double fd, double ratioM121);
+                   int decayType, double gA, double gP, double fc1, double fb, double fd, double ratioM121,
+                   std::string NSShape, double hoFit);
 
 /**
  * Isovector correction to the charge density-calculated C correction
@@ -197,11 +205,11 @@ double L0Correction(double W, int Z, double r, int betaType, double aPos[],
  * @param Z proton number
  * @param R nuclear radius in natural units
  * @param betaType BetaType of the transition
- * @param baseShape string denoting the name of the base shape. Currently only Fermi is implemented
+ * @param ESShape string denoting the name of the base shape. Currently only Fermi is implemented
  * @param v vector representing the first 3 terms in an even-r power expansion of the base shape
  * @param vp vector representing the first 3 terms in an even-r power expansion of the new shape
  */
-double UCorrection(double W, int Z, double R, int betaType, std::string baseShape, std::vector<double>& v, std::vector<double>& vp);
+double UCorrection(double W, int Z, double R, int betaType, std::string ESShape, std::vector<double>& v, std::vector<double>& vp);
 
 /**
  * Correction to L0 by calculating @f$ \frac{L_0'}{L_0} @f$ using a power expansion of the potentials

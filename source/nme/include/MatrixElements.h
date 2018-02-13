@@ -22,7 +22,7 @@ using std::endl;
 
 namespace CD = ChargeDistributions;
 
-/** 
+/**
  * Get the orbital angular momentum value from the kappa value
  *
  * @param k kappa value of state
@@ -31,7 +31,7 @@ inline int gL(int k) { return (k > 0) ? k : std::abs(k) - 1; }
 
 /**
  * Get the kappa value for an ls state
- * 
+ *
  * @param l orbital angular momentum
  * @param s spin direction
  */
@@ -39,7 +39,7 @@ inline int kL(int l, int s) { return (s > 0) ? -(l + 1) : l; }
 
 /**
  * Get the total angular momentum from the kappa value
- * 
+ *
  * @param k kappa
  */
 inline double jL(int k) { return (k < 0) ? -k - 0.5 : k - 0.5; }
@@ -47,7 +47,7 @@ inline double jL(int k) { return (k < 0) ? -k - 0.5 : k - 0.5; }
 /**
  * Calculate the angular momentum function @f[ G_{KLs}(\kappa_i, \kappa_f) @f]
  * as first defined by Weidenmueller
- * 
+ *
  * @param ki kappa of initial state
  * @param kf kappa of final state
  * @param K spherical tensor rank of the operator
@@ -75,8 +75,9 @@ inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
  * Calculate the single particle matrix element @f[ ^{V/A}M_{KLs} @f]
  * as calculated between two spherical harmonic oscillator states
  * in the non-relativistic approximation
- * 
- * @param V boolean denoting vector (true) or axial vector (false) nature of matrix element
+ *
+ * @param V boolean denoting vector (true) or axial vector (false) nature of
+ *matrix element
  * @param Ji spin of initial state, used for normalization
  * @param K spherical tensor rank of the operator
  * @param L orbital angular momentum of the operator
@@ -158,10 +159,12 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
 }
 
 /**
- * Calculate single particle matrix using initial and final single particle states
+ * Calculate single particle matrix using initial and final single particle
+ *states
  * containing a mixture of harmonic oscillator wave functions.
- * 
- * @param V boolean denoting vector (true) or axial vector (false) nature of matrix element
+ *
+ * @param V boolean denoting vector (true) or axial vector (false) nature of
+ *matrix element
  * @param Ji nuclear spin of initial state
  * @param K rank of spherical tensor of the operator
  * @param L orbital angular momentum of the operator
@@ -172,10 +175,9 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
  * @param nu length scale of the harmonic oscillator functions
  */
 inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
-                                             int s,
-                                             SingleParticleState spsi,
-                                             SingleParticleState spsf,
-                                             double R, double nu) {
+                                             int s, SingleParticleState spsi,
+                                             SingleParticleState spsf, double R,
+                                             double nu) {
   std::vector<WFComp> initComps = spsi.componentsHO;
   std::vector<WFComp> finalComps = spsf.componentsHO;
 
@@ -196,7 +198,7 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
 
 /**
  * Calculate the phase when switching the value of Omega for the C coefficients
- * 
+ *
  * @param w wave function component
  * @param dO double of Omega value
  */
@@ -211,12 +213,14 @@ inline double GetCjO(WFComp w, int dO) {
 /**
  * Calculate the single particle matrix element in a deformed nucleus
  * between two single particle states
- * 
- * @param opt option parameter for the difference between odd-A (0), odd-odd -> even-even (1)
+ *
+ * @param opt option parameter for the difference between odd-A (0), odd-odd ->
+ *even-even (1)
  *     and even-even -> odd-odd (2) transition
  * @param spsi initial single particle state
  * @param spsf final single particle state
- * @param V boolean denoting vector (true) or axial vector (false) nature of matrix element
+ * @param V boolean denoting vector (true) or axial vector (false) nature of
+ *matrix element
  * @param K rank of spherical tensor of the operator
  * @param L orbital angular momentum of the operator
  * @param s index denoting simple or vector spherical harmonics
@@ -228,11 +232,9 @@ inline double GetCjO(WFComp w, int dO) {
  * @param nu length scale of harmonic oscillator wave functions in natural units
  * @see GetSingleParticleMatrixElement
  */
-inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleState spsi,
-                                             SingleParticleState spsf,
-                                             bool V, int K, int L, int s,
-                                             int dJi, int dJf, int dKi, int dKf,
-                                             double R, double nu) {
+inline double GetDeformedSingleParticleMatrixElement(
+    int opt, SingleParticleState spsi, SingleParticleState spsf, bool V, int K,
+    int L, int s, int dJi, int dJf, int dKi, int dKf, double R, double nu) {
   double result = 0.;
 
   // Odd-A transition
@@ -262,7 +264,7 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
     result *= std::sqrt((dJi + 1.) * (dJf + 1.) / (1. + delta(dKf, 0.)) /
                         (1. + delta(dKi, 0.)));
   } else {
-  // Even-A transition
+    // Even-A transition
     std::vector<WFComp> finalStates = spsf.componentsHO;
     std::vector<WFComp> initStates = spsi.componentsHO;
     int inO = spsi.dO;
@@ -274,21 +276,25 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
         WFComp fW = finalStates[i];
         for (int j = 0; j < initStates.size(); j++) {
           WFComp iW = initStates[j];
-          result += GetCjO(fW, -fO)*GetCjO(iW, inO)*std::pow(-1., fW.l + fW.s/2.+fO/2.) * 
+          result +=
+              GetCjO(fW, -fO) * GetCjO(iW, inO) *
+              std::pow(-1., fW.l + fW.s / 2. + fO / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
                                  -dKi, inO) *
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
         }
       }
-    // Even-Even ---> Odd-Odd
+      // Even-Even ---> Odd-Odd
     } else if (opt == 2) {
       cout << fO << " " << dKf << " " << inO << endl;
       for (int i = 0; i < finalStates.size(); i++) {
         WFComp fW = finalStates[i];
         for (int j = 0; j < initStates.size(); j++) {
           WFComp iW = initStates[j];
-          result += GetCjO(fW, fO)*GetCjO(iW, -inO)*std::pow(-1., fW.l + fW.s/2.-fO/2.) * 
+          result +=
+              GetCjO(fW, fO) * GetCjO(iW, -inO) *
+              std::pow(-1., fW.l + fW.s / 2. - fO / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
                                  dKf, -inO) *
               GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
@@ -299,7 +305,6 @@ inline double GetDeformedSingleParticleMatrixElement(int opt, SingleParticleStat
   }
   return result;
 }
-
 }
 }
 #endif

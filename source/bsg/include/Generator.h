@@ -39,7 +39,7 @@ class Generator {
   DecayType decayType; /**< internal state of the decay type */
   std::vector<double> vOld; /**< power expansion in r for old electrostatic potential */
   std::vector<double> vNew; /**< power expansion in r for new electrostatic potential */
-  std::string baseShape; /**< name denoting the base shape to use for the U correction */
+  std::string ESShape; /**< name denoting the base shape to use for the U correction */
 
   NuclearStructure::SingleParticleState spsi, spsf; /**< single particle states calculated from the NME library and used in the C_I correction when turned on */
 
