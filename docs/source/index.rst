@@ -26,7 +26,6 @@ Overview
    input_files
    spectrum_mod
    nme_options
-   examples
 
 API Reference
 -------------

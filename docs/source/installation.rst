@@ -5,8 +5,8 @@ Both libraries are built using CMake_.
 
 .. _CMake: https://cmake.org/
 
-Dependencies
-------------
+Dependencies - C++ Libraries
+----------------------------
 
 The C++ parts of the code require the following to be installed
 
@@ -20,6 +20,20 @@ The C++ parts of the code require the following to be installed
 .. _BOOST: http://www.boost.org/doc/libs/1_66_0/doc/html/program_options.html
 .. _ROOT: https://root.cern.ch/
 .. _spdlog: https://github.com/gabime/spdlog
+
+Additional notes
+++++++++++++++++
+
+In Ubuntu the ``program_options`` comes packaged separately and can be installed using
+
+.. code-block:: bash
+
+   sudo apt-get install libboost-program-options-dev
+
+Installation was tested with ROOT version 6, though no problems should occur with previous versions
+
+Dependencies - Python visualization
+-----------------------------------
 
 In order to use the Python GUI, one requires
 
@@ -35,6 +49,12 @@ In order to use the Python GUI, one requires
 .. _PySide: http://wiki.qt.io/PySide
 .. _PyQtGraph: http://www.pyqtgraph.org/
 .. _shell: https://pypi.python.org/pypi/shell/1.0.1
+
+all of these can be installed using ``pip``
+
+.. code-block:: bash
+
+   sudo pip install numpy pyside pyqtgraph shell
 
 Installation
 ------------
@@ -58,4 +78,6 @@ Installation is optional, and can be run using
 
    make install
 
-This may require sudo priviliges.
+This may require sudo privileges.
+
+Compiled libraries and executables can be found in the corresponding directories.

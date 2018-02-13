@@ -13,7 +13,7 @@ Both are written in typical Windows-INI style. While both libraries add a number
 Transition-specific input file
 ------------------------------
 
-This file deals with the beta transition for which the quantities are to be calculated. It contains three headers: ``Transition``, ``Mother`` and ``Daughter``. The last two are identical in form. An example is given below for the beta+ decay of 19Ne
+This file deals with the beta transition for which the quantities are to be calculated. It contains three headers: ``Transition``, ``Mother`` and ``Daughter``. The last two are identical in form. An example is given below for the :math:`\beta^+` decay of :math:`^{19}` Ne
 
 .. literalinclude:: 19Ne.ini
    :language: ini

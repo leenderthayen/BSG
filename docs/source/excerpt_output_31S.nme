@@ -1,0 +1,24 @@
+Nuclear potential: DWS
+Transition from 31S [1/2] (0 keV) to 31P [1/2] (0 keV)
+Neutron State
+====================
+Sorted single particle states
+------------------------------
+_____   1/2  -37.982427 MeV
+....
+_____   1/2  -13.317853 MeV<-------
+....
+
+Explicit wave function composition
+------------------------------
+Selected state: 1/2 (-13.3179 MeV)
+Deformed oscillator quantum numbers: [211]
+Orbital	C
+1s1/2	-0.0175096
+2s1/2	0.678097
+....
+1d3/2	0.570344
+1d5/2	0.450627
+....
+
+Weak magnetism final result: b/Ac = 5.17988
