@@ -124,6 +124,7 @@ class NuclearStructureManager {
 
   void GetESPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
   double GetESPManyParticleCoupling(int, OneBodyTransition&);
+  void BuildDensityMatrixFromFile(std::string);
 };
 }
 #endif

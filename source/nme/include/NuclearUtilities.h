@@ -97,7 +97,7 @@ struct Nucleus {
 
 namespace GeneralUtilities {
 
-std::vector<std::vector<std::string> > getCSVData(std::string filename, std::string delimiter) {
+inline std::vector<std::vector<std::string> > getCSVData(std::string filename, std::string delimeter) {
   std::ifstream file(filename);
 
   std::vector<std::vector<std::string> > dataList;

@@ -170,7 +170,7 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
     double obdme = 1.;
     GetESPStates(spsi, spsf, dKi, dKf);
     AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
-  } else if (boost::iequals(method, "CUSTOMHO"){
+  } else if (boost::iequals(method, "CUSTOMHO")){
     
   }
   initialized = true;
