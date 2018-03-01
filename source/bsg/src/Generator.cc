@@ -106,6 +106,8 @@ void Generator::InitializeConstants() {
   gP = GetBSGOpt(double, Constants.gP);
   gM = GetBSGOpt(double, Constants.gM);
 
+  debugFileLogger->debug("gP: {}", gP);
+
   std::string process = GetBSGOpt(std::string, Transition.Process);
   std::string type = GetBSGOpt(std::string, Transition.Type);
 
@@ -155,6 +157,7 @@ void Generator::InitializeShapeParameters() {
   debugFileLogger->debug("hoFit: {}", hoFit);
 
   ESShape = GetBSGOpt(std::string, Spectrum.ESShape);
+  NSShape = GetBSGOpt(std::string, Spectrum.NSShape);
 
   vOld.resize(3);
   vNew.resize(3);
@@ -375,17 +378,17 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
   }
   if (GetBSGOpt(bool, Spectrum.C)) {
     if (OptExists(connect)) {
-      result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
-                                gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), spsi, spsf);
+      result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
+                                gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit, spsi, spsf);
       neutrinoResult *=
-          SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                          fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), spsi, spsf);
+          SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
+                          fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit, spsi, spsf);
     } else {
-      result *= SF::CCorrection(W, W0, Z, A, R, betaType, hoFit, decayType, gA,
-                                gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector));
+      result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
+                                gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit);
       neutrinoResult *=
-          SF::CCorrection(Wv, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                          fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector));
+          SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
+                          fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit);
     }
   }
   if (GetBSGOpt(bool, Spectrum.Relativistic)) {

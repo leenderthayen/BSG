@@ -56,8 +56,8 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
                                       double R, int betaType,
                                       int decayType, double gA, double gP,
                                       double fc1, double fb, double fd,
-                                      double ratioM121, std::string NSShape,
-                                      double hoFit, bool addCI) {
+                                      double ratioM121, bool addCI,
+                                      std::string NSShape, double hoFit) {
   double cShape, cNS;
   std::tie(cShape, cNS) =
       CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, gA, gP,
@@ -80,8 +80,8 @@ double SpectralFunctions::CCorrection(
 
   double cShape, cNS;
   std::tie(cShape, cNS) =
-      CCorrectionComponents(W, W0, Z, A, R, betaType, hoFit, decayType, gA, gP,
-                            fc1, fb, fd, ratioM121);
+      CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, gA, gP,
+                            fc1, fb, fd, ratioM121, NSShape, hoFit);
   double result = 0.;
   if (addCI) {
     result = cShape * CICorrection(W, W0, Z, R, betaType, spsi, spsf) + cNS;
@@ -146,7 +146,7 @@ std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
 
     double Lambda = std::sqrt(2.)/3.*10.*ratioM121;
 
-    double phi = gP/gA/sqr(2.*M*R);
+    double phi = gP/gA/sqr(2.*M*R/A);
 
     double NSC0 = -1. / 45. * R * R * Lambda +
                   1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) +
@@ -171,7 +171,7 @@ std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
 
     cNS = NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
 
-    cNS += P0 + P1 * W + Pm1 / W;
+    cNS += phi*(P0 + P1 * W + Pm1 / W);
   }
 
   return std::make_tuple(cShape, cNS);

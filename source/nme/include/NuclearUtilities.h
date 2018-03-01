@@ -103,9 +103,11 @@ struct Nucleus {
   double beta4;            /**< @f$ \beta_4 @f$ hexadecupole deformation */
   double beta6;            /**< @f$ \beta_6 @f$ deformation */
 };
+}
 
-inline std::vector<std::vector<std::string> > GetCSVData(
-    std::string filename, std::string delimeter) {
+namespace GeneralUtilities {
+
+inline std::vector<std::vector<std::string> > GetCSVData(std::string filename, std::string delimeter) {
   std::ifstream file(filename);
 
   std::vector<std::vector<std::string> > dataList;

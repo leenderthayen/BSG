@@ -192,7 +192,7 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
 
 bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
     std::string filename) {
-  std::vector<std::vector<std::string> > dataList = GetCSVData(filename, ",");
+  std::vector<std::vector<std::string> > dataList = GeneralUtilities::GetCSVData(filename, ",");
   for (auto const& line : dataList) {
     if (line.size() < 7) {
       consoleLogger->error("Density Matrix File {} incomplete! Aborting.",
@@ -216,6 +216,7 @@ bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
                                 betaType, 0.0, iComps};
     AddOneBodyTransition(obdme, dji, djf, spsi, spsf);
   }
+  return true;
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
