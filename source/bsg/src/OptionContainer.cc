@@ -1,6 +1,6 @@
 #include "OptionContainer.h"
 #include "NMEOptions.h"
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 #include <iostream>
 
 using std::cout;

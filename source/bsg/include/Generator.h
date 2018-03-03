@@ -6,7 +6,7 @@
 #include <tuple>
 #include "NuclearStructureManager.h"
 #include "NuclearUtilities.h"
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 
 class Generator {
  private:
