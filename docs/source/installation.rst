@@ -81,3 +81,16 @@ Installation is optional, and can be run using
 This may require sudo privileges.
 
 Compiled libraries and executables can be found in the corresponding directories.
+
+Execution
+=========
+
+Execution of the program is performed as with any other linux program. Make sure to either specify the location of the config.txt and ExchangeData.dat files or the location, or have them (using a soft link) in the current folder.
+
+Using the 63Ni beta decay as an example, executation could as simple as
+
+.. code-block:: bash
+
+   ./bsg_exec -i 63Ni.ini -o 63Ni
+
+upon which 4 files will be created detailing the calculation. The file ending in .txt contains a general overview.

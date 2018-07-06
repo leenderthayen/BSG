@@ -1,10 +1,14 @@
 [General]
 Folder=.
 
+[Spectrum]
+AtomicMismatch=False
+ESDeformation=False
+
 [Computational]
 Method=ESP
 ForceSpin=True
-EnergyMargin=1
+EnergyMargin=2
 ReversedGhallagher=True
 OverrideSPCoupling=False
 Potential=DWS
