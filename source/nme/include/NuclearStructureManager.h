@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "NuclearUtilities.h"
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 
 namespace NuclearStructure {
 

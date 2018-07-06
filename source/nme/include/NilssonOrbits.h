@@ -4,7 +4,7 @@
 #include "Utilities.h"
 #include "Constants.h"
 #include "NuclearUtilities.h"
-#include "spdlog.h"
+#include "spdlog/spdlog.h"
 
 #include <iostream>
 #include <algorithm>

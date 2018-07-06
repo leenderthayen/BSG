@@ -17,18 +17,18 @@ find_package(Threads)
 find_package(spdlog)
 if(NOT ${spdlog_FOUND})
   message(STATUS "spdlog not found through find_package. Checking manually in PATH.")
-  find_path(spdlog_INCLUDES spdlog.h PATHS
+  find_path(spdlog_INCLUDE_DIRS spdlog.h PATHS
 	    ${PROJECT_SOURCE_DIR}/spdlog
 	    ~/spdlog/include/spdlog
             /usr/local/include
             /usr/include)
 
-  if(${spdlog_INCLUDES} STREQUAL "spdlog_INCLUDES-NOTFOUND")
+  if(${spdlog_INCLUDE_DIRS} STREQUAL "spdlog_INCLUDE_DIRS-NOTFOUND")
   	message(FATAL_ERROR "The spdlog.h file was not found. Add it to your PATH.")
   endif()
 endif()
 
-include_directories(${spdlog_INCLUDES})
+include_directories(${spdlog_INCLUDE_DIRS})
 
 # Configure the version header files
 configure_file("${PROJECT_SOURCE_DIR}/cmake/Templates/BSGConfig.h.in" "${PROJECT_BINARY_DIR}/BSGConfig.h")
