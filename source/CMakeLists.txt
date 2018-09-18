@@ -17,12 +17,11 @@ find_package(Threads)
 find_package(spdlog)
 if(NOT ${spdlog_FOUND})
   message(STATUS "spdlog not found through find_package. Checking manually in PATH.")
-  find_path(spdlog_INCLUDE_DIRS spdlog.h PATHS
-	    ${PROJECT_SOURCE_DIR}/spdlog
-	    ~/spdlog/include/spdlog
+  find_path(spdlog_INCLUDE_DIRS spdlog/spdlog.h PATHS
+	    ~/spdlog/include
             /usr/local/include
             /usr/include)
-
+  message("spdlog_INCLUDE_DIRS: ${spdlog_INCLUDE_DIRS}")
   if(${spdlog_INCLUDE_DIRS} STREQUAL "spdlog_INCLUDE_DIRS-NOTFOUND")
   	message(FATAL_ERROR "The spdlog.h file was not found. Add it to your PATH.")
   endif()

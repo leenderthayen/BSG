@@ -24,13 +24,15 @@ The C++ parts of the code require the following to be installed
 Additional notes
 ++++++++++++++++
 
-In Ubuntu the ``program_options`` comes packaged separately and can be installed using
+- In Ubuntu the ``program_options`` comes packaged separately and can be installed using
 
 .. code-block:: bash
 
    sudo apt-get install libboost-program-options-dev
 
 Installation was tested with ROOT version 6, though no problems should occur with previous versions
+
+- Installing spdlog through your package manager may install an outdated version. Please use the source code on github.
 
 Dependencies - Python visualization
 -----------------------------------
