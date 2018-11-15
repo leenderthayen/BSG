@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     if (NMEOptExists(matrixelement)) {
       std::string me = GetNMEOpt(std::string, matrixelement);
       bool V = (me[0] == 'V');
-      cout << me[0] << "M" << me.substr(1, 3) << ": " << nsm->CalculateMatrixElement(V, (int)(me[1]-'0'), (int)(me[2]-'0'), (int)(me[3]-'0')) << endl;
+      cout << me[0] << "M" << me.substr(1, 3) << ": " << nsm->CalculateReducedMatrixElement(V, (int)(me[1]-'0'), (int)(me[2]-'0'), (int)(me[3]-'0')) << endl;
     }
   }
 

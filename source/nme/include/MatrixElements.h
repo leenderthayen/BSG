@@ -72,7 +72,7 @@ inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
 }
 
 /**
- * Calculate the single particle matrix element @f[ ^{V/A}M_{KLs} @f]
+ * Calculate the spin-reduced single particle matrix element @f[ ^{V/A}M_{KLs} @f]
  * as calculated between two spherical harmonic oscillator states
  * in the non-relativistic approximation
  *
@@ -91,7 +91,7 @@ inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
  * @param R nuclear radius
  * @param nu length scale of the harmonic oscillator functions
  */
-inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
+inline double GetReducedSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s, int ni, int nf, int li,
                                              int lf, int si, int sf, double R,
                                              double nu) {
@@ -159,7 +159,7 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
 }
 
 /**
- * Calculate single particle matrix using initial and final single particle
+ * Calculate spin-reduced single particle matrix using initial and final single particle
  *states
  * containing a mixture of harmonic oscillator wave functions.
  *
@@ -174,7 +174,7 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
  * @param R nuclear radius
  * @param nu length scale of the harmonic oscillator functions
  */
-inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
+inline double GetReducedSingleParticleMatrixElement(bool V, double Ji, int K, int L,
                                              int s, SingleParticleState spsi,
                                              SingleParticleState spsf, double R,
                                              double nu) {
@@ -186,7 +186,7 @@ inline double GetSingleParticleMatrixElement(bool V, double Ji, int K, int L,
   for (int i = 0; i < initComps.size(); i++) {
     for (int j = 0; j < finalComps.size(); j++) {
       result += initComps[i].C * finalComps[j].C *
-                GetSingleParticleMatrixElement(V, Ji, K, L, s, initComps[i].n,
+                GetReducedSingleParticleMatrixElement(V, Ji, K, L, s, initComps[i].n,
                                                finalComps[j].n, initComps[i].l,
                                                finalComps[j].l, initComps[i].s,
                                                finalComps[j].s, R, nu);
@@ -211,7 +211,7 @@ inline double GetCjO(WFComp w, int dO) {
 }
 
 /**
- * Calculate the single particle matrix element in a deformed nucleus
+ * Calculate the reduced single particle matrix element in a deformed nucleus
  * between two single particle states
  *
  * @param opt option parameter for the difference between odd-A (0), odd-odd ->
@@ -232,7 +232,7 @@ inline double GetCjO(WFComp w, int dO) {
  * @param nu length scale of harmonic oscillator wave functions in natural units
  * @see GetSingleParticleMatrixElement
  */
-inline double GetDeformedSingleParticleMatrixElement(
+inline double GetDeformedReducedSingleParticleMatrixElement(
     int opt, SingleParticleState spsi, SingleParticleState spsf, bool V, int K,
     int L, int s, int dJi, int dJf, int dKi, int dKf, double R, double nu) {
   double result = 0.;
@@ -256,7 +256,7 @@ inline double GetDeformedSingleParticleMatrixElement(
              gsl_sf_coupling_3j(dJf, 2 * K, dJi, dKf, -fO - inO, dKi) *
                  gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
                                     -fO - inO, inO)) *
-            GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+            GetReducedSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                            iW.l, fW.l, iW.s, fW.s, R, nu);
       }
     }
@@ -281,7 +281,7 @@ inline double GetDeformedSingleParticleMatrixElement(
               std::pow(-1., fW.l + fW.s / 2. + fO / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, fO,
                                  -dKi, inO) *
-              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+              GetReducedSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
         }
       }
@@ -297,7 +297,7 @@ inline double GetDeformedSingleParticleMatrixElement(
               std::pow(-1., fW.l + fW.s / 2. - fO / 2.) *
               gsl_sf_coupling_3j(2 * fW.l + fW.s, 2 * K, 2 * iW.l + iW.s, -fO,
                                  dKf, -inO) *
-              GetSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
+              GetReducedSingleParticleMatrixElement(V, dJi / 2., K, L, s, iW.n, fW.n,
                                              iW.l, fW.l, iW.s, fW.s, R, nu);
         }
       }

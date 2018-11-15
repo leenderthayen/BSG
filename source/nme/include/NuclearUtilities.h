@@ -24,6 +24,11 @@ static const char* atoms[118] = {
     "Bk", "Cf", "Es", "Fm", "Md",  "No", "Lr",  "Rf", "Db",  "Sg", "Bh", "Hs",
     "Mt", "Ds", "Rg", "Cn", "Uut", "Fl", "Uup", "Lv", "Uus", "Uuo"};
 
+static const int NuShellXLabels[87] = {0, 0, 1, 0, 1, 3, 0, 1, 1, 0, 2, 5, 0, 2, 3,
+1, 0, 1, 0, 3, 7, 0, 3, 5, 1, 1, 3, 1, 1, 1, 0, 4, 9, 0, 4, 7, 1, 2, 5, 1, 2, 3, 2, 0,
+1, 0, 5, 11, 0, 5, 9, 1, 3, 7, 1, 3, 5, 2, 1, 3, 2, 1, 1, 0, 6, 13, 0, 6, 11, 1, 4, 9,
+1, 4, 7, 2, 2, 5, 2, 2, 3, 3, 0, 1, 0, 7, 15};
+
 /**
  * Return the sign of a double
  *
@@ -74,7 +79,8 @@ struct SingleParticleState {
                   +1 */
   double energy; /**< energy of the state */
   std::vector<WFComp>
-      componentsHO; /**< vector containing the individual WFComp components */
+      componentsHO; /**<vector containing individual components of the
+      wave function in HO basis*/
 };
 
 /**
@@ -82,8 +88,8 @@ struct SingleParticleState {
  * with
  * a certain strength given by external input
  */
-struct OneBodyTransition {
-  double obdme;             /**< one body density matrix element */
+struct ReducedOneBodyTransitionDensity {
+  double robtd;             /**< reduced one body density transition density */
   int dKi;                  /**< double of @f$ K_i @f$ */
   int dKf;                  /**< double of @f$ K_f @f$ */
   SingleParticleState spsi; /**< initial single particle state */
@@ -104,6 +110,11 @@ struct Nucleus {
   double beta6;            /**< @f$ \beta_6 @f$ deformation */
 };
 }
+
+/*
+*****************************************
+*****************************************
+*/
 
 namespace GeneralUtilities {
 

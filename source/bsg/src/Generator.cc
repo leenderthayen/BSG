@@ -143,7 +143,7 @@ void Generator::InitializeConstants() {
   } else {
     W0 = (QValue - atomicEnergyDeficit + motherExcitationEn - daughterExcitationEn) / ELECTRON_MASS_KEV - 1.;
   }
-  W0 = W0 - (W0 * W0 - 1) / 2. / A / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;
+  W0 = W0 - (W0 * W0 - 1) / 2. / A / (NUCLEON_MASS_KEV / ELECTRON_MASS_KEV);
   debugFileLogger->debug("Leaving InitializeConstants");
 }
 
@@ -330,8 +330,8 @@ void Generator::GetMatrixElements() {
   debugFileLogger->info("Calculating matrix elements");
   double M101 = 1.0;
   if (!OptExists(Spectrum.Lambda)) {
-    M101 = nsm->CalculateMatrixElement(false, 1, 0, 1);
-    double M121 = nsm->CalculateMatrixElement(false, 1, 2, 1);
+    M101 = nsm->CalculateReducedMatrixElement(false, 1, 0, 1);
+    double M121 = nsm->CalculateReducedMatrixElement(false, 1, 2, 1);
     ratioM121 = M121 / M101;
   } else {
     ratioM121 = GetBSGOpt(double, Spectrum.Lambda);

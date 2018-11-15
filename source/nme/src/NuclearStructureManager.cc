@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
+#include <iostream>
 
 #include "NMEConfig.h"
 
@@ -172,9 +173,13 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
     potential = p;
     SingleParticleState spsi, spsf;
     int dKi, dKf;
-    double obdme = 1.;
     GetESPStates(spsi, spsf, dKi, dKf);
-    AddOneBodyTransition(obdme, dKi, dKf, spsi, spsf);
+    for(int i = 0; i < 2; i++) {
+      /* Assume one particle outside of a solid core
+      */
+      double robtd = std::sqrt(2*i+1.);
+      AddReducedOneBodyTransitionDensity(i, robtd, dKi, dKf, spsi, spsf);
+    }
     initialized = true;
   } else if (boost::iequals(method, "CUSTOMSHO")) {
     if (!NMEOptExists(Transition.DensityMatrixFile)) {
@@ -192,31 +197,113 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
 
 bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
     std::string filename) {
-  std::vector<std::vector<std::string> > dataList = GeneralUtilities::GetCSVData(filename, ",");
-  for (auto const& line : dataList) {
-    if (line.size() < 7) {
-      consoleLogger->error("Density Matrix File {} incomplete! Aborting.",
-                           filename);
-      exit(EXIT_FAILURE);
+  std::string NuShellXsuffix = ".obd";
+  if (0 == filename.compare (filename.length() - NuShellXsuffix.length(), NuShellXsuffix.length(), NuShellXsuffix)){
+    debugFileLogger->debug("Found NuShellX OBD file.");
+    ReadNuShellXOBD(filename);
+  }
+  else {
+    std::vector<std::vector<std::string> > dataList = GeneralUtilities::GetCSVData(filename, ",");
+    for (auto const& line : dataList) {
+      if (line.size() < 7) {
+        consoleLogger->error("Density Matrix File {} incomplete! Aborting.",
+                             filename);
+        exit(EXIT_FAILURE);
+      }
+      int djf = atoi(line[0].c_str());
+      int nf = atoi(line[1].c_str());
+      int lf = atoi(line[2].c_str());
+      int dji = atoi(line[3].c_str());
+      int ni = atoi(line[4].c_str());
+      int li = atoi(line[5].c_str());
+      double obdme = atof(line[6].c_str());
+      WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
+      WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
+      std::vector<WFComp> fComps = {fW};
+      std::vector<WFComp> iComps = {iW};
+      SingleParticleState spsf = {daughter.dJ, -1, sign(daughter.dJ), lf, nf, 0,
+                                  -betaType, 0.0, fComps};
+      SingleParticleState spsi = {mother.dJ, -1, sign(mother.dJ), li, ni, 0,
+                                  betaType, 0.0, iComps};
+      //TODO
+      AddReducedOneBodyTransitionDensity(1, obdme, dji, djf, spsi, spsf);
     }
-    int djf = atoi(line[0].c_str());
-    int nf = atoi(line[1].c_str());
-    int lf = atoi(line[2].c_str());
-    int dji = atoi(line[3].c_str());
-    int ni = atoi(line[4].c_str());
-    int li = atoi(line[5].c_str());
-    double obdme = atof(line[6].c_str());
-    WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
-    WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
-    std::vector<WFComp> fComps = {fW};
-    std::vector<WFComp> iComps = {iW};
-    SingleParticleState spsf = {daughter.dJ, -1, sign(daughter.dJ), lf, nf, 0,
-                                -betaType, 0.0, fComps};
-    SingleParticleState spsi = {mother.dJ, -1, sign(mother.dJ), li, ni, 0,
-                                betaType, 0.0, iComps};
-    AddOneBodyTransition(obdme, dji, djf, spsi, spsf);
   }
   return true;
+}
+
+void NS::NuclearStructureManager::ReadNuShellXOBD(std::string filename) {
+  debugFileLogger->debug("Entered ReadNuShellXOBD");
+  std::string line;
+  std::ifstream obdFile (filename);
+  int skipHeader = 15;
+  int lineNumber = 0;
+  if (obdFile.is_open()) {
+    while (getline(obdFile, line)) {
+      lineNumber++;
+      if (lineNumber > skipHeader) {
+        if (line.rfind("!", 0) != 0) {
+          break;
+        }
+      }
+    }
+    std::vector<std::string> stats;
+    boost::algorithm::split(stats, line, boost::is_any_of(","));
+    double Ji = atof(stats[0].c_str());
+    double Jf = atof(stats[1].c_str());
+    double Ti = atof(stats[2].c_str());
+    double Tf = atof(stats[3].c_str());
+    double Tip = atof(stats[4].c_str());
+    double Tz = atof(stats[5].c_str());
+
+    for(int i = 0; i < (Ji+Jf - std::abs(Ji-Jf)) + 1; i++) {
+      getline(obdFile, line);
+      std::vector<std::string> coupling;
+      boost::algorithm::split(coupling, line, boost::is_any_of(","));
+      int dJ = atoi(coupling[0].c_str());
+      int ni = atoi(coupling[1].c_str());
+      int nf = atoi(coupling[2].c_str());
+      double ef = atof(coupling[3].c_str());
+      double ei = atof(coupling[4].c_str());
+      double exi = atof(coupling[5].c_str());
+      double exf = atof(coupling[6].c_str());
+      debugFileLogger->debug("Found coupling");
+      std::vector<std::string> obd;
+      while(getline(obdFile, line)) {
+        if (line.rfind("   0,", 0) == 0) {
+          break;
+        }
+        boost::algorithm::split(obd, line, boost::is_any_of(","));
+        int k1 = atoi(obd[0].c_str());
+        int k2 = atoi(obd[1].c_str());
+        double obdMinus = std::sqrt(2.*dJ + 1.) * atof(obd[2].c_str());
+        double obdPlus = std::sqrt(2.*dJ + 1.) * atof(obd[3].c_str());
+
+        int nf = NuShellXLabels[(k1-1)*3]+1;
+        int lf = NuShellXLabels[(k1-1)*3+1];
+        int djf = NuShellXLabels[(k1-1)*3+2];
+        int ni = NuShellXLabels[(k2-1)*3]+1;
+        int li = NuShellXLabels[(k2-1)*3+1];
+        int dji = NuShellXLabels[(k2-1)*3+2];
+
+        WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
+        WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
+        std::vector<WFComp> fComps = {fW};
+        std::vector<WFComp> iComps = {iW};
+        SingleParticleState spsf = {djf, -1, (lf % 2 == 0) ? 1 : -1, lf, nf, 0,
+                                    -betaType, 0.0, fComps};
+        SingleParticleState spsi = {dji, -1, (li % 2 == 0) ? 1 : -1, li, ni, 0,
+                                    betaType, 0.0, iComps};
+
+        if (betaType == BETA_MINUS) {
+          AddReducedOneBodyTransitionDensity(dJ, obdMinus, dji, djf, spsi, spsf);
+          debugFileLogger->debug("Adding ROBTD with dJ = {}: {}", dJ, obdMinus);
+        } else {
+          AddReducedOneBodyTransitionDensity(dJ, obdPlus, dji, djf, spsi, spsf);
+        }
+      }
+    }
+  }
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
@@ -354,11 +441,11 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   }
 }
 
-void NS::NuclearStructureManager::AddOneBodyTransition(
+void NS::NuclearStructureManager::AddReducedOneBodyTransitionDensity(int K,
     double obdme, int dKi, int dKf, SingleParticleState spsi,
     SingleParticleState spsf) {
-  OneBodyTransition obt = {obdme, dKi, dKf, spsi, spsf};
-  oneBodyTransitions.push_back(obt);
+  ReducedOneBodyTransitionDensity robtd = {obdme, dKi, dKf, spsi, spsf};
+  reducedOneBodyTransitionDensities[K].push_back(robtd);
 }
 
 void NS::NuclearStructureManager::GetESPOrbitalNumbers(int& ni, int& li,
@@ -381,7 +468,7 @@ void NS::NuclearStructureManager::GetESPOrbitalNumbers(int& ni, int& li,
 }
 
 double NS::NuclearStructureManager::GetESPManyParticleCoupling(
-    int K, OneBodyTransition& obt) {
+    int K, ReducedOneBodyTransitionDensity& obt) {
   double C = 0.0;
 
   // TODO Result from Wigner-Eckart in spin space
@@ -465,7 +552,7 @@ double NS::NuclearStructureManager::GetESPManyParticleCoupling(
   return C;
 }
 
-double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
+double NS::NuclearStructureManager::CalculateReducedMatrixElement(bool V, int K, int L,
                                                            int s) {
   if (!initialized) {
     Initialize(GetNMEOpt(std::string, Computational.Method),
@@ -473,37 +560,58 @@ double NS::NuclearStructureManager::CalculateMatrixElement(bool V, int K, int L,
   }
   double result = 0.0;
   double nu = CD::CalcNu(mother.R * std::sqrt(3. / 5.), mother.Z);
-  int opt = 0;
 
-  if (mother.A % 2 == 0) {
-    if (mother.Z % 2 == 1) {
-      opt = 1;
-    } else {
-      opt = 2;
-    }
+  std::vector<ReducedOneBodyTransitionDensity> robtds = reducedOneBodyTransitionDensities[K];
+
+  debugFileLogger->debug("Length of ROBTDS: {}", robtds.size());
+
+  /**
+  * Implementation of @f$ \langle f || \mathbf{O}_K || i \rangle = \hat{K}^{-1} \sum_{\alpha \beta} \langle \alpha || \mathbf{O}_K || \beta \rangle \langle f || [a^\dagger_\alpha \tilde{a}_\beta]_K || i \rangle @f$
+  */
+  for (int i = 0; i < robtds.size(); i++) {
+    debugFileLogger->debug("{}", robtds[i].robtd);
+    result += 1./std::sqrt(2*K+1.) * robtds[i].robtd * ME::GetReducedSingleParticleMatrixElement(
+                              V, std::abs(mother.dJ) / 2., K, L, s, robtds[i].spsi,
+                              robtds[i].spsf, mother.R, nu);
   }
 
-  // cout << "opt: " << opt << endl;
 
-  for (int i = 0; i < oneBodyTransitions.size(); i++) {
-    OneBodyTransition obt = oneBodyTransitions[i];
-    if (boost::iequals(method, "ESP")) {
-      obt.obdme = GetESPManyParticleCoupling(K, obt);
-    }
-    debugFileLogger->debug("OBDME: {}", obt.obdme);
-    if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
-        daughter.beta2 != 0) {
-      debugFileLogger->debug("Deformed");
-      result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
-                                opt, obt.spsi, obt.spsf, V, K, L, s,
-                                std::abs(mother.dJ), std::abs(daughter.dJ),
-                                obt.dKi, obt.dKf, mother.R, nu);
-    } else {
-      result += obt.obdme * ME::GetSingleParticleMatrixElement(
-                                V, std::abs(mother.dJ) / 2., K, L, s, obt.spsi,
-                                obt.spsf, mother.R, nu);
-    }
-  }
+  // /*Odd-A*/
+  // int opt = 0;
+  //
+  // /*Even-A*/
+  // if (mother.A % 2 == 0) {
+  //   if (mother.Z % 2 == 1) {
+  //     /*Odd-Odd*/
+  //     opt = 1;
+  //   } else {
+  //     /*Even-Even*/
+  //     opt = 2;
+  //   }
+  // }
+  //
+  // // cout << "opt: " << opt << endl;
+  //
+  //
+  // for (int i = 0; i < oneBodyTransitions.size(); i++) {
+  //   OneBodyTransition obt = oneBodyTransitions[i];
+  //   if (boost::iequals(method, "ESP")) {
+  //     obt.obdme = GetESPManyParticleCoupling(K, obt);
+  //   }
+  //   debugFileLogger->debug("OBDME: {}", obt.obdme);
+  //   if (boost::iequals(potential, "DWS") && mother.beta2 != 0 &&
+  //       daughter.beta2 != 0) {
+  //     debugFileLogger->debug("Deformed");
+  //     result += obt.obdme * ME::GetDeformedSingleParticleMatrixElement(
+  //                               opt, obt.spsi, obt.spsf, V, K, L, s,
+  //                               std::abs(mother.dJ), std::abs(daughter.dJ),
+  //                               obt.dKi, obt.dKf, mother.R, nu);
+  //   } else {
+  //     result += obt.obdme * ME::GetSingleParticleMatrixElement(
+  //                               V, std::abs(mother.dJ) / 2., K, L, s, obt.spsi,
+  //                               obt.spsf, mother.R, nu);
+  //   }
+  // }
   nmeResultsLogger->info("Calculated matrix element {}M{}{}{}. Result: {}",
                          V ? "V" : "A", K, L, s, result);
   return result;
@@ -515,8 +623,8 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double gM = GetNMEOpt(double, Constants.gM);
   double gAeff = GetNMEOpt(double, Constants.gAeff);
 
-  double VM111 = CalculateMatrixElement(true, 1, 1, 1);
-  double AM101 = CalculateMatrixElement(false, 1, 0, 1);
+  double VM111 = CalculateReducedMatrixElement(true, 1, 1, 1);
+  double AM101 = CalculateReducedMatrixElement(false, 1, 0, 1);
 
   result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
                mother.R / gAeff * VM111 / AM101 +
@@ -528,8 +636,8 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
 double NS::NuclearStructureManager::CalculateInducedTensor() {
   double result = 0.0;
 
-  double AM110 = CalculateMatrixElement(false, 1, 1, 0);
-  double AM101 = CalculateMatrixElement(false, 1, 0, 1);
+  double AM110 = CalculateReducedMatrixElement(false, 1, 1, 0);
+  double AM101 = CalculateReducedMatrixElement(false, 1, 0, 1);
 
   result = 2. / std::sqrt(3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
            mother.R * AM110 / AM101;

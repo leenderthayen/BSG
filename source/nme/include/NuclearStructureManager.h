@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "NuclearUtilities.h"
 #include "spdlog/spdlog.h"
@@ -83,7 +84,7 @@ class NuclearStructureManager {
    * @param L orbital angular momentum of the operator
    * @param s index specifying simple or vector spherical harmonics
    */
-  double CalculateMatrixElement(bool V, int K, int L, int s);
+  double CalculateReducedMatrixElement(bool V, int K, int L, int s);
   /**
    * Calculate b/Ac in the Holstein formalism
    */
@@ -96,13 +97,14 @@ class NuclearStructureManager {
   /**
    * Add a one body transition to the list
    *
+   * @param K angular momentum coupling of [a+a]_K
    * @param obdme one body density matrix element
    * @param dKi double the K value of the initial state
    * @param dKf double the K value of the final state
    * @param spsi initial single particle state
    * @param spsf final single particle state
    */
-  void AddOneBodyTransition(double obdme, int dKi, int dKf,
+  void AddReducedOneBodyTransitionDensity(int K, double robdme, int dKi, int dKf,
                             SingleParticleState spsi, SingleParticleState spsf);
 
   void GetESPStates(SingleParticleState&, SingleParticleState&, int&, int&);
@@ -110,7 +112,7 @@ class NuclearStructureManager {
  private:
   Nucleus mother, daughter;
   BetaType betaType;
-  std::vector<OneBodyTransition> oneBodyTransitions;
+  std::map<int, std::vector<ReducedOneBodyTransitionDensity> > reducedOneBodyTransitionDensities;
   std::string method, potential;
 
   std::shared_ptr<spdlog::logger> consoleLogger;
@@ -123,8 +125,9 @@ class NuclearStructureManager {
   void InitializeConstants();
 
   void GetESPOrbitalNumbers(int&, int&, int&, int&, int&, int&);
-  double GetESPManyParticleCoupling(int, OneBodyTransition&);
+  double GetESPManyParticleCoupling(int, ReducedOneBodyTransitionDensity&);
   bool BuildDensityMatrixFromFile(std::string);
+  void ReadNuShellXOBD(std::string);
 };
 }
 #endif
