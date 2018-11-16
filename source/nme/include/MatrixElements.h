@@ -74,7 +74,9 @@ inline double CalculateGKLs(int kf, int ki, int K, int L, int s) {
 /**
  * Calculate the spin-reduced single particle matrix element @f[ ^{V/A}M_{KLs} @f]
  * as calculated between two spherical harmonic oscillator states
- * in the non-relativistic approximation
+ * in the non-relativistic approximation. We work in the qR << 1 limit, where
+ * @f[ j_L(qr) \approx \frac{(qr)^L}{(2L+1)!!} @f], i.e. the matrix element
+ * is insensitive to the momentum transfer
  *
  * @param V boolean denoting vector (true) or axial vector (false) nature of
  *matrix element

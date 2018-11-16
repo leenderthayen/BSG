@@ -229,6 +229,7 @@ bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
       AddReducedOneBodyTransitionDensity(1, obdme, dji, djf, spsi, spsf);
     }
   }
+  debugFileLogger->debug("Leaving BuildDensityMatrixFromFile");
   return true;
 }
 
@@ -257,53 +258,56 @@ void NS::NuclearStructureManager::ReadNuShellXOBD(std::string filename) {
     double Tz = atof(stats[5].c_str());
 
     for(int i = 0; i < (Ji+Jf - std::abs(Ji-Jf)) + 1; i++) {
-      getline(obdFile, line);
-      std::vector<std::string> coupling;
-      boost::algorithm::split(coupling, line, boost::is_any_of(","));
-      int dJ = atoi(coupling[0].c_str());
-      int ni = atoi(coupling[1].c_str());
-      int nf = atoi(coupling[2].c_str());
-      double ef = atof(coupling[3].c_str());
-      double ei = atof(coupling[4].c_str());
-      double exi = atof(coupling[5].c_str());
-      double exf = atof(coupling[6].c_str());
-      debugFileLogger->debug("Found coupling");
-      std::vector<std::string> obd;
-      while(getline(obdFile, line)) {
-        if (line.rfind("   0,", 0) == 0) {
-          break;
-        }
-        boost::algorithm::split(obd, line, boost::is_any_of(","));
-        int k1 = atoi(obd[0].c_str());
-        int k2 = atoi(obd[1].c_str());
-        double obdMinus = std::sqrt(2.*dJ + 1.) * atof(obd[2].c_str());
-        double obdPlus = std::sqrt(2.*dJ + 1.) * atof(obd[3].c_str());
+      if (getline(obdFile, line)) {
+        std::vector<std::string> coupling;
+        boost::algorithm::split(coupling, line, boost::is_any_of(","));
+        int dJ = atoi(coupling[0].c_str());
+        int ni = atoi(coupling[1].c_str());
+        int nf = atoi(coupling[2].c_str());
+        double ef = atof(coupling[3].c_str());
+        double ei = atof(coupling[4].c_str());
+        double exi = atof(coupling[5].c_str());
+        double exf = atof(coupling[6].c_str());
+        debugFileLogger->debug("Found coupling");
+        std::vector<std::string> obd;
+        while(getline(obdFile, line)) {
+          if (line.rfind("   0,", 0) == 0) {
+            break;
+          }
+          boost::algorithm::split(obd, line, boost::is_any_of(","));
+          int k1 = atoi(obd[0].c_str());
+          int k2 = atoi(obd[1].c_str());
+          double obdMinus = std::sqrt(2.*dJ + 1.) * atof(obd[2].c_str());
+          double obdPlus = std::sqrt(2.*dJ + 1.) * atof(obd[3].c_str());
 
-        int nf = NuShellXLabels[(k1-1)*3]+1;
-        int lf = NuShellXLabels[(k1-1)*3+1];
-        int djf = NuShellXLabels[(k1-1)*3+2];
-        int ni = NuShellXLabels[(k2-1)*3]+1;
-        int li = NuShellXLabels[(k2-1)*3+1];
-        int dji = NuShellXLabels[(k2-1)*3+2];
+          int nf = NuShellXLabels[(k1-1)*3]+1;
+          int lf = NuShellXLabels[(k1-1)*3+1];
+          int djf = NuShellXLabels[(k1-1)*3+2];
+          int ni = NuShellXLabels[(k2-1)*3]+1;
+          int li = NuShellXLabels[(k2-1)*3+1];
+          int dji = NuShellXLabels[(k2-1)*3+2];
 
-        WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
-        WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
-        std::vector<WFComp> fComps = {fW};
-        std::vector<WFComp> iComps = {iW};
-        SingleParticleState spsf = {djf, -1, (lf % 2 == 0) ? 1 : -1, lf, nf, 0,
-                                    -betaType, 0.0, fComps};
-        SingleParticleState spsi = {dji, -1, (li % 2 == 0) ? 1 : -1, li, ni, 0,
-                                    betaType, 0.0, iComps};
+          WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
+          WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
+          std::vector<WFComp> fComps = {fW};
+          std::vector<WFComp> iComps = {iW};
+          SingleParticleState spsf = {djf, -1, (lf % 2 == 0) ? 1 : -1, lf, nf, 0,
+                                      -betaType, 0.0, fComps};
+          SingleParticleState spsi = {dji, -1, (li % 2 == 0) ? 1 : -1, li, ni, 0,
+                                      betaType, 0.0, iComps};
 
-        if (betaType == BETA_MINUS) {
-          AddReducedOneBodyTransitionDensity(dJ, obdMinus, dji, djf, spsi, spsf);
-          debugFileLogger->debug("Adding ROBTD with dJ = {}: {}", dJ, obdMinus);
-        } else {
-          AddReducedOneBodyTransitionDensity(dJ, obdPlus, dji, djf, spsi, spsf);
+          if (betaType == BETA_MINUS) {
+            AddReducedOneBodyTransitionDensity(dJ, obdMinus, dji, djf, spsi, spsf);
+            debugFileLogger->debug("Adding ROBTD with dJ = {}: {}", dJ, obdMinus);
+          } else {
+            AddReducedOneBodyTransitionDensity(dJ, obdPlus, dji, djf, spsi, spsf);
+            debugFileLogger->debug("Adding ROBTD with dJ = {}: {}", dJ, obdPlus);
+          }
         }
       }
     }
   }
+  debugFileLogger->debug("Leaving ReadNuShellXOBD");
 }
 
 void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
@@ -628,7 +632,7 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
 
   result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
                mother.R / gAeff * VM111 / AM101 +
-           gM / gAeff;
+           (gM - 1) / gAeff;
   nmeResultsLogger->info("Weak magnetism final result: b/Ac = {}", result);
   return result;
 }
