@@ -214,8 +214,8 @@ void Generator::LoadExchangeParameters() {
 }
 
 void Generator::InitializeL0Constants() {
-  debugFileLogger->debug("Leaving InitializeL0Constants");
-  double b[7][6];
+  debugFileLogger->debug("Entering InitializeL0Constants");
+  //double b[7][6];
   double bNeg[7][6];
   bNeg[0][0] = 0.115;
   bNeg[0][1] = -1.8123;

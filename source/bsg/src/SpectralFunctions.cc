@@ -74,7 +74,7 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
 double SpectralFunctions::CCorrection(
     double W, double W0, int Z, int A, double R, int betaType,
     int decayType, double gA, double gP, double fc1, double fb, double fd,
-    double ratioM121, bool addCI, std::string NSShape, double hoFit, 
+    double ratioM121, bool addCI, std::string NSShape, double hoFit,
     NuclearStructure::SingleParticleState& spsi,
     NuclearStructure::SingleParticleState& spsf) {
 
@@ -92,7 +92,7 @@ double SpectralFunctions::CCorrection(
 }
 
 std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
-    double W, double W0, int Z, int A, double R, int betaType, int decayType, 
+    double W, double W0, int Z, int A, double R, int betaType, int decayType,
     double gA, double gP, double fc1, double fb, double fd,
     double ratioM121, std::string NSShape, double hoFit) {
   double AC0, AC1, ACm1, AC2;
@@ -106,7 +106,7 @@ std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
 
   if (boost::iequals(NSShape, "ModGauss")) {
     F1111 = 0.757 + 0.0069 * (1 - std::exp(-hoFit / 1.008));
-    F1221 = 0.844 - 0.0182 * (1 - std::exp(-hoFit / 1.1974));
+    F1221 = 0.844 - 0.0182 * (1 - std::exp(-hoFit / 1.974));
     F1222 = 1.219 - 0.0640 * (1 - std::exp(-hoFit / 1.550));
   }
 
@@ -422,14 +422,14 @@ double SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
     a = 1.;
   else if (decayType == GAMOW_TELLER)
     a = -1. / 3.;
-  else if (mixingRatio > 0)
-    a = (1 - std::pow(mixingRatio, 2.) / 3) / (1 + std::pow(mixingRatio, 2));
+  else if (mixingRatio > 0.)
+    a = (1. - std::pow(mixingRatio, 2.) / 3.) / (1. + std::pow(mixingRatio, 2));
 
   double M = A * (PROTON_MASS_KEV + NEUTRON_MASS_KEV) / 2. / ELECTRON_MASS_KEV;
 
-  double p = std::sqrt(W * W - 1);
+  double p = std::sqrt(W * W - 1.);
 
-  return 1 - betaType * M_PI * ALPHA * Z / M / p * (1 + a * (W0 - W) / 3 / M);
+  return 1. - betaType * M_PI * ALPHA * Z / M / p * (1. + a * (W0 - W) / 3. / M);
 }
 
 double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
@@ -438,54 +438,54 @@ double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
   // 1st order, based on the 5th Wilkinson article
   double beta = std::sqrt(1.0 - 1.0 / W / W);
 
-  double g = 3 * std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV) - 0.75 +
-             4 * (std::atanh(beta) / beta - 1) *
-                 ((W0 - W) / 3 / W - 1.5 + std::log(2 * (W0 - W)));
-  g += 4.0 / beta * Spence(2 * beta / (1 + beta)) +
+  double g = 3. * std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV) - 0.75 +
+             4. * (std::atanh(beta) / beta - 1.) *
+                 ((W0 - W) / 3. / W - 1.5 + std::log(2 * (W0 - W)));
+  g += 4.0 / beta * Spence(2. * beta / (1. + beta)) +
        std::atanh(beta) / beta *
-           (2 * (1 + beta * beta) + (W0 - W) * (W0 - W) / 6 / W / W -
-            4 * std::atanh(beta));
+           (2. * (1. + beta * beta) + (W0 - W) * (W0 - W) / 6. / W / W -
+            4. * std::atanh(beta));
 
   double O1corr =
-      ALPHA / 2 / M_PI *
-      (g - 3 * std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV / 2 / W0));
+      ALPHA / 2. / M_PI *
+      (g - 3. * std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV / 2. / W0));
 
   double L =
-      1.026725 * std::pow(1 - 2 * ALPHA / 3 / M_PI * std::log(2 * W0), 9 / 4.);
+      1.026725 * std::pow(1. - 2. * ALPHA / 3. / M_PI * std::log(2. * W0), 9. / 4.);
 
   // 2nd order
   double d1f, d2, d3, d14;
   double lambda = std::sqrt(10) / R;
   double lambdaOverM =
-      lambda / PROTON_MASS_KEV * ELECTRON_MASS_KEV;  // this is dimensionless
+      lambda / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;  // this is dimensionless
 
   d14 = std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV) -
         5. / 3. * std::log(2 * W) + 43. / 18.;
 
   d1f = std::log(lambdaOverM) - EULER_MASCHERONI_CONSTANT + 4. / 3. -
         std::log(std::sqrt(10.0)) -
-        3.0 / M_PI / std::sqrt(10.0) * (0.5 + EULER_MASCHERONI_CONSTANT +
+        3.0 / M_PI / std::sqrt(10.0) * lambdaOverM * (0.5 + EULER_MASCHERONI_CONSTANT +
                                         std::log(std::sqrt(10) / lambdaOverM));
 
   d2 = 3.0 / 2.0 / M_PI / std::sqrt(10.0) * lambdaOverM *
-       (1 - M_PI / 2 / std::sqrt(10) * lambdaOverM);
+       (1. - M_PI / 2. / std::sqrt(10) * lambdaOverM);
 
   d3 = 3.0 * gA * gM / M_PI / std::sqrt(10.0) * lambdaOverM *
-       (EULER_MASCHERONI_CONSTANT - 1 + std::log(std::sqrt(10) / lambdaOverM) +
+       (EULER_MASCHERONI_CONSTANT - 1. + std::log(std::sqrt(10) / lambdaOverM) +
         M_PI / 4 / std::sqrt(10) * lambdaOverM);
 
-  double O2corr = betaType * ALPHA * ALPHA * Z * (d14 + d1f + d2 + d3);
+  double O2corr = ALPHA * ALPHA * Z * (d14 + d1f + d2 + d3);
 
   // 3rd order
   double a = 0.5697;
   double b =
-      4 / 3 / M_PI * (11 / 4. - EULER_MASCHERONI_CONSTANT - M_PI * M_PI / 6);
-  double f = std::log(2 * W0) - 5. / 6.;
-  double g2 = 0.5 * (std::pow(log(R), 2.) - std::pow(log(2 * W), 2.)) +
+      4. / 3. / M_PI * (11. / 4. - EULER_MASCHERONI_CONSTANT - M_PI * M_PI / 6);
+  double f = std::log(2 * W) - 5. / 6.;
+  double g2 = 0.5 * (std::pow(std::log(R), 2.) - std::pow(std::log(2 * W), 2.)) +
               5. / 3. * std::log(2 * R * W);
 
   double O3corr = std::pow(ALPHA, 3) * std::pow(Z, 2) *
-                  (a * std::log(lambda / W) + b * f + 4 * M_PI / 3. * g2 -
+                  (a * std::log(lambda / W) + b * f + 4. / M_PI / 3. * g2 -
                    0.649 * std::log(2 * W0));
 
   return (1 + O1corr) * (L + O2corr + O3corr);
