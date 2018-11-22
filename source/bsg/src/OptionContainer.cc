@@ -30,6 +30,8 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "on will turn off the atomic mismatch correction")(
       "Transition.PartialHalflife", po::value<double>(),
       "Set the lifetime in seconds of the beta branch.")(
+      "Transition.LogFt", po::value<double>(),
+      "Set the externally calculated log ft value.")(
       "Daughter.Z", po::value<int>(),
       "Set the proton number of the daughter nucleus.")(
       "Mother.Z", po::value<int>(),
@@ -125,8 +127,10 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Specify the starting energy in keV from which to start the spectrum calculation.")(
       "Spectrum.End,E", po::value<double>()->default_value(0.),
       "Specify the last energy in keV for which to calculate the spectrum.")(
-      "Spectrum.Step,S", po::value<double>()->default_value(0.1),
+      "Spectrum.StepSize,S", po::value<double>()->default_value(0.1),
       "Specify the stepsize in keV.")(
+      "Spectrum.Steps,N", po::value<int>(),
+      "Specify the number of steps in the total spectrum")(
       "Spectrum.Neutrino,v", po::value<bool>()->default_value(true),
       "Turn off the generation of the neutrino spectrum.")(
       "Spectrum.Connect", po::value<bool>()->default_value(false),

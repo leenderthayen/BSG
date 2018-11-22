@@ -181,15 +181,15 @@ void NS::NuclearStructureManager::Initialize(std::string m, std::string p) {
       AddReducedOneBodyTransitionDensity(i, robtd, dKi, dKf, spsi, spsf);
     }
     initialized = true;
-  } else if (boost::iequals(method, "CUSTOMSHO")) {
-    if (!NMEOptExists(Transition.DensityMatrixFile)) {
-      debugFileLogger->debug(
-          "Density matrix file was not specified in"
+  } else if (boost::iequals(method, "ROBTD")) {
+    if (!NMEOptExists(Transition.ROBTDFile)) {
+      consoleLogger->error(
+          "Reduced One Body Transition Density file was not specified in"
           "transition .ini file. Initializing using Method=ESP.");
       Initialize("ESP", p);
     } else {
       initialized = BuildDensityMatrixFromFile(
-          GetNMEOpt(std::string, Transition.DensityMatrixFile));
+          GetNMEOpt(std::string, Transition.ROBTDFile));
     }
   }
   debugFileLogger->debug("Leaving Initialize");

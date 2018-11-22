@@ -14,7 +14,7 @@ NMEOptions::NMEOptions(int argc, char** argv) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
-      "Transition.DensityMatrixFile", po::value<std::string>(),
+      "Transition.ROBTDFile", po::value<std::string>(),
       "Set the file name containing the one-body density matrix elements.")(
       "Daughter.Z", po::value<int>(),
       "Set the proton number of the daughter nucleus.")(

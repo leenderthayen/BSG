@@ -13,7 +13,7 @@ import os
 
 from PySide import QtGui
 
-from MainWindowGUI import Ui_MainWindow
+from ui.MainWindowGUI import Ui_MainWindow
 
 import ConfigParser
 
@@ -285,7 +285,9 @@ class BSG_UI(QtGui.QMainWindow):
         button = QtGui.QMessageBox.question(self, 'ENSDF search', 'Search for transitions in ENSDF database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
         if button == QtGui.QMessageBox.Yes:
-            self.loadESNDFBranches(Z, A)
+            success = self.loadESNDFBranches(Z, A)
+            if not success:
+                return
         else:
             process = QtGui.QInputDialog.getItem(self, "Choose beta process", "Beta process", ('B-', 'B+', 'EC'), editable=False)[0]
             self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(process))
@@ -328,28 +330,33 @@ class BSG_UI(QtGui.QMainWindow):
 
             items.append(s)
 
-        choice  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)[0]
-        branch = bbs[items.index(choice)]
+        if len(items):
+            choice  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)[0]
+            branch = bbs[items.index(choice)]
 
-        self.ui.sb_ZM.setValue(Z)
-        self.ui.sb_AM.setValue(A)
-        self.ui.sb_ZD.setValue(Z+1 if branch.process == 'B-' else Z-1)
-        self.ui.sb_AD.setValue(A)
-        self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(branch.process))
-        self.ui.cb_type.setCurrentIndex(1)
-        self.ui.dsb_motherEn.setValue(branch.motherLevel.E)
-        self.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
-        self.ui.dsb_Q.setValue(branch.E-branch.motherLevel.E+branch.daughterLevel.E)
-        mJpi = branch.motherLevel.Jpi
-        self.ui.dsb_JM.setValue(float(mJpi.split('/2')[0])/2. if '/2' in mJpi else float(mJpi[:-1]))
-        dJpi = branch.daughterLevel.Jpi
-        self.ui.dsb_JD.setValue(float(dJpi.split('/2')[0])/2. if '/2' in dJpi else float(dJpi[:-1]))
-        self.ui.cb_PiM.setCurrentIndex(self.ui.cb_PiM.findText(mJpi[-1]))
-        self.ui.cb_PiD.setCurrentIndex(self.ui.cb_PiD.findText(dJpi[-1]))
-        self.ui.dsb_halflife.setValue(branch.partialHalflife)
-        self.ui.dsb_logft.setValue(branch.logft)
+            self.ui.sb_ZM.setValue(Z)
+            self.ui.sb_AM.setValue(A)
+            self.ui.sb_ZD.setValue(Z+1 if branch.process == 'B-' else Z-1)
+            self.ui.sb_AD.setValue(A)
+            self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(branch.process))
+            self.ui.cb_type.setCurrentIndex(1)
+            self.ui.dsb_motherEn.setValue(branch.motherLevel.E)
+            self.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
+            self.ui.dsb_Q.setValue(branch.E-branch.motherLevel.E+branch.daughterLevel.E)
+            mJpi = branch.motherLevel.Jpi
+            self.ui.dsb_JM.setValue(float(mJpi.split('/2')[0])/2. if '/2' in mJpi else float(mJpi[:-1]))
+            dJpi = branch.daughterLevel.Jpi
+            self.ui.dsb_JD.setValue(float(dJpi.split('/2')[0])/2. if '/2' in dJpi else float(dJpi[:-1]))
+            self.ui.cb_PiM.setCurrentIndex(self.ui.cb_PiM.findText(mJpi[-1]))
+            self.ui.cb_PiD.setCurrentIndex(self.ui.cb_PiD.findText(dJpi[-1]))
+            self.ui.dsb_halflife.setValue(branch.partialHalflife)
+            self.ui.dsb_logft.setValue(branch.logft)
 
-        self.setTransitionLabel()
+            self.setTransitionLabel()
+            return true
+        else:
+            QtGui.QErrorMessage(self).showMessage("No transitions found.")
+            return false
 
     def loadDeformation(self):
         if not self.deformationFile:
@@ -411,11 +418,13 @@ class BSG_UI(QtGui.QMainWindow):
 
         self.log("Performing BSG Calculation...")
         self.status("Calculating...")
-        command = "{0} -i {1} -o {2} -c {3}".format(self.execPath, self.iniName, outputName, self.configName)
+        command = "{0} -i {1} -o {2}".format(self.execPath, self.iniName, outputName)
         if self.ui.cb_exchange.isChecked():
             command += " -e {}".format(self.exchangePath)
 
-        if not self.ui.rb_configFile.isChecked():
+        if self.ui.rb_configFile.isChecked():
+            command += " -c {}".format(self.configName)
+        else:
             for key in self.spectrumCheckBoxes:
                 command += " --Spectrum.{0}={1}".format(self.spectrumCheckBoxes[key], key.isChecked())
             for key in self.spectrumComboBoxes:
@@ -427,9 +436,9 @@ class BSG_UI(QtGui.QMainWindow):
                 for key in self.spectrumNME:
                     command += " --Spectrum.{0}={1}".format(self.spectrumNME[key], key.value())
             for key in self.computationalComboBoxes:
-                command += ' --Computational.{0}={1}'.format(self.computationalDSB[key], key.currentText())
+                command += ' --Computational.{0}={1}'.format(self.computationalComboBoxes[key], key.currentText())
             for key in self.computationalCheckBoxes:
-                command += ' -- Computational.{0}={1}'.format(self.computationalComboBoxes[key], key.isChecked())
+                command += ' -- Computational.{0}={1}'.format(self.computationalCheckBoxes[key], key.isChecked())
             for key in self.computationalDSB:
                 command += ' --Computational.{0}={1}'.format(self.computationalDSB[key], key.value())
 

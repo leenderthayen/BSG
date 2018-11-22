@@ -38,7 +38,9 @@ Generator::Generator() {
   InitializeConstants();
   InitializeShapeParameters();
   InitializeL0Constants();
-  LoadExchangeParameters();
+  if (GetBSGOpt(bool, Spectrum.Exchange)) {
+    LoadExchangeParameters();
+  }
   InitializeNSMInfo();
 }
 
@@ -337,8 +339,6 @@ void Generator::GetMatrixElements() {
     ratioM121 = GetBSGOpt(double, Spectrum.Lambda);
   }
 
-  fc1 = gA * M101;
-
   bAc = dAc = 0;
   if (!OptExists(Spectrum.WeakMagnetism)) {
     debugFileLogger->info("Calculating Weak Magnetism");
@@ -352,10 +352,34 @@ void Generator::GetMatrixElements() {
   } else {
     dAc = GetBSGOpt(double, Spectrum.InducedTensor);
   }
+
+  if (std::isnan(bAc)) {
+    bAc = 0.;
+    consoleLogger->error("Calculated b/Ac was NaN. Setting to 0.");
+  }
+  if (std::isnan(dAc)) {
+    dAc = 0.;
+    consoleLogger->error("Calculated d/Ac was NaN. Setting to 0.");
+  }
+  if (std::isnan(ratioM121)) {
+    ratioM121 = 0.;
+    M101 = 1.;
+    consoleLogger->error("Calculated M121/M101 was NaN. Setting ratio to 0 and M101 to 1.");
+  }
+
+  if (M101 == 0.) {
+    bAc = 0.;
+    dAc = 0.;
+    ratioM121 = 0.;
+    M101 = 1.;
+    consoleLogger->error("Calculated M101 is 0, resulting in infinities. Setting b/Ac, d/Ac and M121/M101 to 0 and M101 to 1.");
+  }
+
   debugFileLogger->info("Weak magnetism: {}", bAc);
   debugFileLogger->info("Induced tensor: {}", dAc);
   debugFileLogger->info("M121/M101: {}", ratioM121);
 
+  fc1 = gA * M101;
   fb = bAc * A * fc1;
   fd = dAc * A * fc1;
 }
@@ -450,14 +474,17 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
   debugFileLogger->info("Calculating spectrum");
   double beginEn = GetBSGOpt(double, Spectrum.Begin);
   double endEn = GetBSGOpt(double, Spectrum.End);
-  double stepEn = GetBSGOpt(double, Spectrum.Step);
 
   double beginW = beginEn / ELECTRON_MASS_KEV + 1.;
   double endW = endEn / ELECTRON_MASS_KEV + 1.;
   if (endEn == 0.0) {
     endW = W0;
   }
-  double stepW = stepEn / ELECTRON_MASS_KEV;
+
+  double stepW = GetBSGOpt(double, Spectrum.StepSize) / ELECTRON_MASS_KEV;
+  if (OptExists(Spectrum.Steps)) {
+    stepW = (endW-beginW)/GetBSGOpt(int, Spectrum.Steps);
+  }
 
   double currentW = beginW;
   while (currentW <= endW) {
@@ -510,6 +537,14 @@ void Generator::PrepareOutputFile() {
     l->info("Partial halflife: not given");
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
   }
+  if (OptExists(Transition.LogFt)) {
+    l->info("External Log ft: {:.3f}", GetBSGOpt(double, Transition.LogFt));
+    if (OptExists(Transition.PartialHalflife)) {
+      l->info("Ratio of calculated/external ft value: {}", std::pow(10.,
+        CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife))
+         - GetBSGOpt(double, Transition.LogFt)));
+    }
+  }
   l->info("Mean energy: {} keV", (CalculateMeanEnergy()-1.)*ELECTRON_MASS_KEV);
   l->info("\nMatrix Element Summary\n{:->30}", "");
   if (OptExists(Spectrum.WeakMagnetism)) l->info("{:35}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
@@ -548,7 +583,9 @@ void Generator::PrepareOutputFile() {
   l->info("{:25}: {}", "Atomic mismatch", GetBSGOpt(bool, Spectrum.AtomicMismatch));
   l->info("{:25}: {}", "Export neutrino", GetBSGOpt(bool, Spectrum.Neutrino));
 
-  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n", GetBSGOpt(double, Spectrum.Begin), GetBSGOpt(double, Spectrum.End) > 0 ? GetBSGOpt(double, Spectrum.End) : (W0-1.)*ELECTRON_MASS_KEV, GetBSGOpt(double, Spectrum.Step));
+  l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n",
+  GetBSGOpt(double, Spectrum.Begin),
+  GetBSGOpt(double, Spectrum.End) > 0 ? GetBSGOpt(double, Spectrum.End) : (W0-1.)*ELECTRON_MASS_KEV, GetBSGOpt(double, Spectrum.StepSize));
 
   if (GetBSGOpt(bool, Spectrum.Neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
   else l->info("{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW");
