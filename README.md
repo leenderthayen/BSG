@@ -11,9 +11,11 @@ Purpose
 Contributors:
 * Leendert Hayen (leendert.hayen@kuleuven.be)
 
-This package calculates nuclear matrix elements relevant to allowed beta decay, and its corresponding spectrum according to the formalism by Hayen *et al.* ([arXiv](https://arXiv.org/abs/1709.07530)). It contains a graphical user interface written in Python which allows connection to, e.g., the ENSDF database.
+This package calculates nuclear matrix elements relevant to allowed beta decay, and its corresponding spectrum according to the formalism by Hayen *et al.* ([RevModPhys](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.90.015008) [arXiv](https://arXiv.org/abs/1709.07530)). It contains a graphical user interface written in Python which allows connection to, e.g., the ENSDF database.
+
+The workings of the code is described in the following publication [arXiv](https://arxiv.org/abs/1803.00525).
 
 
 Documentation
 --------------
-Please check http://bsg.readthedocs.io for a complete explanation.
+Please check http://bsg.readthedocs.io and [arXiv](https://arxiv.org/abs/1803.00525) for a complete explanation.
