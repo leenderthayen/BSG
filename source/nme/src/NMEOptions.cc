@@ -10,7 +10,7 @@ po::options_description NMEOptions::transitionOptions("Transition information");
 po::options_description NMEOptions::envOptions("Environment options");
 po::variables_map NMEOptions::vm;
 
-NMEOptions::NMEOptions(int argc, char** argv) {
+NMEOptions::NMEOptions(int argc, char** argv, bool fromBSG) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
@@ -119,8 +119,10 @@ NMEOptions::NMEOptions(int argc, char** argv) {
       "Constants.gM", po::value<double>()->default_value(4.706),
       "Set the weak magnetism coupling constant.");
 
+  po::options_description cmdOptions;
+  cmdOptions.add(genericOptions).add(configOptions);
   po::store(po::command_line_parser(argc, argv)
-                .options(genericOptions)
+                .options(cmdOptions)
                 .allow_unregistered()
                 .run(),
             vm);
@@ -128,15 +130,19 @@ NMEOptions::NMEOptions(int argc, char** argv) {
   po::notify(vm);
 
   if (vm.count("help")) {
-    cout << transitionOptions << endl;
-    cout << "\n\n**************************************************************"
-            "*\n\n" << endl;
-    cout << genericOptions << endl;
-    cout << configOptions << endl;
+    if (fromBSG) {
+      cout << configOptions << endl;
+    } else {
+      cout << transitionOptions << endl;
+      cout << "\n\n**************************************************************"
+              "*\n\n" << endl;
+      cout << genericOptions << endl;
+      cout << configOptions << endl;
+    }
   } else {
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
-      std::cerr << "ERROR: " << configName << " cannot be found.\n\n"
+      std::cout << "WARNING: " << configName << " cannot be found.\n\n"
                 << std::endl;
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);

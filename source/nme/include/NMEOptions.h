@@ -34,8 +34,8 @@ class NMEOptions {
   /**
    * Single Constructor
    */
-  static NMEOptions& GetInstance(int argc = 0, char** argv = NULL) {
-    static NMEOptions instance(argc, argv);
+  static NMEOptions& GetInstance(int argc = 0, char** argv = NULL, bool fromBSG = false) {
+    static NMEOptions instance(argc, argv, fromBSG);
     return instance;
   }
   /**
@@ -75,7 +75,7 @@ class NMEOptions {
   static po::options_description configOptions;
   static po::options_description envOptions;
   static po::options_description transitionOptions;
-  NMEOptions(int, char**);
+  NMEOptions(int, char**, bool fromBSG=false);
   NMEOptions(NMEOptions const& copy);
   NMEOptions& operator=(NMEOptions const& copy);
 };

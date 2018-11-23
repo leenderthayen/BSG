@@ -353,10 +353,10 @@ class BSG_UI(QtGui.QMainWindow):
             self.ui.dsb_logft.setValue(branch.logft)
 
             self.setTransitionLabel()
-            return true
+            return True
         else:
             QtGui.QErrorMessage(self).showMessage("No transitions found.")
-            return false
+            return False
 
     def loadDeformation(self):
         if not self.deformationFile:

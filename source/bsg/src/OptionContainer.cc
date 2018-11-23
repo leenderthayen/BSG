@@ -151,18 +151,18 @@ OptionContainer::OptionContainer(int argc, char** argv) {
   configOptions.add_options()(
       "General.Folder", po::value<std::string>()->default_value("."),
       "Set the folder name for the results to be placed in.")(
-      "Constants.gA", po::value<double>(),
+      "Constants.gA", po::value<double>()->default_value(1.2723),
       "Specify the GT coupling constant, gA")(
-      "Constants.gM", po::value<double>(),
+      "Constants.gM", po::value<double>()->default_value(4.706),
       "Specify the weak magnetism coupling constant, gM")(
-      "Constants.gP", po::value<double>(),
+      "Constants.gP", po::value<double>()->default_value(-229.),
       "Specify the induced pseudoscalar coupling constant, gP");
 
   /** Parse command line options
    * Included: generic options & spectrum shape options
    */
   po::options_description cmdOptions;
-  cmdOptions.add(genericOptions).add(spectrumOptions);
+  cmdOptions.add(genericOptions).add(configOptions);
   po::store(po::command_line_parser(argc, argv)
                 .options(cmdOptions)
                 .allow_unregistered()
@@ -174,16 +174,14 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     cout << transitionOptions << endl;
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
-    cout << genericOptions << endl;
-    cout << spectrumOptions << endl;
-    cout << configOptions << endl;
+    cout << cmdOptions << endl;
   } else {
     /** Parse configuration file
      * Included: configOptions & spectrumOptions
      */
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
-      std::cerr << "ERROR: " << configName << " cannot be found.\n\n"
+      std::cout << "WARNING: " << configName << " cannot be found.\n\n"
                 << std::endl;
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);
@@ -198,5 +196,5 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     po::notify(vm);
   }
 
-  NMEOptions::GetInstance(argc, argv);
+  NMEOptions::GetInstance(argc, argv, true);
 }

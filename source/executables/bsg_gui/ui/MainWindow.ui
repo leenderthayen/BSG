@@ -1416,7 +1416,7 @@
        <rect>
         <x>10</x>
         <y>170</y>
-        <width>351</width>
+        <width>361</width>
         <height>311</height>
        </rect>
       </property>
@@ -1474,7 +1474,7 @@
       <widget class="QCheckBox" name="cb_reverseGhallagher">
        <property name="geometry">
         <rect>
-         <x>130</x>
+         <x>190</x>
          <y>70</y>
          <width>181</width>
          <height>22</height>
@@ -1659,7 +1659,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>100</y>
+         <y>70</y>
          <width>181</width>
          <height>22</height>
         </rect>
@@ -1691,7 +1691,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>70</y>
+         <y>100</y>
          <width>121</width>
          <height>22</height>
         </rect>
@@ -1744,7 +1744,7 @@
       <widget class="QDoubleSpinBox" name="dsb_energyMargin">
        <property name="geometry">
         <rect>
-         <x>130</x>
+         <x>120</x>
          <y>130</y>
          <width>91</width>
          <height>27</height>
@@ -1767,6 +1767,50 @@
        </property>
        <property name="value">
         <double>1.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_8">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>130</y>
+         <width>21</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Surface thickness of the Woods-Saxon potential</string>
+       </property>
+       <property name="statusTip">
+        <string>Surface thickness of the Woods-Saxon potential</string>
+       </property>
+       <property name="text">
+        <string>a:</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox">
+       <property name="geometry">
+        <rect>
+         <x>248</x>
+         <y>130</y>
+         <width>101</width>
+         <height>27</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>Surface thickness of the Woods-Saxon potential</string>
+       </property>
+       <property name="statusTip">
+        <string>Surface thickness of the Woods-Saxon potential</string>
+       </property>
+       <property name="suffix">
+        <string> fm</string>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.650000000000000</double>
        </property>
       </widget>
      </widget>
@@ -2847,10 +2891,10 @@
          </rect>
         </property>
         <property name="toolTip">
-         <string>Choose whether to enforce the values for b/Ac, d/Ac and Lambda written here, or leave it to the program</string>
+         <string>Choose whether to enforce the values for b/Ac, d/Ac and Lambda written here, or leave it to the NME library</string>
         </property>
         <property name="statusTip">
-         <string>Choose whether to enforce the values for b/Ac, d/Ac and Lambda written here, or leave it to the program</string>
+         <string>Choose whether to enforce the values for b/Ac, d/Ac and Lambda written here, or leave it to the NME library</string>
         </property>
         <property name="text">
          <string>Enforce</string>
