@@ -20,13 +20,17 @@ project(BSG)
 #
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules ${CMAKE_MODULE_PATH})
 
+include(CMakeUninstallTarget)
+
 # Offer the user the choice of overriding the installation directories
-# set(INSTALL_LIB_DIR ${PROJECT_BINARY_DIR}/lib CACHE PATH "Installation directory for libraries")
-# set(INSTALL_BIN_DIR ${PROJECT_BINARY_DIR}/bin CACHE PATH "Installation directory for executables")
-# set(INSTALL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include CACHE PATH
-#   "Installation directory for header files")
+set(INSTALL_LIB_DIR ${PROJECT_BINARY_DIR}/lib CACHE PATH "Installation directory for libraries")
+set(INSTALL_BIN_DIR ${PROJECT_BINARY_DIR}/bin CACHE PATH "Installation directory for executables")
+set(INSTALL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include CACHE PATH
+  "Installation directory for header files")
 
 add_subdirectory(source)
+
+include(BSGInstallData)
 
 # Install the targets file
 install(EXPORT bsg-targets DESTINATION lib/bsg)
@@ -45,5 +49,3 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/doxygen/html/ DESTINATION doc/bsg)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/build/html/ DESTINATION doc/bsg)
 
 install(FILES ${PROJECT_BINARY_DIR}/BSGConfig.h ${PROJECT_BINARY_DIR}/NMEConfig.h DESTINATION include)
-
-#include(BSGInstallData)
