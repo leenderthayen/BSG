@@ -24,6 +24,21 @@ atoms = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al',
          'Uup', 'Lv', 'Uus', 'Uuo']
 
 
+def getEltonNuclearRadius(A, natUnits=False):
+    """Return nuclear charge radius in fm according to Elton formula
+
+    :param A: mass number
+    :param natUnits: return result in units where m_e=hbar=c=1 (Default value = False)
+
+    """
+    R = 1.121 * A ** (1. / 3.) + 2.426 * A ** (-1. / 3.) - 6.614 / A
+
+    if natUnits:
+        """ hbar * c / m_e, in fm"""
+        natLength = 3.861592643659598e2
+        R /= natLength
+    return R
+
 def convertFloat(s):
     """
 
@@ -192,7 +207,7 @@ def getENSDFBetaBranches(filename, Z, A, state):
     :param state: number designating metastability (0 ground state, 1 1st metastable state)
 
     """
-    from pyne import ensdf
+    import ensdf
 
     logger = logging.getLogger(__name__)
 
@@ -209,8 +224,8 @@ def getENSDFBetaBranches(filename, Z, A, state):
     ZA = Z * 1000 + A
     parentLevel = None
     for i in range(len(levels)):
-        '''ZA's in PyNE ensdf are multiplied by 1E4'''
-        if levels[i][0] / 10000 == ZA:
+        '''Level listing allows for 999 excited states'''
+        if levels[i][0] / 1000 == ZA:
             if state == 0:
                 if levels[i][5] == 0:
                     parentLevel = levels[i]
@@ -221,13 +236,13 @@ def getENSDFBetaBranches(filename, Z, A, state):
                     break
 
     if parentLevel == None:
-        parentLevel = [ZA * 10000 + state, ]
+        parentLevel = [ZA * 1000 + state, ]
         motherLevel = Level(0., 0., '')
     else:
         motherLevel = Level(parentLevel[5], 0. if parentLevel[6] is None else parentLevel[6], parentLevel[2])
 
     try:
-        qBetaM, dqBetaM = [q[1:] for q in qvals if q[0] / 10000 == ZA][0]
+        qBetaM, dqBetaM = [q[1:] for q in qvals if q[0] / 1000 == ZA][0]
     except IndexError:
         print("IndexError on q value for %s Z%d A%d S%d %s" % (atoms[Z-1], Z, A, state, filename))
         return 0., list()
@@ -300,75 +315,43 @@ def getENSDFBetaBranches(filename, Z, A, state):
     return bbs
 
 
-def loadDeformationData(filename):
-    """
-
-    :param filename: Default value = 'FRDM2012.dat')
-
-    """
-    return np.genfromtxt(filename, usecols=(0, 2, 7, 8, 9, 10))
-
-
-#
-def loadDeformation(Z, A, deformations):
+def loadDeformation(Z, A, filename = 'FRDM2012/FRDM2012.dat'):
     """Load deformation data from Moeller et al., arXiv:1508.06294
-
     :param Z: Atomic number
     :param A: Mass number
-    :param deformations:
-
+    :param filename: location and name to data file (Default value = 'FRDM2012/FRDM2012.dat')
     """
+
     deformation = np.zeros(4)
-    try:
-        index = np.where((deformations[:, 0] == Z) & (deformations[:, 1] == A))[0][0]
-        deformation = deformations[index, 2:]
-    except:
-        pass
+    with open(filename, 'r') as f:
+        for line in f:
+            d = np.array([float(s) for s in line.split()])
+            if d[0] == Z and d[2] == A:
+                deformation = d[7:11]
+                break
     return deformation
 
-
-def loadChargeRadiiData(filename):
-    """
-
-    :param filename: Default value = 'nuclear_charge_radii.txt')
-
-    """
-    return np.genfromtxt(filename, skip_header=12, names=True, missing_values='-',
-                         filling_values=0.0)
-
-
-def loadAtomicMassData(filename='mass16.txt'):
-    """
-
-    :param filename: Default value = 'mass16.txt')
-
-    """
-    return np.genfromtxt(filename, skip_header=39)
-
-
-#
-def loadChargeRadius(Z, A, radii):
+def loadChargeRadius(Z, A, filename = 'ChargeRadii/nuclear_charge_radii.txt'):
     """Load experimental or parametrically deduced charge radius
     Parametrisation from Bao et al., PHYSICAL REVIEW C 94, 064315 (2016)
-
     :param Z: Atomic number
     :param A: Mass number
-    :param radii: dict of loaded charge radii
-
+    :param filename: filename for data (Default value = 'ChargeRadii/nuclear_charge_radii.txt')
     """
     radius = 0.
+    radii = np.array(np.genfromtxt(filename, dtype=None, skip_header=10,
+    missing_values='-', filling_values=0.0, names=True, autostrip=True))
     try:
         if 'A' in radii.dtype.names:
             possibleRadii = list(radii[(radii['Z'] == Z) & (radii['A'] == A)][0])[3:]
         else:
-            possibleRadii = list(radii[(radii['Z'] == Z) & (radii['N'] == A - Z)][0])[2:]
+            possibleRadii = list(radii[(radii['Z'] == Z) & (radii['N'] == A-Z)][0])[2:]
         if possibleRadii[0] > 0:
             radius = possibleRadii[0]
         else:
             radius = possibleRadii[2]
-    except:
-        # print("IndexError: Z: {0} A: {1}".format(Z, A))
-        radius = UF.getEltonNuclearRadius(A)
+    except IndexError:
+        radius = getEltonNuclearRadius(A)
     return radius
 
 def writeIniFile(Zm, Zd, A, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d,
@@ -451,156 +434,3 @@ enforceNME, spectrumComboBoxes):
         config.set('Spectrum', spectrumComboBoxes[key], key.currentText())
     with open(name, 'wb') as configFile:
         config.write(configFile)
-
-
-#
-# def writeIniFile(Z, A, Q, process, decayType, beta2m, beta4m, beta6m, beta2d, beta4d,
-#                  beta6d, mRad, dRad, mJpi, dJpi, mE=0.0, dE=0.0, name=None, prefix='', **kwargs):
-#     """
-#
-#     :param Z: proton number of mother
-#     :param A: mass number of mother
-#     :param Q: Q value in keV
-#     :param process: B-/B+/EC
-#     :param decayType: Fermi/Gamow-Teller
-#     :param beta2m: mother quadrupole deformation
-#     :param beta4m: mother beta4 deformation
-#     :param beta6m: mother beta6 deformation
-#     :param beta2d: daughter quadrupole deformation
-#     :param beta4d: daughter beta4 deformation
-#     :param beta6d: daughter beta6 deformation
-#     :param mRad: mother charge radius (fm)
-#     :param dRad: daughter charge radius (fm)
-#     :param mJpi: mother double of spin*parity
-#     :param dJpi: daughter double of spin*parity
-#     :param mE: mother excitation energy in keV (Default value = 0.0)
-#     :param dE: daughter excitation energy in keV (Default value = 0.0)
-#     :param name: optional filename (Default value = None)
-#     :param prefix: optional prefix to filename (Default value = '')
-#     :param **kwargs:
-#
-#     """
-#
-#     if not name:
-#         name = '%sZ%d_A%d_Q%.0f.ini' % (prefix, Z, A, Q)
-#     with open(name, 'w') as f:
-#         text = '[Transition]\nProcess=%s\nType=%s\nMixingRatio=0.0\nQValue=%f\n\n' \
-#                % (process, decayType, Q)
-#         f.write(text)
-#         text = '[Mother]\nZ=%d\nA=%d\nRadius=%f\nBeta2=%f\nBeta4=%f\nBeta6=%f\nSpinParity=%d\nExcitationEnergy=%f\n' \
-#                % (Z, A, mRad, beta2m, beta4m, beta6m, mJpi, mE)
-#         f.write(text)
-#         text = '[Daughter]\nZ=%d\nA=%d\nRadius=%f\nBeta2=%f\nBeta4=%f\nBeta6=%f\nSpinParity=%d\nExcitationEnergy=%f\n' \
-#                % (Z + 1 if process == 'B-' else Z - 1, A, dRad, beta2d, beta4d, beta6d, dJpi, dE)
-#         f.write(text)
-#     return name
-#
-#
-# # @profile
-# def createIniFileFromBetaInfo(betaInfo, radii, deformations, prefix='fission_'):
-#     """
-#
-#     :param betaInfo: dict containing transition info
-#     :param radii: dict containing pre-loaded charge radii
-#     :param deformations: dict containing pre-loaded nuclear deformation
-#     :param prefix: filename prefix (Default value = 'fission_')
-#
-#     """
-#
-#     if not 'beta2m' in betaInfo:
-#         mDef = loadDeformation(betaInfo['Z'], betaInfo['A'], deformations)
-#         betaInfo['beta2m'] = mDef[0]
-#         betaInfo['beta4m'] = mDef[1]
-#         betaInfo['beta6m'] = mDef[2]
-#     if not 'beta2d' in betaInfo:
-#         dDef = loadDeformation(betaInfo['Z'] + 1 if betaInfo['process'] == 'B-' else betaInfo['Z'] - 1,
-#                                betaInfo['A'], deformations)
-#         betaInfo['beta2d'] = dDef[0]
-#         betaInfo['beta4d'] = dDef[1]
-#         betaInfo['beta6d'] = dDef[2]
-#     if not 'mJpi' in betaInfo:
-#         betaInfo['mJpi'] = 2
-#     if not 'dJpi' in betaInfo:
-#         betaInfo['dJpi'] = 0
-#     betaInfo['mRad'] = loadChargeRadius(betaInfo['Z'], betaInfo['A'], radii)
-#     betaInfo['dRad'] = loadChargeRadius(betaInfo['Z'] + 1 if betaInfo['process'] == 'B-' else betaInfo['Z'] - 1,
-#                                         betaInfo['A'], radii)
-#
-#     betaInfo['prefix'] = prefix
-#
-#     properBetaInfo = dict(betaInfo)
-#     properBetaInfo['Q'] = betaInfo['E0'] + betaInfo['dE'] - betaInfo['mE']
-#     del properBetaInfo['E0']
-#
-#     return writeIniFile(**properBetaInfo)
-#
-#
-# def createIniFile(Z, A, Q, process='B-', decayType='Gamow-Teller', prefix='fission_'):
-#     """Generate INI file for beta spectrum generator program
-#
-#     :param Z: Atomic number of parent
-#     :param A: Mass number of parent
-#     :param Q: Q value
-#     :param process: string, distinction between beta+/- or electron capture (Default value = 'B-')
-#     :param decayType: string, Fermi or Gamow-Teller (Default value = 'Gamow-Teller')
-#     :param prefix: prefix for INI filename (Default value = 'fission_')
-#
-#     """
-#     Zd = Z + 1
-#     if process == "B+" or process == "EC":
-#         Zd = Z - 1
-#     motherDeformation = loadDeformation(Z, A)
-#     daughterDeformation = loadDeformation(Zd, A)
-#     motherRadius = loadChargeRadius(Z, A)
-#     daughterRadius = loadChargeRadius(Zd, A)
-#
-#     return writeIniFile(Z, A, Q, process, decayType, motherDeformation[0], motherDeformation[1],
-#                         motherDeformation[2], daughterDeformation[0], daughterDeformation[1], daughterDeformation[2],
-#                         motherRadius, daughterRadius, 2, 0, prefix=prefix)
-
-
-class DataManager:
-    """Responsible for pre-loading nuclear databases for charge radii, deformation & masses"""
-
-    def __init__(self, name, iniPrefix, chargeRadiiFile, deformFile):
-        self.name = name
-        self.iniPrefix = iniPrefix
-        self.radiiData = None
-        self.deformationData = None
-
-        logger = logging.getLogger(__name__)
-
-        try:
-            self.radiiData = loadChargeRadiiData(chargeRadiiFile)
-            self.deformationData = loadDeformationData(deformFile)
-        except OSError:
-            logger.warn("Radii or deformation not found.")
-            pass
-
-        # self.massData = loadAtomicMassData()
-
-    def createIniFileFromBetaInfo(self, betaInfo):
-        """
-
-        :param betaInfo:
-
-        """
-        return createIniFileFromBetaInfo(betaInfo, self.radiiData, self.deformationData, self.iniPrefix)
-
-    def loadDeformation(self, Z, A):
-        """
-
-        :param Z: param A:
-        :param A:
-
-        """
-        return loadDeformation(Z, A, self.deformationData)
-
-    def loadChargeRadii(self, Z, A):
-        """
-
-        :param Z: param A:
-        :param A:
-
-        """
-        return loadChargeRadius(Z, A, self.radiiData)

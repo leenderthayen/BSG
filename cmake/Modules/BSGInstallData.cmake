@@ -75,21 +75,6 @@
 #          If it is not installed, warn user that it will need installing
 #          manually in destination.
 #
-#
-# Private API
-# -----------
-# function _bsg_dataproject(<name>
-#                              PREFIX installdir
-#                              SOURCE_DIR wheretounpack
-#                              URL whattodownload
-#                              URL_MD5 expectedMD5ofdownload
-#                              TIMEOUT timeoutafter(seconds))
-#          Download, unpack and install a dataset for CMake < 2.8.2
-#          This largely replicates the functionality of ExternalProject
-#          so that CMake 2.6.4 can still be supported (It is also needed
-#          for CMake 2.8.{0,1} where ExternalProject does not provide MD5
-#          validation.
-#
 
 #-----------------------------------------------------------------------
 # BSG PHYSICS DATA - GLOBAL CMAKE VARIABLES
@@ -99,10 +84,10 @@
 # retrieving them globally
 #-----------------------------------------------------------------------
 # Where to install data in the build tree
-set(BSG_BUILD_FULL_DATADIR ${PROJECT_BINARY_DIR}/data)
+set(BSG_BUILD_FULL_DATADIR ${PROJECT_BINARY_DIR}/data/databases)
 
 # Where to install data in the install tree (a Default)
-set(BSG_INSTALL_DATADIR_DEFAULT "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}-${${PROJECT_NAME}_VERSION}/data")
+set(BSG_INSTALL_DATADIR_DEFAULT "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/data/databases")
 
 # File containing dataset list
 set(BSG_DATASETS_DEFINITIONS "BSGDatasetDefinitions")
@@ -182,48 +167,40 @@ endfunction()
 #-----------------------------------------------------------------------
 # function bsg_add_dataset(NAME      <id>
 #                             VERSION   <ver>
-#                             FILENAME  <file>
-#                             EXTENSION <ext>
-#                             ENVVAR    <varname>
-#                             MD5SUM    <md5>)
+#                             URL  <url>
+#                             ENVVAR    <varname>)
 #          Define a new dataset with the following properties
 #            NAME         common name of the dataset
 #            VERSION      dataset version
-#            URL          name of packaged dataset file
-#            EXTENSION    extension of packaged dataset file
+#            URL          url of the data file
 #            ENVVAR       environment variable used by BSG code
 #                         to locate this dataset
 #
 function(bsg_add_dataset)
   # - Parse arguments and create variables
-  set(oneValueArgs NAME VERSION URL EXTENSION ENVVAR)
-  cmake_parse_arguments(_G4ADDDATA "" "${oneValueArgs}" "" ${ARGN})
+  set(oneValueArgs NAME VERSION URL ENVVAR NO_EXTRACT)
+  cmake_parse_arguments(_BSGADDDATA "" "${oneValueArgs}" "" ${ARGN})
 
   # - Fail if already defined
-  bsg_has_dataset(${_G4ADDDATA_NAME} _dsexists)
+  bsg_has_dataset(${_BSGADDDATA_NAME} _dsexists)
   if(_dsexists)
-    message(FATAL_ERROR "Dataset ${_G4ADDDATA_NAME} is already defined")
+    message(FATAL_ERROR "Dataset ${_BSGADDDATA_NAME} is already defined")
   endif()
 
   # - Set properties as global props <NAME>_<PROP>
   # Simple properties...
-  foreach(_prop VERSION URL EXTENSION ENVVAR)
-    set_property(GLOBAL PROPERTY ${_G4ADDDATA_NAME}_${_prop} ${_G4ADDDATA_${_prop}})
+  foreach(_prop VERSION URL ENVVAR NO_EXTRACT)
+    set_property(GLOBAL PROPERTY ${_BSGADDDATA_NAME}_${_prop} ${_BSGADDDATA_${_prop}})
   endforeach()
 
-  # Derived properties...
-  # FILE : the full filename of the packed dataset
-  set_property(GLOBAL PROPERTY ${_G4ADDDATA_NAME}_FILE
-    "${_G4ADDDATA_FILENAME}.${_G4ADDDATA_VERSION}.${_G4ADDDATA_EXTENSION}"
-    )
   # DIRECTORY : the name of the directory that results from unpacking
   #             the packed dataset file.
-  set_property(GLOBAL PROPERTY ${_G4ADDDATA_NAME}_DIRECTORY
-    "${_G4ADDDATA_NAME}${_G4ADDDATA_VERSION}"
+  set_property(GLOBAL PROPERTY ${_BSGADDDATA_NAME}_DIRECTORY
+    "${_BSGADDDATA_NAME}${_BSGADDDATA_VERSION}"
     )
 
   # - add it to the list of defined datasets
-  set_property(GLOBAL APPEND PROPERTY BSG_DATASETS ${_G4ADDDATA_NAME})
+  set_property(GLOBAL APPEND PROPERTY BSG_DATASETS ${_BSGADDDATA_NAME})
 endfunction()
 
 #-----------------------------------------------------------------------
@@ -279,7 +256,7 @@ endfunction()
 function(bsg_configure_datasets)
   # - Parse arguments and create variables
   set(oneValueArgs DESTINATION DOWNLOAD TIMEOUT)
-  cmake_parse_arguments(_G4CFGDSS "" "${oneValueArgs}" "" ${ARGN})
+  cmake_parse_arguments(_BSGCFGDSS "" "${oneValueArgs}" "" ${ARGN})
 
   # - Load configuration
   include(${BSG_DATASETS_DEFINITIONS})
@@ -287,11 +264,11 @@ function(bsg_configure_datasets)
   set(_notinstalled )
 
   foreach(_ds ${_dsnames})
-    bsg_dataset_isinstalled(${_ds} "${_G4CFGDSS_DESTINATION}" _installed)
-    if(NOT _installed AND _G4CFGDSS_DOWNLOAD)
-      bsg_install_dataset(${_ds} "${_G4CFGDSS_DESTINATION}" ${_G4CFGDSS_TIMEOUT})
+    bsg_dataset_isinstalled(${_ds} "${_BSGCFGDSS_DESTINATION}" _installed)
+    if(NOT _installed AND _BSGCFGDSS_DOWNLOAD)
+      bsg_install_dataset(${_ds} "${_BSGCFGDSS_DESTINATION}" ${_BSGCFGDSS_TIMEOUT})
     else()
-      bsg_reuse_dataset(${_ds} "${_G4CFGDSS_DESTINATION}" ${_installed})
+      bsg_reuse_dataset(${_ds} "${_BSGCFGDSS_DESTINATION}" ${_installed})
       if(NOT _installed)
         list(APPEND _notinstalled ${_ds})
       endif()
@@ -306,7 +283,7 @@ function(bsg_configure_datasets)
     message("    BSG has been pre-configured to look for datasets")
     message("    in the directory:")
     message(" ")
-    message("    ${_G4CFGDSS_DESTINATION}")
+    message("    ${_BSGCFGDSS_DESTINATION}")
     message(" ")
     message("    but the following datasets are NOT present on disk at")
     message("    that location:")
@@ -340,7 +317,7 @@ function(bsg_configure_datasets)
     message(" ")
     message("    and unpack them under the directory:")
     message(" ")
-    message("    ${_G4CFGDSS_DESTINATION}")
+    message("    ${_BSGCFGDSS_DESTINATION}")
     message(" ")
     message("    As we supply the datasets packed in gzipped tar files,")
     message("    you will need the 'tar' utility to unpack them.")
@@ -381,40 +358,32 @@ function(bsg_install_dataset _name _destination _timeout)
   bsg_get_dataset_property(${_name} DIRECTORY _ds_dir)
   bsg_get_dataset_property(${_name} VERSION _ds_version)
   bsg_get_dataset_property(${_name} URL _ds_url)
-  bsg_get_dataset_property(${_name} MD5SUM _ds_md5sum)
+  bsg_get_dataset_property(${_name} NO_EXTRACT _ds_extract)
 
   message(STATUS "Configuring download of missing dataset ${_name} (${_ds_version})")
 
-  # - Dispatch to ExternalProject or our own implementation.
-  # Use of URL_MD5 *and* TIMEOUT require CMake 2.8.2 or higher.
-  if(${CMAKE_VERSION} VERSION_GREATER "2.8.1")
+  if(${_ds_extract})
+    file(DOWNLOAD ${_ds_url} ${BSG_BUILD_FULL_DATADIR}/${_ds_dir}/${_name}.txt SHOW_PROGRESS)
+    message(STATUS "Downloaded ${_name}.txt to ${BSG_BUILD_FULL_DATADIR}/${_ds_dir}.")
+  else()
     include(ExternalProject)
     ExternalProject_Add(${_name}
       PREFIX Externals/${_name}-${_ds_version}
       SOURCE_DIR ${BSG_BUILD_FULL_DATADIR}/${_ds_dir}
       URL ${_ds_url}
-      URL_MD5 ${_ds_md5sum}
       TIMEOUT ${_timeout}
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ""
       INSTALL_COMMAND ""
       )
-  else()
-    _bsg_dataproject(${_name}
-      PREFIX Externals/${_name}-${_ds_version}
-      SOURCE_DIR ${BSG_BUILD_FULL_DATADIR}
-      URL ${_ds_url}
-      URL_MD5 ${_ds_md5sum}
-      TIMEOUT ${_timeout}
-      )
   endif()
 
   # - Configure the dataset's build and install locations
-  bsg_set_dataset_property(${_name} BUILD_DIR "${PROJECT_BINARY_DIR}/data/${_ds_dir}")
+  bsg_set_dataset_property(${_name} BUILD_DIR "${PROJECT_BINARY_DIR}/data/databases/${_ds_dir}")
   bsg_set_dataset_property(${_name} INSTALL_DIR "${_destination}/${_ds_dir}")
 
   # - Add install target, and report back paths...
-  install(DIRECTORY ${PROJECT_BINARY_DIR}/data/${_ds_dir}
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/data/databases/${_ds_dir}
     DESTINATION ${_destination}
     COMPONENT Data
     )

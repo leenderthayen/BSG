@@ -3,14 +3,17 @@ import re
 import sys
 import copy
 from collections import defaultdict
-from utils.pyneUtils import time_conv_dict
+from pyneUtils import time_conv_dict
 from warnings import warn
+
+from utilities import atoms
 
 import numpy as np
 
 if sys.version_info[0] > 2:
     basestring = str
 
+_nucleus = re.compile('([0-9]+)([A-Za-z]+)')
 _valexp = re.compile('([0-9.]*)([Ee][+-]?\d*)')
 _val = re.compile('(\d*)[.](\d*)')
 _specialval = re.compile("([0-9. ]*)[+]([A-Z])")
@@ -56,13 +59,27 @@ def _getvalue(obj, fn=float, rn=None):
 
 
 def _to_id(nuc):
-    if 'NN' not in nuc:
-        nucid = nucname.ensdf_to_id(nuc.strip())
-    else:
-        warn('Neutron data not supported!')
-        return 0
+    nuc = nuc.strip()
+    n = _nucleus.match(nuc)
+    nucid = 0
+    if n:
+        A = int(n.group(1))
+        Z = int(atoms.index(n.group(2).capitalize()))+1
+        nucid = (1000 * Z + A) * 1000
     return nucid
 
+def id_from_level(nuc, level, levellist, special=' '):
+    nostate = int(nuc / 1000) * 1000
+    if not levellist:
+        return None
+    ret_id = nuc
+    minDif = 1e9
+    for l in levellist:
+        if int(l[0] / 1000 ) * 1000 == nostate:
+             if abs(l[5] - level) < minDif and special == l[-1]:
+                 minDif = abs(l[5] - level)
+                 ret_id = l[0]
+    return ret_id
 
 # Energy to half-life conversion:  T1/2= ln(2) x (h/2 pi) / energy
 # See http://www.nndc.bnl.gov/nudat2/help/glossary.jsp#halflife
@@ -648,7 +665,7 @@ def _parse_delayed_particle_record(dp_rec):
     return ptype, e, de, ip, dip, ei, t, dt
 
 
-def _parse_decay_dataset(lines, decay_s):
+def _parse_decay_dataset(lines, decay_s, levellist):
     """
     This parses a gamma ray dataset. It returns a tuple of the parsed data.
 
@@ -711,7 +728,7 @@ def _parse_decay_dataset(lines, decay_s):
             else:
                 bparent = parent2
             level = 0.0 if level is None else level
-            bdaughter = data.id_from_level(_to_id(daughter), level)
+            bdaughter = id_from_level(_to_id(daughter), level, levellist)
             brecord = [bparent, bdaughter]
             brecord.extend(dat)
             brecord.extend([0.0, 0.0])
@@ -741,7 +758,7 @@ def _parse_decay_dataset(lines, decay_s):
             else:
                 aparent = parent2
             level = 0.0 if level is None else level
-            adaughter = data.id_from_level(_to_id(daughter), level)
+            adaughter = id_from_level(_to_id(daughter), level, levellist)
             alphas.append([aparent, adaughter, dat[0], dat[2]])
         ec_rec = _ec.match(line)
         if ec_rec is not None:
@@ -751,7 +768,7 @@ def _parse_decay_dataset(lines, decay_s):
             else:
                 ecparent = parent2
             level = 0.0 if level is None else level
-            ecdaughter = data.id_from_level(_to_id(daughter), level)
+            ecdaughter = id_from_level(_to_id(daughter), level, levellist)
             ecbp.append([ecparent, ecdaughter, dat[0], 0., dat[2], dat[4], dat[6],
                          0., 0., 0.])
             continue
@@ -762,10 +779,10 @@ def _parse_decay_dataset(lines, decay_s):
                 gparent = 0
                 gdaughter = 0
                 if level is not None:
-                    gparent = data.id_from_level(_to_id(daughter), level,
+                    gparent = id_from_level(_to_id(daughter), level, levellist,
                                                  special)
                     dlevel = level - dat[0]
-                    gdaughter = data.id_from_level(_to_id(daughter), dlevel,
+                    gdaughter = id_from_level(_to_id(daughter), dlevel, levellist,
                                                    special)
                 if parent2 is None:
                     gp2 = pfinal
@@ -823,7 +840,7 @@ def _parse_decay_dataset(lines, decay_s):
                 tfinal = [t,]
                 tfinalerr = [terr,]
             parent2, t, terr, e, e_err, qp, dqp, special = _parse_parent_record(p_rec)
-            parent2 = data.id_from_level(_to_id(parent2), e, special)
+            parent2 = id_from_level(_to_id(parent2), e, levellist, special)
             if terr is not None and not isinstance(terr, float):
                 terr = (terr[0] + terr[1])/2.0
             if multi:
@@ -840,7 +857,7 @@ def _parse_decay_dataset(lines, decay_s):
             pfinal = []
             for item in parents:
                 pfinal.append(_to_id(item))
-        return pfinal, daughter_id, rxname.id(decay_s.strip().lower()), \
+        return pfinal, daughter_id, 0, \
                tfinal, tfinalerr, qp, dqp, \
                br, br_err, nrbr, nrbr_err, nbbr, nbbr_err, gammarays, alphas, \
                betas, ecbp
@@ -1007,9 +1024,8 @@ def levels(filename, levellist=None):
                                 if keystrip == item:
                                     goodkey = False
                             if goodkey is True:
-                                rx = rxname.id(keystrip)
                                 branch_percent = float(val.split("(")[0])
-                                levellist.append((nuc_id, rx, levelJ, half_lifev,
+                                levellist.append((nuc_id, 0, levelJ, half_lifev,
                                                   half_lifeverr, level, levelerr,
                                                   branch_percent, state, special))
                     if level_found is True:
@@ -1037,9 +1053,8 @@ def levels(filename, levellist=None):
                         if keystrip == item:
                             goodkey = False
                     if goodkey is True:
-                        rx = rxname.id(keystrip)
                         branch_percent = float(val.split("(")[0])
-                        levellist.append((nuc_id, rx, levelJ, half_lifev,
+                        levellist.append((nuc_id, 0, levelJ, half_lifev,
                                           half_lifeverr, level, levelerr,
                                           branch_percent, state, special))
             if level_found is True:
@@ -1180,8 +1195,9 @@ def decays(filename, decaylist=None):
         if ident is None:
             continue
         if 'DECAY' in ident.group(2):
+            levellist = levels(filename)
             decay_s = ident.group(2).split()[1]
-            decay = _parse_decay_dataset(lines, decay_s)
+            decay = _parse_decay_dataset(lines, decay_s, levellist)
             if decay is not None:
                 if isinstance(decay[0], list):
                     if isinstance(decay[3], list):

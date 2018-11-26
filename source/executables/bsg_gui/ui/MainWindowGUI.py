@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainWindow.ui'
 #
-# Created: Fri Nov 23 13:26:52 2018
+# Created: Mon Nov 26 12:43:38 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -676,6 +676,8 @@ class Ui_MainWindow(object):
         self.menuPlotting.setObjectName("menuPlotting")
         self.menuDatabase = QtGui.QMenu(self.menuBar)
         self.menuDatabase.setObjectName("menuDatabase")
+        self.menuLinks = QtGui.QMenu(self.menuDatabase)
+        self.menuLinks.setObjectName("menuLinks")
         MainWindow.setMenuBar(self.menuBar)
         self.a_exit = QtGui.QAction(MainWindow)
         self.a_exit.setObjectName("a_exit")
@@ -711,6 +713,14 @@ class Ui_MainWindow(object):
         self.a_findTransition.setObjectName("a_findTransition")
         self.actionNME_executable = QtGui.QAction(MainWindow)
         self.actionNME_executable.setObjectName("actionNME_executable")
+        self.actionENSDF = QtGui.QAction(MainWindow)
+        self.actionENSDF.setObjectName("actionENSDF")
+        self.a_FRDM2012 = QtGui.QAction(MainWindow)
+        self.a_FRDM2012.setObjectName("a_FRDM2012")
+        self.a_ChargeRadii = QtGui.QAction(MainWindow)
+        self.a_ChargeRadii.setObjectName("a_ChargeRadii")
+        self.a_ENSDF = QtGui.QAction(MainWindow)
+        self.a_ENSDF.setObjectName("a_ENSDF")
         self.menuOpen.addAction(self.a_loadIni)
         self.menuOpen.addAction(self.a_loadConfig)
         self.menuSave.addAction(self.a_saveIni)
@@ -726,9 +736,13 @@ class Ui_MainWindow(object):
         self.menuHelp.addAction(self.a_about)
         self.menuPlotting.addAction(self.a_clearPlots)
         self.menuPlotting.addAction(self.a_exportPlot)
+        self.menuLinks.addAction(self.a_ENSDF)
+        self.menuLinks.addAction(self.a_FRDM2012)
+        self.menuLinks.addAction(self.a_ChargeRadii)
         self.menuDatabase.addAction(self.a_loadDeformation)
         self.menuDatabase.addAction(self.a_loadRadii)
         self.menuDatabase.addAction(self.a_findTransition)
+        self.menuDatabase.addAction(self.menuLinks.menuAction())
         self.menuBar.addAction(self.menu_File.menuAction())
         self.menuBar.addAction(self.menuDatabase.menuAction())
         self.menuBar.addAction(self.menuPlotting.menuAction())
@@ -1066,6 +1080,7 @@ class Ui_MainWindow(object):
         self.menuHelp.setTitle(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
         self.menuPlotting.setTitle(QtGui.QApplication.translate("MainWindow", "&Plotting", None, QtGui.QApplication.UnicodeUTF8))
         self.menuDatabase.setTitle(QtGui.QApplication.translate("MainWindow", "&Database", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuLinks.setTitle(QtGui.QApplication.translate("MainWindow", "Links", None, QtGui.QApplication.UnicodeUTF8))
         self.a_exit.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
         self.a_exit.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+Q", None, QtGui.QApplication.UnicodeUTF8))
         self.a_loadIni.setText(QtGui.QApplication.translate("MainWindow", "Ini file", None, QtGui.QApplication.UnicodeUTF8))
@@ -1095,5 +1110,9 @@ class Ui_MainWindow(object):
         self.a_findTransition.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+F", None, QtGui.QApplication.UnicodeUTF8))
         self.actionNME_executable.setText(QtGui.QApplication.translate("MainWindow", "NME executable", None, QtGui.QApplication.UnicodeUTF8))
         self.actionNME_executable.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+M", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionENSDF.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><a href=\"https://www.nndc.bnl.gov/ensarchivals/\"><span style=\" text-decoration: underline; color:#ffffff;\">ENSDF</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.a_FRDM2012.setText(QtGui.QApplication.translate("MainWindow", "FRDM2012", None, QtGui.QApplication.UnicodeUTF8))
+        self.a_ChargeRadii.setText(QtGui.QApplication.translate("MainWindow", "ChargeRadii", None, QtGui.QApplication.UnicodeUTF8))
+        self.a_ENSDF.setText(QtGui.QApplication.translate("MainWindow", "ENSDF", None, QtGui.QApplication.UnicodeUTF8))
 
 from pyqtgraph import PlotWidget

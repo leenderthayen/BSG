@@ -124,6 +124,10 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.b_resetSSO.clicked.connect(self.resetSpectrumShapeOptions)
         self.ui.b_resetNSO.clicked.connect(self.resetNuclearStructureOptions)
 
+        self.ui.a_ENSDF.triggered.connect(self.visitENSDF)
+        self.ui.a_FRDM2012.triggered.connect(self.visitFRDM2012)
+        self.ui.a_ChargeRadii.triggered.connect(self.visitChargeRadii)
+
         self.ui.rb_stepSize.toggled.connect(self.ui.dsb_stepSize.setEnabled)
         self.ui.rb_steps.toggled.connect(self.ui.sb_steps.setEnabled)
 
@@ -142,6 +146,15 @@ class BSG_UI(QtGui.QMainWindow):
 
     def status(self, message):
         self.statusBar().showMessage(message)
+
+    def visitENSDF(self):
+        QtGui.QDesktopServices.openUrl('https://www.nndc.bnl.gov/ensarchivals/')
+
+    def visitFRDM2012(self):
+        QtGui.QDesktopServices.openUrl('https://www.sciencedirect.com/science/article/pii/S0092640X1600005X')
+
+    def visitChargeRadii(self):
+        QtGui.QDesktopServices.openUrl('https://journals.aps.org/prc/abstract/10.1103/PhysRevC.94.064315')
 
     def resetSpectrumShapeOptions(self):
         self.loadConfigFile(self.configName, nuclearStructure=False)
@@ -244,25 +257,47 @@ class BSG_UI(QtGui.QMainWindow):
         QtGui.QMessageBox.information(self, "Send feedback", "Not yet implemented. Send emails to leendert.hayen@kuleuven.be")
 
     def findDefaults(self):
-        self.log("Looking for defaults in current folder...")
-        files = [f for f in os.listdir('.') if os.path.isfile(f)]
-        for f in files:
-            fullPath = os.path.join(os.getcwd(), f)
-            if f == 'BSG':
-                self.log("Found BSG Executable")
-                self.execPath = fullPath
-            elif f == 'config.txt':
-                self.log("Found config.txt")
-                self.loadConfigFile(fullPath)
-            elif f == 'ExchangeData.dat':
-                self.log("Found ExchangeData.dat")
-                self.exchangePath = fullPath
-            elif f == 'FRDM2012.dat':
-                self.log('Found FRDM2012.dat')
-                self.deformationFile = fullPath
-            elif f == 'ChargeRadii.dat':
-                self.log('Found ChargeRadii.dat')
-                self.radiiFile = fullPath
+        self.log("Looking for defaults in environment variables...")
+        bsg_exec = os.environ.get('BSGPATH')
+        if bsg_exec:
+            self.execPath = bsg_exec
+            self.log("Found bsg_exec")
+        exchangePath = os.environ.get('BSGEXCHANGEPATH')
+        if exchangePath:
+            self.exchangePath = exchangePath
+            self.log("Found Exchange data")
+        ensdf = os.environ.get('ENSDFDIR')
+        if ensdf:
+            self.ensdfFolder = ensdf
+            self.log("Found ENSDF database")
+        frdm = os.environ.get('FRDMPATH')
+        if frdm:
+            self.deformationFile = frdm
+            self.log("Found FRDM")
+        chargeRadii = os.environ.get('CHARGERADIIPATH')
+        if chargeRadii:
+            self.radiiFile = chargeRadii
+            self.log("Found Charge Radii")
+
+        # self.log("Looking for defaults in current folder...")
+        # files = [f for f in os.listdir('.') if os.path.isfile(f)]
+        # for f in files:
+        #     fullPath = os.path.join(os.getcwd(), f)
+        #     if f == 'bsg_exec':
+        #         self.log("Found bsg_exec Executable")
+        #         self.execPath = fullPath
+        #     elif f == 'config.txt':
+        #         self.log("Found config.txt")
+        #         self.loadConfigFile(fullPath)
+        #     elif f == 'ExchangeData.dat':
+        #         self.log("Found ExchangeData.dat")
+        #         self.exchangePath = fullPath
+        #     elif f == 'FRDM2012.dat':
+        #         self.log('Found FRDM2012.dat')
+        #         self.deformationFile = fullPath
+        #     elif f == 'ChargeRadii.dat':
+        #         self.log('Found ChargeRadii.dat')
+        #         self.radiiFile = fullPath
 
     def enforceMatrixElements(self):
         if not self.ui.cb_enforceNME.isChecked():
@@ -314,7 +349,6 @@ class BSG_UI(QtGui.QMainWindow):
         self.currentPlotIndex = 0
 
     def loadESNDFBranches(self, Z, A):
-        print('Entered ensdfBranches')
         if not self.ensdfFolder:
             self.ensdfFolder = QtGui.QFileDialog.getExistingDirectory(self, "Choose the ENSDF directory", ".")
             if self.ensdfFolder == '':
@@ -331,32 +365,33 @@ class BSG_UI(QtGui.QMainWindow):
             items.append(s)
 
         if len(items):
-            choice  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)[0]
-            branch = bbs[items.index(choice)]
+            choice, ok  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)
+            if ok:
+                branch = bbs[items.index(choice)]
 
-            self.ui.sb_ZM.setValue(Z)
-            self.ui.sb_AM.setValue(A)
-            self.ui.sb_ZD.setValue(Z+1 if branch.process == 'B-' else Z-1)
-            self.ui.sb_AD.setValue(A)
-            self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(branch.process))
-            self.ui.cb_type.setCurrentIndex(1)
-            self.ui.dsb_motherEn.setValue(branch.motherLevel.E)
-            self.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
-            self.ui.dsb_Q.setValue(branch.E-branch.motherLevel.E+branch.daughterLevel.E)
-            mJpi = branch.motherLevel.Jpi
-            self.ui.dsb_JM.setValue(float(mJpi.split('/2')[0])/2. if '/2' in mJpi else float(mJpi[:-1]))
-            dJpi = branch.daughterLevel.Jpi
-            self.ui.dsb_JD.setValue(float(dJpi.split('/2')[0])/2. if '/2' in dJpi else float(dJpi[:-1]))
-            self.ui.cb_PiM.setCurrentIndex(self.ui.cb_PiM.findText(mJpi[-1]))
-            self.ui.cb_PiD.setCurrentIndex(self.ui.cb_PiD.findText(dJpi[-1]))
-            self.ui.dsb_halflife.setValue(branch.partialHalflife)
-            self.ui.dsb_logft.setValue(branch.logft)
+                self.ui.sb_ZM.setValue(Z)
+                self.ui.sb_AM.setValue(A)
+                self.ui.sb_ZD.setValue(Z+1 if branch.process == 'B-' else Z-1)
+                self.ui.sb_AD.setValue(A)
+                self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(branch.process))
+                self.ui.cb_type.setCurrentIndex(1)
+                self.ui.dsb_motherEn.setValue(branch.motherLevel.E)
+                self.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
+                self.ui.dsb_Q.setValue(branch.E-branch.motherLevel.E+branch.daughterLevel.E)
+                mJpi = branch.motherLevel.Jpi
+                self.ui.dsb_JM.setValue(float(mJpi.split('/2')[0])/2. if '/2' in mJpi else float(mJpi[:-1]))
+                dJpi = branch.daughterLevel.Jpi
+                self.ui.dsb_JD.setValue(float(dJpi.split('/2')[0])/2. if '/2' in dJpi else float(dJpi[:-1]))
+                self.ui.cb_PiM.setCurrentIndex(self.ui.cb_PiM.findText(mJpi[-1]))
+                self.ui.cb_PiD.setCurrentIndex(self.ui.cb_PiD.findText(dJpi[-1]))
+                self.ui.dsb_halflife.setValue(branch.partialHalflife)
+                self.ui.dsb_logft.setValue(branch.logft)
 
-            self.setTransitionLabel()
-            return True
+                self.setTransitionLabel()
+                return True
         else:
             QtGui.QErrorMessage(self).showMessage("No transitions found.")
-            return False
+        return False
 
     def loadDeformation(self):
         if not self.deformationFile:

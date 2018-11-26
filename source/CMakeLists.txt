@@ -29,9 +29,8 @@ include_directories("${PROJECT_SOURCE_DIR}/source/nme/include")
 include_directories("${PROJECT_SOURCE_DIR}/source/bsg/include")
 
 # Copy the data directory
-#configure_file("${PROJECT_SOURCE_DIR}/data/config.txt" "${PROJECT_BINARY_DIR}/NME_exec/config.txt")
-#configure_file("${PROJECT_SOURCE_DIR}/data/config.txt" "${PROJECT_BINARY_DIR}/BSG_exec/config.txt")
-#configure_file("${PROJECT_SOURCE_DIR}/data/ExchangeData.dat" "${PROJECT_BINARY_DIR}/BSG_exec/ExchangeData.dat")
+#configure_file("${PROJECT_SOURCE_DIR}/data/config.txt" "${PROJECT_BINARY_DIR}/bin/config.txt")
+#configure_file("${PROJECT_SOURCE_DIR}/data/ExchangeData.dat" "${PROJECT_BINARY_DIR}/bin/ExchangeData.dat")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 

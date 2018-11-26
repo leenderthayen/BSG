@@ -3047,9 +3047,18 @@
     <property name="title">
      <string>&amp;Database</string>
     </property>
+    <widget class="QMenu" name="menuLinks">
+     <property name="title">
+      <string>Links</string>
+     </property>
+     <addaction name="a_ENSDF"/>
+     <addaction name="a_FRDM2012"/>
+     <addaction name="a_ChargeRadii"/>
+    </widget>
     <addaction name="a_loadDeformation"/>
     <addaction name="a_loadRadii"/>
     <addaction name="a_findTransition"/>
+    <addaction name="menuLinks"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuDatabase"/>
@@ -3175,6 +3184,26 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionENSDF">
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://www.nndc.bnl.gov/ensarchivals/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#ffffff;&quot;&gt;ENSDF&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="a_FRDM2012">
+   <property name="text">
+    <string>FRDM2012</string>
+   </property>
+  </action>
+  <action name="a_ChargeRadii">
+   <property name="text">
+    <string>ChargeRadii</string>
+   </property>
+  </action>
+  <action name="a_ENSDF">
+   <property name="text">
+    <string>ENSDF</string>
    </property>
   </action>
  </widget>

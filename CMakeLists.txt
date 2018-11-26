@@ -39,10 +39,12 @@ export(TARGETS bsg nme bsg_exec nme_exec FILE bsg-exports.cmake)
 #configure_file(${PROJECT_SOURCE_DIR}/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/bsg-config.cmake @ONLY)
 
 # Make files for finding the package later using find_package in the install tree
-configure_file(${PROJECT_SOURCE_DIR}/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/bsg-config.cmake @ONLY)
-configure_file(${PROJECT_SOURCE_DIR}/bsg-config-version.cmake.in ${PROJECT_BINARY_DIR}/bsg-config-version.cmake @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/bsg-config.cmake ${PROJECT_BINARY_DIR}/bsg-config-version.cmake
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/config/bsg-config.cmake @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/bsg-config-version.cmake.in ${PROJECT_BINARY_DIR}/config/bsg-config-version.cmake @ONLY)
+install(FILES ${PROJECT_BINARY_DIR}/config/bsg-config.cmake ${PROJECT_BINARY_DIR}/config/bsg-config-version.cmake
 DESTINATION lib/bsg)
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION data)
 
 # Copy over the documentation
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/doxygen/html/ DESTINATION doc/bsg)
