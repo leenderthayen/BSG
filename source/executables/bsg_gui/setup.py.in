@@ -6,6 +6,7 @@ setup(
     author='L. Hayen',
     author_email='leendert.hayen@gmail.com',
     packages=['bsg_gui', 'bsg_gui.utils', 'bsg_gui.ui'],
+    package_dir={'': '${CMAKE_CURRENT_SOURCE_DIR}'},
     license='LICENSE.txt',
     description='Graphical user interface for the Beta Spectrum Generator library.',
     long_description='',
