@@ -87,7 +87,7 @@
 set(BSG_BUILD_FULL_DATADIR ${PROJECT_BINARY_DIR}/data/databases)
 
 # Where to install data in the install tree (a Default)
-set(BSG_INSTALL_DATADIR_DEFAULT "${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/data/databases")
+set(BSG_INSTALL_DATADIR_DEFAULT "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/data/databases")
 
 # File containing dataset list
 set(BSG_DATASETS_DEFINITIONS "BSGDatasetDefinitions")

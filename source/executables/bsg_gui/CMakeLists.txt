@@ -8,15 +8,17 @@ if (PYTHON)
 
     configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
-    # add_custom_command(OUTPUT ${OUTPUT}
-    #                    COMMAND ${PYTHON} ${SETUP_PY} build
-    #                    COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-    #                    DEPENDS ${DEPS})
+    add_custom_command(OUTPUT ${OUTPUT}
+                       COMMAND ${PYTHON} -m pip install -r ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
+                       COMMAND ${PYTHON} ${SETUP_PY} build
+                       COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui ${PROJECT_BINARY_DIR}/bin/bsg_gui/
+                       DEPENDS ${DEPS})
 
-     add_custom_command(OUTPUT ${OUTPUT} POST_BUILD
-     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui ${PROJECT_BINARY_DIR}/bin/)
+    add_custom_target(bsg_gui ALL DEPENDS ${OUTPUT})
 
-    # add_custom_target(target ALL DEPENDS ${OUTPUT})
-    #
-    # install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
+    # Uncomment if you want to actually install it as a python package
+    #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
+
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui DESTINATION bin)
 endif()

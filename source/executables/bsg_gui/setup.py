@@ -9,7 +9,7 @@ setup(
     license='LICENSE.txt',
     description='Graphical user interface for the Beta Spectrum Generator library.',
     long_description='',
-    requires=[
+    install_requires=[
         "shell (>= 1.0.1)",
         "QDarkStyle (>= 2.6.4)",
     	"PySide (>= 1.2.4)",
