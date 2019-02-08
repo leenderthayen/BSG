@@ -530,6 +530,11 @@ void Generator::PrepareOutputFile() {
   l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
   l->info("Process: {}\tType: {}", GetBSGOpt(std::string, Transition.Process), GetBSGOpt(std::string, Transition.Type));
   if (mixingRatio != 0) l->info("Mixing ratio: {}", mixingRatio);
+
+  // double BGT = fc1*fc1/(std::abs(motherSpinParity)+1)
+  // double kappa = 6147.; // The combination of constants for the ft value in s
+  // double ftTheory = std::log10(kappa/BGT);
+  // l->info("");
   if (OptExists(Transition.PartialHalflife)) {
     l->info("Partial halflife: {} s", GetBSGOpt(double, Transition.PartialHalflife));
     l->info("Calculated log ft value: {}", CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife)));

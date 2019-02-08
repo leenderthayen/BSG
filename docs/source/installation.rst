@@ -3,6 +3,8 @@ Installation & Dependencies
 
 Both libraries are built using CMake_.
 
+Databases used in the graphial user interface can be downloaded automatically through the CMake script. See the options.
+
 .. _CMake: https://cmake.org/
 
 Dependencies - C++ Libraries
@@ -30,7 +32,7 @@ Additional notes
 
    sudo apt-get install libboost-program-options-dev
 
-Installation was tested with ROOT version 6, though no problems should occur with previous versions
+- Installation was tested with ROOT version 6, though no problems should occur with previous versions
 
 - Installing spdlog through your package manager may install an outdated version. Please use the source code on github.
 
@@ -45,18 +47,22 @@ In order to use the Python GUI, one requires
 - PySide_ python-Qt bindings
 - PyQtGraph_
 - shell_
+- The QDarkStyle_ style sheet (optional)
 
 .. _NumPy: http://www.numpy.org/
 .. _Qt4: http://doc.qt.io/archives/qt-4.8/
 .. _PySide: http://wiki.qt.io/PySide
 .. _PyQtGraph: http://www.pyqtgraph.org/
 .. _shell: https://pypi.python.org/pypi/shell/1.0.1
+.. _QDarkStyle: https://github.com/ColinDuquesnoy/QDarkStyleSheet
 
-all of these can be installed using ``pip``
+all of these can be installed using ``pip`` using the requirements file provided. All of this is performed automatically when using CMake.
 
 .. code-block:: bash
 
-   sudo pip install numpy pyside pyqtgraph shell
+   sudo pip install -r requirements.txt
+
+Note that support for Qt5 is possible, using PySide 2 to convert the MainWindow.ui file into Qt5-friendly code, and installing the github version of pyqtgraph.
 
 Installation
 ------------
@@ -82,7 +88,19 @@ Installation is optional, and can be run using
 
 This may require sudo privileges.
 
-Compiled libraries and executables can be found in the corresponding directories.
+Compiled libraries and binaries can be found in the corresponding directories.
+
+For smooth use of the GUI, the following paths can be defined in your ``.bashrc``:
+
+- ``BSGPATH``: absolute path to the compiled ``bsg_exec`` executable.
+- ``BSGEXCHANGEPATH``: absolute path to the ``ExchangeData.dat`` file.
+- ``ENSDFDIR``: absolute path to the full ENSDF_ library, downloaded using cmake if the option is enabled
+- ``FRDMPATH``: absolute path to the FRDM_ library, downloaded using cmake if the option is enabled
+- ``CHARGERADIIPATH``: absolute path to the ChargeRadii_ library, downloaded using cmake if the option is enabled
+
+.. _ENSDF: https://www.nndc.bnl.gov/ensarchivals/
+.. _FRDM: https://www.sciencedirect.com/science/article/pii/S0092640X1600005X
+.. _ChargeRadii: https://journals.aps.org/prc/abstract/10.1103/PhysRevC.94.064315
 
 Execution
 =========

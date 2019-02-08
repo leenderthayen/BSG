@@ -8,9 +8,9 @@ ESDeformation=False
 [Computational]
 Method=ESP
 ForceSpin=True
-EnergyMargin=2
+EnergyMargin=3
 ReversedGhallagher=True
-OverrideSPCoupling=False
+OverrideSPCoupling=True
 Potential=DWS
 Vneutron=49.6
 Vproton=49.6

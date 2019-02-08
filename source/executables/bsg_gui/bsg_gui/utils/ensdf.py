@@ -8,7 +8,7 @@ import re
 import sys
 import copy
 from collections import defaultdict
-from pyneUtils import time_conv_dict, to_id, id_from_level
+from pyneUtils import time_conv_dict
 from warnings import warn
 
 from utilities import atoms
@@ -61,6 +61,29 @@ def _getvalue(obj, fn=float, rn=None):
         return fn(x)
     except ValueError:
         return rn
+
+def to_id(nuc):
+    nuc = nuc.strip()
+    n = _nucleus.match(nuc)
+    nucid = 0
+    if n:
+        A = int(n.group(1))
+        Z = int(atoms.index(n.group(2).capitalize()))
+        nucid = (1000 * Z + A) * 1000
+    return nucid
+
+def id_from_level(nuc, level, levellist, special=' '):
+    nostate = int(nuc / 1000) * 1000
+    if not levellist:
+        return None
+    ret_id = nuc
+    minDif = 1e9
+    for l in levellist:
+        if int(l[0] / 1000 ) * 1000 == nostate:
+             if abs(l[5] - level) < minDif and special == l[-1]:
+                 minDif = abs(l[5] - level)
+                 ret_id = l[0]
+    return ret_id
 
 # Energy to half-life conversion:  T1/2= ln(2) x (h/2 pi) / energy
 # See http://www.nndc.bnl.gov/nudat2/help/glossary.jsp#halflife

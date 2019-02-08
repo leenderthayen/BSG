@@ -807,6 +807,8 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
     index = (Z + N - 1) / 2;
     if (threshold > 0) {
       double refEnergy = allStates[index].energy;
+      spdlog::get("nme_results_file")->info("Estimated reference state: {}/2 ({} MeV)", allStates[index].parity * allStates[index].dO,
+      allStates[index].energy);
       index = 0;
       for (int i = 0; i < allStates.size(); i++) {
         if (std::abs(refEnergy - allStates[i].energy) <= threshold) {
@@ -818,8 +820,9 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
         }
       }
       if (index == 0) {
+        index = (Z + N - 1) / 2;
         spdlog::get("console")->warn(
-            "ERROR: Couldn't find a correct spin state within the threshold.");
+            "WARNING: Couldn't find a correct spin state within the threshold.");
       }
     }
   }

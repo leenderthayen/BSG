@@ -127,42 +127,42 @@ endfunction()
 #          by an install of BSG.
 #
 #
-function(bsg_export_datasets _type _output)
-  bsg_get_datasetnames(_names)
-  set(_tmplist)
-
-  foreach(_ds ${_names})
-    set(_tuple ${_ds})
-    get_property(_tmpprop GLOBAL PROPERTY ${_ds}_ENVVAR)
-    list(APPEND _tuple ${_tmpprop})
-
-    if(${_type} STREQUAL "BUILD")
-      get_property(_tmpprop GLOBAL PROPERTY ${_ds}_BUILD_DIR)
-    elseif(${_type} STREQUAL "INSTALL")
-      get_property(_tmpprop GLOBAL PROPERTY ${_ds}_INSTALL_DIR)
-    else()
-      message(FATAL_ERROR "incorrect argument to bsg_export_datasets")
-    endif()
-    # Ensure CMake paths
-    file(TO_CMAKE_PATH "${_tmpprop}" _tmpprop)
-    list(APPEND _tuple ${_tmpprop})
-
-    get_property(_fname GLOBAL PROPERTY ${_ds}_FILENAME)
-    get_property(_fvers GLOBAL PROPERTY ${_ds}_VERSION)
-    get_property(_fextn GLOBAL PROPERTY ${_ds}_EXTENSION)
-    list(APPEND _tuple "${_fname}.${_fvers}.${_fextn}")
-
-    get_property(_tmpprop GLOBAL PROPERTY ${_ds}_MD5SUM)
-    list(APPEND _tuple ${_tmpprop})
-
-    # Because we have paths, use tuple separator that should not
-    # appear in a path.
-    string(REPLACE ";" "|" _tuple "${_tuple}")
-    list(APPEND _tmplist "${_tuple}")
-  endforeach()
-
-  set(${_output} ${_tmplist} PARENT_SCOPE)
-endfunction()
+# function(bsg_export_datasets _type _output)
+#   bsg_get_datasetnames(_names)
+#   set(_tmplist)
+#
+#   foreach(_ds ${_names})
+#     set(_tuple ${_ds})
+#     get_property(_tmpprop GLOBAL PROPERTY ${_ds}_ENVVAR)
+#     list(APPEND _tuple ${_tmpprop})
+#
+#     if(${_type} STREQUAL "BUILD")
+#       get_property(_tmpprop GLOBAL PROPERTY ${_ds}_BUILD_DIR)
+#     elseif(${_type} STREQUAL "INSTALL")
+#       get_property(_tmpprop GLOBAL PROPERTY ${_ds}_INSTALL_DIR)
+#     else()
+#       message(FATAL_ERROR "incorrect argument to bsg_export_datasets")
+#     endif()
+#     # Ensure CMake paths
+#     file(TO_CMAKE_PATH "${_tmpprop}" _tmpprop)
+#     list(APPEND _tuple ${_tmpprop})
+#
+#     get_property(_fname GLOBAL PROPERTY ${_ds}_FILENAME)
+#     get_property(_fvers GLOBAL PROPERTY ${_ds}_VERSION)
+#     get_property(_fextn GLOBAL PROPERTY ${_ds}_EXTENSION)
+#     list(APPEND _tuple "${_fname}.${_fvers}.${_fextn}")
+#
+#     get_property(_tmpprop GLOBAL PROPERTY ${_ds}_MD5SUM)
+#     list(APPEND _tuple ${_tmpprop})
+#
+#     # Because we have paths, use tuple separator that should not
+#     # appear in a path.
+#     string(REPLACE ";" "|" _tuple "${_tuple}")
+#     list(APPEND _tmplist "${_tuple}")
+#   endforeach()
+#
+#   set(${_output} ${_tmplist} PARENT_SCOPE)
+# endfunction()
 
 #-----------------------------------------------------------------------
 # function bsg_add_dataset(NAME      <id>
@@ -302,6 +302,7 @@ function(bsg_configure_datasets)
     message("    cmake -DBSG_INSTALL_DATA=ON <otherargs>")
     message(" ")
     message("    The variable can also be toggled in ccmake or cmake-gui.")
+    message("")
     message("    If you're running on a Windows system, this is the best")
     message("    solution as CMake will unpack the datasets for you")
     message("    without any further software being required")

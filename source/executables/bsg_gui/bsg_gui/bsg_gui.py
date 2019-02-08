@@ -312,7 +312,7 @@ class BSG_UI(QtGui.QMainWindow):
         import re
         A = int(re.findall(r'\d+', isotope)[0])
         name = isotope.replace(str(A), '').capitalize()
-        Z = ut.atoms.index(name)+1
+        Z = ut.atoms.index(name)
 
         self.ui.sb_AM.setValue(A)
         self.ui.sb_ZM.setValue(Z)
@@ -355,12 +355,13 @@ class BSG_UI(QtGui.QMainWindow):
                 self.ensdfFolder = None
                 return
         fullPath = self.ensdfFolder + '/ensdf.{:03d}'.format(A)
-
+        print(fullPath)
         bbs = ut.getENSDFBetaBranches(str(fullPath), Z, A, 0)
+        print(bbs)
         items = []
         for i in bbs:
-            s = '{}: {}{} ([{}] {}) -> {}{} ([{}] {}); Endpoint: {} keV, t1/2: {:.3f} s'.format(i.process, A, ut.atoms[Z-1], i.motherLevel.Jpi, i.motherLevel.E,\
-            A, ut.atoms[Z if i.process == 'B-' else Z-2], i.daughterLevel.Jpi, i.daughterLevel.E, i.E, i.partialHalflife)
+            s = '{}: {}{} ([{}] {}) -> {}{} ([{}] {}); Endpoint: {} keV, t1/2: {:.3f} s'.format(i.process, A, ut.atoms[Z], i.motherLevel.Jpi, i.motherLevel.E,\
+            A, ut.atoms[Z+1 if i.process == 'B-' else Z-1], i.daughterLevel.Jpi, i.daughterLevel.E, i.E, i.partialHalflife)
 
             items.append(s)
 
@@ -428,8 +429,8 @@ class BSG_UI(QtGui.QMainWindow):
         JpiM += self.ui.cb_PiM.currentText()
         JpiD = str(int(self.ui.dsb_JD.value())) if self.ui.dsb_JD.value() % 1 == 0. else str(int(2*self.ui.dsb_JD.value())) + '/2'
         JpiD += self.ui.cb_PiD.currentText()
-        s = '{}{} ([{}] {}) -> {}{} ([{}] {})'.format(Am, ut.atoms[Zm-1],
-        JpiM, self.ui.dsb_motherEn.value(), Ad, ut.atoms[Zd-1],
+        s = '{}{} ([{}] {}) -> {}{} ([{}] {})'.format(Am, ut.atoms[Zm],
+        JpiM, self.ui.dsb_motherEn.value(), Ad, ut.atoms[Zd],
         JpiD, self.ui.dsb_daughterEn.value())
         self.ui.l_transitionName.setText(s)
         self.ui.l_transitionName.setToolTip(s)

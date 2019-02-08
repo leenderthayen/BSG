@@ -9,7 +9,7 @@ const double HBAR = 6.58211889e-16;       /**< reduced Planck's constant in unit
 const double SPEED_OF_LIGHT = 299792458.0;  /**< the speed of light in m/s */
 const double PION_MASS_KEV = 134976.6; /**< the pion rest mass in unuts in keV */
 
-const double NATURAL_LENGTH = HBAR * SPEED_OF_LIGHT / 1e3 / ELECTRON_MASS_KEV; /**< the beta decay natural length scale using HBAR=c=m_e=1 */
+const double NATURAL_LENGTH = HBAR * SPEED_OF_LIGHT / 1e3 / ELECTRON_MASS_KEV; /**< the beta decay natural length scale using HBAR=c=m_e=1 3.861592643659598e-13 m*/
 
 const double ALPHA = 0.0072973525664; /**< the fine-structure constant */
 const double EULER_MASCHERONI_CONSTANT = 0.577215664901532;  /**< the Euler-Mascheroni constant */

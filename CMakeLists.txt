@@ -47,7 +47,7 @@ DESTINATION lib/bsg)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION data)
 
 # Copy over the documentation
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/doxygen/html/ DESTINATION doc/bsg)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/build/html/ DESTINATION doc/bsg)
+#install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/doxygen/html/ DESTINATION doc/bsg)
+#install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/build/html/ DESTINATION doc/bsg)
 
 install(FILES ${PROJECT_BINARY_DIR}/BSGConfig.h ${PROJECT_BINARY_DIR}/NMEConfig.h DESTINATION include)

@@ -11,7 +11,7 @@ import ConfigParser
 
 ''' General variables and utility functions '''
 
-atoms = ['H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
+atoms = ['Nn', 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca',
          'Sc', 'Ti',
          'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb',
          'Mo', 'Tc', 'Ru', 'Rh',
@@ -208,16 +208,16 @@ def getENSDFBetaBranches(filename, Z, A, state):
 
     """
     import ensdf
-
     logger = logging.getLogger(__name__)
 
-    daugtherNameBetaM = '%3s' % str(A) + atoms[Z].upper()
-    daughterNameBetaP = '%3s' % str(A) + atoms[Z-2].upper()
-    parentName = '%3s' % str(A) + atoms[Z - 1].upper()
+    daughterNameBetaM = '%3s' % str(A) + atoms[Z+1].upper()
+    daughterNameBetaP = '%3s' % str(A) + atoms[Z-1].upper()
+    parentName = '%3s' % str(A) + atoms[Z].upper()
 
     decays = ensdf.decays(filename)
     levels = ensdf.levels(filename)
     qvals = ensdf.qvalues(filename)
+
 
     levels = removeDuplicateLevels(levels)
 
@@ -244,9 +244,8 @@ def getENSDFBetaBranches(filename, Z, A, state):
     try:
         qBetaM, dqBetaM = [q[1:] for q in qvals if q[0] / 1000 == ZA][0]
     except IndexError:
-        print("IndexError on q value for %s Z%d A%d S%d %s" % (atoms[Z-1], Z, A, state, filename))
+        print("IndexError on q value for %s Z%d A%d S%d %s" % (atoms[Z], Z, A, state, filename))
         return 0., list()
-
     if dqBetaM is None:
         dqBetaM = 0.
 
@@ -267,14 +266,13 @@ def getENSDFBetaBranches(filename, Z, A, state):
                     qBetaM = d[5]
                 else:
                     qBetaP = d[5]
-
     for cd in correctDecays:
         for l in levels:
             try:
                 # Level is equal to daughter level from correct decays
                 if l[0] == cd[1]:
                     q, dq = (qBetaM, dqBetaM) if l[0] > cd[0] else (qBetaP, dqBetaP)
-                    name = daugtherNameBetaM if l[0] > cd[0] else daughterNameBetaP
+                    name = daughterNameBetaM if l[0] > cd[0] else daughterNameBetaP
                     BR, dBR, logft = cd[4:7]
 
                     if BR == None:

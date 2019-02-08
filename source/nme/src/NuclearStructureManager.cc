@@ -205,18 +205,19 @@ bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
   else {
     std::vector<std::vector<std::string> > dataList = GeneralUtilities::GetCSVData(filename, ",");
     for (auto const& line : dataList) {
-      if (line.size() < 7) {
+      if (line.size() < 8) {
         consoleLogger->error("Density Matrix File {} incomplete! Aborting.",
                              filename);
         exit(EXIT_FAILURE);
       }
-      int djf = atoi(line[0].c_str());
-      int nf = atoi(line[1].c_str());
-      int lf = atoi(line[2].c_str());
-      int dji = atoi(line[3].c_str());
-      int ni = atoi(line[4].c_str());
-      int li = atoi(line[5].c_str());
-      double obdme = atof(line[6].c_str());
+      int dJ = atoi(line[0].c_str());
+      int djf = atoi(line[1].c_str());
+      int nf = atoi(line[2].c_str());
+      int lf = atoi(line[3].c_str());
+      int dji = atoi(line[4].c_str());
+      int ni = atoi(line[5].c_str());
+      int li = atoi(line[6].c_str());
+      double obdme = atof(line[7].c_str());
       WFComp fW = {1.0, nf, lf, std::abs(djf) - 2 * lf};
       WFComp iW = {1.0, ni, li, std::abs(dji) - 2 * li};
       std::vector<WFComp> fComps = {fW};
@@ -225,8 +226,7 @@ bool NS::NuclearStructureManager::BuildDensityMatrixFromFile(
                                   -betaType, 0.0, fComps};
       SingleParticleState spsi = {mother.dJ, -1, sign(mother.dJ), li, ni, 0,
                                   betaType, 0.0, iComps};
-      //TODO
-      AddReducedOneBodyTransitionDensity(1, obdme, dji, djf, spsi, spsf);
+      AddReducedOneBodyTransitionDensity(dJ, obdme, dji, djf, spsi, spsf);
     }
   }
   debugFileLogger->debug("Leaving BuildDensityMatrixFromFile");
@@ -332,6 +332,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   }
 
   double threshold = GetNMEOpt(double, Computational.EnergyMargin);
+
+  debugFileLogger->debug("Threshold: {} MeV", threshold);
 
   debugFileLogger->debug("Found all spin constants");
 
