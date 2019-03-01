@@ -422,9 +422,9 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
   }
   if (GetBSGOpt(bool, Spectrum.ESDeformation)) {
     result *=
-        SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType);
+        SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
     neutrinoResult *=
-        SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType);
+        SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
   }
   if (GetBSGOpt(bool, Spectrum.ESFiniteSize)) {
     result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);

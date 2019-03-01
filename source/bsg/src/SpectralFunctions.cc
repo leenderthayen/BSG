@@ -17,6 +17,7 @@
 #include "gsl/gsl_sf_gamma.h"
 #include "gsl/gsl_sf_result.h"
 #include "gsl/gsl_sf_dilog.h"
+#include "gsl/gsl_integration.h"
 
 using std::cout;
 using std::endl;
@@ -285,16 +286,36 @@ double SpectralFunctions::RelativisticCorrection(double W, double W0, int Z,
   }
 }
 
+struct my_L0_params {double a; double b; double W; int Z; int betaType; double * aPos; double * aNeg;};
+
+double L0Integral(double r, void * p) {
+  struct my_L0_params * params = (struct my_L0_params *)p;
+  double a = (params->a);
+  double b = (params->b);
+  double W = (params->W);
+  int Z = (params->Z);
+  int betaType = (params->betaType);
+  double aPos[7] = {*(params->aPos)};
+  double aNeg[7] = {*(params->aNeg)};
+  double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
+
+  return std::pow(r, 3.) *
+   abs(ChargeDistributions::GetDerivDeformedChargeDist(r, a, b))
+   * SpectralFunctions::L0Correction(W, Z, r, betaType, aPos, aNeg)
+   * std::pow(r, 2. * (gamma - 1));
+}
+
 double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
                                                 double R, double beta2,
-                                                int betaType) {
+                                                int betaType, double aPos[],
+                                                double aNeg[]) {
   double bOverA = ChargeDistributions::CalcBoverA(beta2);
   double a, b;
 
   a = R * std::sqrt(3. / (bOverA * bOverA + 2.));
   b = bOverA * a;
 
-  // cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
+  cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
 
   double V0s = 3. * ALPHA * Z / 2. / R;
   double V0d = 0.;
@@ -312,33 +333,28 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
       1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + betaType * V0d, 2.) - 1.);
   double DC0 = (1 - etaD * 3. / 5. * R * R) / (1 - etaS * 3. / 5. * R * R);
 
-  // cout << "DC0 " << DC0 << endl;
-
-  int steps = 1E2;
-  double grid[steps];
-  double integrAd[steps];
-
   double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
-
   double prefact = 4. / 3. * M_PI * std::pow(R, 2. * (1 - gamma));
 
-  // TODO
-  /*for (int i = 0; i < steps; i++) {
-    grid[i] = a + (i + 1.) / (double)steps * (b - a);
-    integrAd[i] = std::pow(grid[i], 3.) * Z *
-                   abs(ChargeDistributions::GetDerivDeformedChargeDist(grid[i],
-  a, b)) *
-                   L0Correction(W, grid[i]) * std::pow(grid[i], 2. * (gamma -
-  1));
-    cout << grid[i] << "\t" << integrAd[i] << endl;
-  }
+  gsl_integration_workspace * w
+    = gsl_integration_workspace_alloc (1000);
 
-  double newL0 = prefact * utilities::Trapezoid(grid, integrAd, steps);
+  double result, error;
 
-  // cout << "newL0 " << newL0 << endl;
-  double DFS = newL0 / L0Correction(W, R);*/
+  struct my_L0_params params = {a, b, W, Z, betaType, aPos, aNeg};
 
-  double DFS = 1.;
+  gsl_function F;
+  F.function = &L0Integral;
+  F.params = &params;
+
+  gsl_integration_qags (&F, a, b, a, 1e-7, 1000,
+                        w, &result, &error);
+
+  double DFS = prefact * result / L0Correction(W, Z, R, betaType, aPos, aNeg);
+
+  gsl_integration_workspace_free (w);
+
+  //double DFS = 1.;
 
   return DC0 * DFS;
 }

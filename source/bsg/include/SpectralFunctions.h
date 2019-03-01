@@ -69,8 +69,8 @@ double FermiFunction(double W, int Z, double R, int betaType);
    to the NME library has been made and actual single-particle wave functions will be used in C_I
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
-                   int decayType, double gA, double gP, double fc1, double fb, 
-                   double fd, double ratioM121, bool addCI, std::string NSShape, 
+                   int decayType, double gA, double gP, double fc1, double fb,
+                   double fd, double ratioM121, bool addCI, std::string NSShape,
                    double hoFit, NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
 
 /**
@@ -95,7 +95,7 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * The C correction describing effects of finite nuclear size and induced currents.
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
-                   int decayType, double gA, double gP, double fc1, double fb, 
+                   int decayType, double gA, double gP, double fc1, double fb,
                    double fd, double ratioM121, bool addCI, std::string NSShape,
                    double hoFit);
 /**
@@ -127,7 +127,7 @@ std::tuple<double, double> CCorrectionComponents(double W, double W0, int Z, int
 
 /**
  * Isovector correction to the charge density-calculated C correction
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
@@ -142,7 +142,7 @@ double CICorrection(double W, double W0, int Z, int A, double R, int betaType);
  * Isovector correction to the charge density-calculated C correction
  * Gets called when connection with NME is turned on, thereby using actual
  * single particle wave functions from a (deformed) Woods-Saxon potential
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy i units of the electron rest mass
  * @param Z proton number
@@ -156,8 +156,8 @@ double CICorrection(double W, double W0, double Z, double R, int betaType,
 
 /**
  * Relativistic matrix element correction to the vector part of the C correction
- * as per Wilkinson. 
- * 
+ * as per Wilkinson.
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
@@ -171,7 +171,7 @@ double RelativisticCorrection(double W, double W0, int Z, int A, double R,
 
 /**
  * Deformation correction to L0
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
@@ -179,9 +179,11 @@ double RelativisticCorrection(double W, double W0, int Z, int A, double R,
  * @param R nuclear radius in natural units
  * @param beta2 quadrupole deformation
  * @param betaType BetaType of the transition
+ * @param aPos array of fitted constants for beta+ decay
+ * @param aNeg array of fitted constants for beta- decay
  */
 double DeformationCorrection(double W, double W0, int Z, double R, double beta2,
-                             int betaType);
+                             int betaType, double aPos[], double aNeg[]);
 
 /**
  * Electrostatic finite size correction to the point charge Fermi function
@@ -200,7 +202,7 @@ double L0Correction(double W, int Z, double r, int betaType, double aPos[],
 
 /**
  * Correction to L0 by moving from a uniformly charged sphere to a more elaborate nuclear shape
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param Z proton number
  * @param R nuclear radius in natural units
@@ -213,7 +215,7 @@ double UCorrection(double W, int Z, double R, int betaType, std::string ESShape,
 
 /**
  * Correction to L0 by calculating @f$ \frac{L_0'}{L_0} @f$ using a power expansion of the potentials
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param Z proton number
  * @param R nuclear radius in natural units
@@ -225,9 +227,9 @@ double UCorrection(double W, int Z, double R, int betaType, std::string ESShape,
 double UCorrection(double W, int Z, double R, int betaType, std::vector<double>& v, std::vector<double>& vp);
 
 /**
- * Electromagnetic correction to the Fermi function due to the change in the 
+ * Electromagnetic correction to the Fermi function due to the change in the
  * electromagnetic field of the recoiling nucleus compared to it standing still
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
@@ -241,7 +243,7 @@ double QCorrection(double W, double W0, int Z, int A, int betaType,
 
 /**
  * The radiative correction up to order @f$ \alpha^3Z^2 @f$ as per Sirlin
- * 
+ *
  * @param W total electron energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number
@@ -269,14 +271,14 @@ double RadiativeCorrection(double W, double W0, int Z, double R, int betaType,
 
 /**
  * Radiative correction to the neutrino spectrum by Sirlin and Marciano
- * 
+ *
  * @param Wv neutrino total energy in units of the electron rest mass
  */
 double NeutrinoRadiativeCorrection(double Wv);
 
 /**
  * Kinematic recoil correction to the beta spectrum due to the enlargement of the phase space
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param A mass number
@@ -288,7 +290,7 @@ double RecoilCorrection(double W, double W0, int A, int decayType,
 
 /**
  * Correction due to atomic screening calculated using the Salvat potential
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param Z proton number
  * @param betaType the BetaType of the transition
@@ -298,7 +300,7 @@ double AtomicScreeningCorrection(double W, int Z, int betaType);
 /**
  * The atomic exchange correction where an electron decays into a bound state of the daughter atom
  * and its corresponding interference with the direct process
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param exPars array containing the 9 fit parameters required for the analytical parametrisation
  */
@@ -307,7 +309,7 @@ double AtomicExchangeCorrection(double W, double exPars[9]);
 /**
  * Correction due to the mismatch between initial and final atomic states, causing the
  * endpoint of the transition to get smaller
- * 
+ *
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param Z proton number

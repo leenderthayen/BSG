@@ -1,7 +1,7 @@
 set(BSG_VERSION "1.0")
 set(BSG_VERSION_MAJOR "1")
 set(BSG_VERSION_MINOR "0")
-set(BSG_LAST_UPDATE "November 23, 2018")
+set(BSG_LAST_UPDATE "February 11, 2019")
 
 set(NME_VERSION "1.0")
 set(NME_VERSION_MAJOR "1")
