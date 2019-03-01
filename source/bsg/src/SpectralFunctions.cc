@@ -315,8 +315,6 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
   a = R * std::sqrt(3. / (bOverA * bOverA + 2.));
   b = bOverA * a;
 
-  cout << "b/a, a, b" << bOverA << " " << a << " " << b <<endl;
-
   double V0s = 3. * ALPHA * Z / 2. / R;
   double V0d = 0.;
 
@@ -353,8 +351,6 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
   double DFS = prefact * result / L0Correction(W, Z, R, betaType, aPos, aNeg);
 
   gsl_integration_workspace_free (w);
-
-  //double DFS = 1.;
 
   return DC0 * DFS;
 }
