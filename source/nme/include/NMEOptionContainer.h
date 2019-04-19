@@ -1,5 +1,5 @@
-#ifndef OPTIONCONTAINER
-#define OPTIONCONTAINER
+#ifndef NME_OPTIONCONTAINER
+#define NME_OPTIONCONTAINER
 
 #include <fstream>
 #include <iostream>
@@ -8,49 +8,51 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-/**
- * Macro to easily get the options from the OptionContainer object
- * 
- * @param a variable type
- * @param b variable name
- */
-#define GetBSGOpt(a, b) OptionContainer::GetInstance().GetBSGOption<a>(#b)
-/**
- * Macro to check whether a certain option was present
- * 
- * @param a variable name
- */
-#define OptExists(a) OptionContainer::GetInstance().Exists(#a)
-
 namespace po = boost::program_options;
 
 /**
- * Class that combines all options from commandline, configuration files and 
+ * Macro to easily get the options from the OptionContainer object
+ *
+ * @param a variable type
+ * @param b variable name
+ */
+#define GetNMEOpt(a, b) nme::NMEOptionContainer::GetInstance().GetNMEOption<a>(#b)
+/**
+ * Macro to check whether a certain option was present
+ *
+ * @param a variable name
+ */
+#define NMEOptExists(a) nme::NMEOptionContainer::GetInstance().Exists(#a)
+
+namespace nme {
+
+/**
+ * Class that combines all options from commandline, configuration files and
  * environment variables.
  * Implemented as a Singleton
  */
-class OptionContainer {
+class NMEOptionContainer {
  public:
   /**
    * Single Constructor
    */
-  static OptionContainer& GetInstance(int argc = 0, char** argv = NULL) {
-    static OptionContainer instance(argc, argv);
+  static NMEOptionContainer& GetInstance(int argc = 0, char** argv = NULL, bool fromBSG = false) {
+    static NMEOptionContainer instance(argc, argv, fromBSG);
     return instance;
   }
   /**
    * Get the option from the container
-   * 
+   *
    * @template T variable type
    * @param name vriable name
    */
   template <typename T>
-  T GetBSGOption(std::string name) {
+  T GetNMEOption(std::string name) {
     return vm[name].as<T>();
   }
   /**
    * Check whether an options was given
-   * 
+   *
    * @param name variable name
    */
   bool Exists(std::string name) { return (bool)vm.count(name); }
@@ -66,16 +68,20 @@ class OptionContainer {
   inline static po::options_description GetTransitionOptions() {
     return transitionOptions;
   };
+  inline static po::options_description GetEnvOptions() { return envOptions; };
 
  private:
   static po::variables_map vm;
   static po::options_description genericOptions;
   static po::options_description spectrumOptions;
   static po::options_description configOptions;
+  static po::options_description envOptions;
   static po::options_description transitionOptions;
-  OptionContainer(int, char**);
-  OptionContainer(OptionContainer const& copy);
-  OptionContainer& operator=(OptionContainer const& copy);
+  NMEOptionContainer(int, char**, bool fromBSG=false);
+  NMEOptionContainer(NMEOptionContainer const& copy);
+  NMEOptionContainer& operator=(NMEOptionContainer const& copy);
 };
+
+}
 
 #endif

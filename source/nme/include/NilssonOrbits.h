@@ -17,6 +17,8 @@
 #define NDIM3 35
 #define NDIM4 40
 
+namespace nme {
+
 namespace NuclearStructure {
 /**
  * This ia a C++ port of the original Fortran IV code from
@@ -75,6 +77,8 @@ namespace nilsson {
 
 using std::cout;
 using std::endl;
+
+namespace utilities = bsg::utilities;
 
 /**
  * Value of harmonic oscillator function at radius x
@@ -156,7 +160,7 @@ inline void WoodsSaxon(double V0, double R, double A0, double V0S, double A,
   int N = NDX / 4 - 2;
   double AO = A0;
   // Compton wavelength of the pion=  1.4133 fm
-  double pionComp = HBAR / PION_MASS_KEV / SPEED_OF_LIGHT;
+  double pionComp = bsg::HBAR / bsg::PION_MASS_KEV / bsg::SPEED_OF_LIGHT;
   pionComp = 1.4133;
   double VOS = V0S * pionComp * pionComp;
   double TWONU = 0.154666 * std::sqrt(V0) / R;
@@ -856,6 +860,7 @@ inline SingleParticleState CalculateDeformedSPState(int Z, int N, int A, int dJ,
   }
   nmeResults->info("\n\n");
   return allStates[index];
+}
 }
 }
 }

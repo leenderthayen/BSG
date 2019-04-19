@@ -1,6 +1,6 @@
 #include "Generator.h"
 
-#include "OptionContainer.h"
+#include "BSGOptionContainer.h"
 #include "ChargeDistributions.h"
 #include "Constants.h"
 #include "Utilities.h"
@@ -16,9 +16,9 @@
 
 #include "BSGConfig.h"
 
-namespace SF = SpectralFunctions;
-namespace CD = ChargeDistributions;
-namespace NS = NuclearStructure;
+namespace SF = bsg::SpectralFunctions;
+namespace CD = bsg::ChargeDistributions;
+namespace NS = nme::NuclearStructure;
 
 using std::cout;
 using std::endl;
@@ -33,7 +33,7 @@ void ShowBSGInfo() {
   logger->info("{:*>60}\n", "");
 }
 
-Generator::Generator() {
+bsg::Generator::Generator() {
   InitializeLoggers();
   InitializeConstants();
   InitializeShapeParameters();
@@ -44,9 +44,9 @@ Generator::Generator() {
   InitializeNSMInfo();
 }
 
-Generator::~Generator() { delete nsm; }
+bsg::Generator::~Generator() { delete nsm; }
 
-void Generator::InitializeLoggers() {
+void bsg::Generator::InitializeLoggers() {
   std::string outputName = GetBSGOpt(std::string, output);
 
   /**
@@ -85,7 +85,7 @@ void Generator::InitializeLoggers() {
   debugFileLogger->debug("Results file logger created");
 }
 
-void Generator::InitializeConstants() {
+void bsg::Generator::InitializeConstants() {
   debugFileLogger->debug("Entered initialize constants");
 
   Z = GetBSGOpt(int, Daughter.Z);
@@ -149,7 +149,7 @@ void Generator::InitializeConstants() {
   debugFileLogger->debug("Leaving InitializeConstants");
 }
 
-void Generator::InitializeShapeParameters() {
+void bsg::Generator::InitializeShapeParameters() {
   debugFileLogger->debug("Entered InitializeShapeParameters");
   if (!OptExists(Spectrum.ModGaussFit)) {
     hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
@@ -183,7 +183,7 @@ void Generator::InitializeShapeParameters() {
   debugFileLogger->debug("Leaving InitializeShapeParameters");
 }
 
-void Generator::LoadExchangeParameters() {
+void bsg::Generator::LoadExchangeParameters() {
   debugFileLogger->debug("Entered LoadExchangeParameters");
   std::string exParamFile = GetBSGOpt(std::string, exchangedata);
   std::ifstream paramStream(exParamFile.c_str());
@@ -215,7 +215,7 @@ void Generator::LoadExchangeParameters() {
   debugFileLogger->debug("Leaving LoadExchangeParameters");
 }
 
-void Generator::InitializeL0Constants() {
+void bsg::Generator::InitializeL0Constants() {
   debugFileLogger->debug("Entering InitializeL0Constants");
   //double b[7][6];
   double bNeg[7][6];
@@ -317,7 +317,7 @@ void Generator::InitializeL0Constants() {
   debugFileLogger->debug("Leaving InitializeL0Constants");
 }
 
-void Generator::InitializeNSMInfo() {
+void bsg::Generator::InitializeNSMInfo() {
   nsm = new NS::NuclearStructureManager();
 
   if (OptExists(connect)) {
@@ -328,7 +328,7 @@ void Generator::InitializeNSMInfo() {
   GetMatrixElements();
 }
 
-void Generator::GetMatrixElements() {
+void bsg::Generator::GetMatrixElements() {
   debugFileLogger->info("Calculating matrix elements");
   double M101 = 1.0;
   if (!OptExists(Spectrum.Lambda)) {
@@ -384,7 +384,8 @@ void Generator::GetMatrixElements() {
   fd = dAc * A * fc1;
 }
 
-std::tuple<double, double> Generator::CalculateDecayRate(double W) {
+std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
+  // auto start = std::chrono::steady_clock::now();
   double result = 1;
   double neutrinoResult = 1;
 
@@ -395,11 +396,14 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
     neutrinoResult *=
         SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
   }
-
+  // auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "PS microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.Fermi)) {
     result *= SF::FermiFunction(W, Z, R, betaType);
     neutrinoResult *= SF::FermiFunction(Wv, Z, R, betaType);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "F microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.C)) {
     if (OptExists(connect)) {
       result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
@@ -415,62 +419,86 @@ std::tuple<double, double> Generator::CalculateDecayRate(double W) {
                           fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit);
     }
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "C microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.Relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, betaType, decayType);
     neutrinoResult *=
         SF::RelativisticCorrection(Wv, W0, Z, A, R, betaType, decayType);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "Rel microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.ESDeformation)) {
     result *=
         SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
     neutrinoResult *=
         SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "ESD microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.ESFiniteSize)) {
     result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "ESF microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.U)) {
     result *= SF::UCorrection(W, Z, R, betaType, ESShape, vOld, vNew);
     neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, ESShape, vOld, vNew);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "U microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.CoulombRecoil)) {
     result *= SF::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
     neutrinoResult *=
         SF::QCorrection(Wv, W0, Z, A, betaType, decayType, mixingRatio);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "CR microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.Radiative)) {
     result *= SF::RadiativeCorrection(W, W0, Z, R, betaType, gA, gM);
     neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "Rad microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.Recoil)) {
     result *= SF::RecoilCorrection(W, W0, A, decayType, mixingRatio);
     neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "Rec microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.Screening)) {
     result *= SF::AtomicScreeningCorrection(W, Z, betaType);
     neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, betaType);
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "S microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.Exchange)) {
     if (betaType == BETA_MINUS) {
       result *= SF::AtomicExchangeCorrection(W, exPars);
       neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
     }
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "Ex microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.AtomicMismatch)) {
     if (atomicEnergyDeficit == 0.) {
       result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
       neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
     }
   }
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "AM microseconds since start: " << elapsed.count() << "\n";
   result = std::max(0., result);
   neutrinoResult = std::max(0., neutrinoResult);
   rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
-
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "File microseconds since start: " << elapsed.count() << "\n";
   return std::make_tuple(result, neutrinoResult);
 }
 
-std::vector<std::vector<double> > Generator::CalculateSpectrum() {
+std::vector<std::vector<double> > bsg::Generator::CalculateSpectrum() {
+  // auto start = std::chrono::steady_clock::now();
   debugFileLogger->info("Calculating spectrum");
   double beginEn = GetBSGOpt(double, Spectrum.Begin);
   double endEn = GetBSGOpt(double, Spectrum.End);
@@ -493,11 +521,15 @@ std::vector<std::vector<double> > Generator::CalculateSpectrum() {
     spectrum.push_back(entry);
     currentW += stepW;
   }
+  // auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "microseconds since CalculateSpectrum: " << elapsed.count() << "\n";
   PrepareOutputFile();
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // std::cout << "microseconds since CalculateSpectrum: " << elapsed.count() << "\n";
   return spectrum;
 }
 
-double Generator::CalculateLogFtValue(double partialHalflife) {
+double bsg::Generator::CalculateLogFtValue(double partialHalflife) {
   debugFileLogger->debug("Calculating Ft value with partial halflife {}", partialHalflife);
   double f = utilities::Simpson(spectrum);
   debugFileLogger->debug("f: {}", f);
@@ -507,7 +539,7 @@ double Generator::CalculateLogFtValue(double partialHalflife) {
   return logFt;
 }
 
-double Generator::CalculateMeanEnergy() {
+double bsg::Generator::CalculateMeanEnergy() {
   debugFileLogger->debug("Calculating mean energy");
   std::vector<std::vector<double> > weightedSpectrum;
   for (int i =0; i < spectrum.size(); i++) {
@@ -520,7 +552,7 @@ double Generator::CalculateMeanEnergy() {
   return weightedF/f;
 }
 
-void Generator::PrepareOutputFile() {
+void bsg::Generator::PrepareOutputFile() {
   ShowBSGInfo();
 
   auto l = spdlog::get("BSG_results_file");

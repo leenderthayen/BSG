@@ -22,14 +22,14 @@
 using std::cout;
 using std::endl;
 
-double SpectralFunctions::PhaseSpace(double W, double W0, int motherSpinParity,
+double bsg::SpectralFunctions::PhaseSpace(double W, double W0, int motherSpinParity,
                                      int daughterSpinParity) {
   double result = std::sqrt(W * W - 1.) * W * std::pow(W0 - W, 2.);
   // TODO forbidden transitions
   return result;
 }
 
-double SpectralFunctions::FermiFunction(double W, int Z, double R,
+double bsg::SpectralFunctions::FermiFunction(double W, int Z, double R,
                                         int betaType) {
   double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
   double p = std::sqrt(W * W - 1.);
@@ -53,7 +53,7 @@ double SpectralFunctions::FermiFunction(double W, int Z, double R,
   return result;
 }
 
-double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
+double bsg::SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
                                       double R, int betaType,
                                       int decayType, double gA, double gP,
                                       double fc1, double fb, double fd,
@@ -72,12 +72,12 @@ double SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
   return result;
 }
 
-double SpectralFunctions::CCorrection(
+double bsg::SpectralFunctions::CCorrection(
     double W, double W0, int Z, int A, double R, int betaType,
     int decayType, double gA, double gP, double fc1, double fb, double fd,
     double ratioM121, bool addCI, std::string NSShape, double hoFit,
-    NuclearStructure::SingleParticleState& spsi,
-    NuclearStructure::SingleParticleState& spsf) {
+    nme::NuclearStructure::SingleParticleState& spsi,
+    nme::NuclearStructure::SingleParticleState& spsf) {
 
   double cShape, cNS;
   std::tie(cShape, cNS) =
@@ -92,7 +92,7 @@ double SpectralFunctions::CCorrection(
   return result;
 }
 
-std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
+std::tuple<double, double> bsg::SpectralFunctions::CCorrectionComponents(
     double W, double W0, int Z, int A, double R, int betaType, int decayType,
     double gA, double gP, double fc1, double fb, double fd,
     double ratioM121, std::string NSShape, double hoFit) {
@@ -178,7 +178,7 @@ std::tuple<double, double> SpectralFunctions::CCorrectionComponents(
   return std::make_tuple(cShape, cNS);
 }
 
-double SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
+double bsg::SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
                                        double R, int betaType) {
   double AC0, AC1, AC2, ACm1;
   double VC0, VC1, VC2, VCm1;
@@ -216,10 +216,10 @@ double SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
   return 1 - 8. / 5. * w * e * R * R / (5. * Ap + 2);
 }
 
-double SpectralFunctions::CICorrection(
+double bsg::SpectralFunctions::CICorrection(
     double W, double W0, double Z, double R, int betaType,
-    NuclearStructure::SingleParticleState& spsi,
-    NuclearStructure::SingleParticleState& spsf) {
+    nme::NuclearStructure::SingleParticleState& spsi,
+    nme::NuclearStructure::SingleParticleState& spsf) {
   double V0 = betaType * 3. * Z * ALPHA / 2. / R;
   double epsilon = 1. / 6. * (sqr(W0 - W) + sqr(W + V0) - 1.);
 
@@ -250,7 +250,7 @@ double SpectralFunctions::CICorrection(
   return result;
 }
 
-double SpectralFunctions::RelativisticCorrection(double W, double W0, int Z,
+double bsg::SpectralFunctions::RelativisticCorrection(double W, double W0, int Z,
                                                  int A, double R, int betaType,
                                                  int decayType) {
   if (decayType == FERMI) {
@@ -297,15 +297,15 @@ double L0Integral(double r, void * p) {
   int betaType = (params->betaType);
   double aPos[7] = {*(params->aPos)};
   double aNeg[7] = {*(params->aNeg)};
-  double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
+  double gamma = std::sqrt(1. - std::pow(bsg::ALPHA * Z, 2.));
 
   return std::pow(r, 3.) *
-   abs(ChargeDistributions::GetDerivDeformedChargeDist(r, a, b))
-   * SpectralFunctions::L0Correction(W, Z, r, betaType, aPos, aNeg)
+   abs(bsg::ChargeDistributions::GetDerivDeformedChargeDist(r, a, b))
+   * bsg::SpectralFunctions::L0Correction(W, Z, r, betaType, aPos, aNeg)
    * std::pow(r, 2. * (gamma - 1));
 }
 
-double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
+double bsg::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
                                                 double R, double beta2,
                                                 int betaType, double aPos[],
                                                 double aNeg[]) {
@@ -355,7 +355,7 @@ double SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
   return DC0 * DFS;
 }
 
-double SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
+double bsg::SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
                                        double aPos[], double aNeg[]) {
   double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
   double sum = 0;
@@ -380,7 +380,7 @@ double SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
   return (common + specific) * 2. / (1. + gamma);
 }
 
-double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
+double bsg::SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
                                       std::string ESShape,
                                       std::vector<double>& v,
                                       std::vector<double>& vp) {
@@ -399,7 +399,7 @@ double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
   return result;
 }
 
-double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
+double bsg::SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
                                       std::vector<double>& v,
                                       std::vector<double>& vp) {
   double delta1 = 4. / 3. * (vp[0] - v[0]) + 17. / 30. * (vp[1] - v[1]) +
@@ -425,7 +425,7 @@ double SpectralFunctions::UCorrection(double W, int Z, double R, int betaType,
 
   return result;
 }
-double SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
+double bsg::SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
                                       int betaType, int decayType,
                                       double mixingRatio) {
   double a = 0;
@@ -444,7 +444,7 @@ double SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
   return 1. - betaType * M_PI * ALPHA * Z / M / p * (1. + a * (W0 - W) / 3. / M);
 }
 
-double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
+double bsg::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
                                               double R, int betaType, double gA,
                                               double gM) {
   // 1st order, based on the 5th Wilkinson article
@@ -503,7 +503,7 @@ double SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
   return (1 + O1corr) * (L + O2corr + O3corr);
 }
 
-double SpectralFunctions::NeutrinoRadiativeCorrection(double Wv) {
+double bsg::SpectralFunctions::NeutrinoRadiativeCorrection(double Wv) {
   double h = 0.;
   double pv = std::sqrt(Wv * Wv - 1);
   double beta = pv / Wv;
@@ -515,9 +515,9 @@ double SpectralFunctions::NeutrinoRadiativeCorrection(double Wv) {
   return 1 + ALPHA / 2 / M_PI * h;
 }
 
-double SpectralFunctions::Spence(double x) { return -gsl_sf_dilog(x); }
+double bsg::SpectralFunctions::Spence(double x) { return -gsl_sf_dilog(x); }
 
-double SpectralFunctions::RecoilCorrection(double W, double W0, int A,
+double bsg::SpectralFunctions::RecoilCorrection(double W, double W0, int A,
                                            int decayType, double mixingRatio) {
   double Vr0, Vr1, Vr2, Vr3;
   double Ar0, Ar1, Ar2, Ar3;
@@ -550,7 +550,7 @@ double SpectralFunctions::RecoilCorrection(double W, double W0, int A,
   return 1;
 }
 
-double SpectralFunctions::AtomicScreeningCorrection(double W, int Z,
+double bsg::SpectralFunctions::AtomicScreeningCorrection(double W, int Z,
                                                     int betaType) {
   std::vector<double> Aby, Bby;
 
@@ -599,7 +599,7 @@ double SpectralFunctions::AtomicScreeningCorrection(double W, int Z,
   return first * second * third * fourth * fifth;
 }
 
-double SpectralFunctions::AtomicExchangeCorrection(double W, double exPars[9]) {
+double bsg::SpectralFunctions::AtomicExchangeCorrection(double W, double exPars[9]) {
   double E = W - 1;
 
   return 1 + exPars[0] / E + exPars[1] / E / E +
@@ -608,7 +608,7 @@ double SpectralFunctions::AtomicExchangeCorrection(double W, double exPars[9]) {
              std::pow(W, exPars[8]);
 }
 
-double SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int Z,
+double bsg::SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int Z,
                                                    int A, int betaType) {
   double dBdZ2 = (44.200 * std::pow(Z - betaType, 0.41) +
                   2.3196E-7 * std::pow(Z - betaType, 4.45)) /

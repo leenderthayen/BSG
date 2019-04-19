@@ -1,21 +1,21 @@
-#include "OptionContainer.h"
-#include "NMEOptions.h"
+#include "BSGOptionContainer.h"
+#include "NMEOptionContainer.h"
 #include "spdlog/spdlog.h"
 #include <iostream>
 
 using std::cout;
 using std::endl;
 
-po::options_description OptionContainer::genericOptions("Generic options");
-po::options_description OptionContainer::spectrumOptions(
+po::options_description bsg::BSGOptionContainer::genericOptions("Generic options");
+po::options_description bsg::BSGOptionContainer::spectrumOptions(
     "Spectrum shape options");
-po::options_description OptionContainer::configOptions(
-    "Configuration file options");
-po::options_description OptionContainer::transitionOptions(
+po::options_description bsg::BSGOptionContainer::configOptions(
+    "Spectral configuration file options");
+po::options_description bsg::BSGOptionContainer::transitionOptions(
     "Transition information");
-po::variables_map OptionContainer::vm;
+po::variables_map bsg::BSGOptionContainer::vm;
 
-OptionContainer::OptionContainer(int argc, char** argv) {
+bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
@@ -155,7 +155,7 @@ OptionContainer::OptionContainer(int argc, char** argv) {
       "Specify the GT coupling constant, gA")(
       "Constants.gM", po::value<double>()->default_value(4.706),
       "Specify the weak magnetism coupling constant, gM")(
-      "Constants.gP", po::value<double>()->default_value(-229.),
+      "Constants.gP", po::value<double>()->default_value(0.),
       "Specify the induced pseudoscalar coupling constant, gP");
 
   /** Parse command line options
@@ -196,5 +196,5 @@ OptionContainer::OptionContainer(int argc, char** argv) {
     po::notify(vm);
   }
 
-  NMEOptions::GetInstance(argc, argv, true);
+  nme::NMEOptionContainer::GetInstance(argc, argv, true);
 }

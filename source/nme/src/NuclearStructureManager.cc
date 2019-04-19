@@ -1,5 +1,5 @@
 #include "NuclearStructureManager.h"
-#include "NMEOptions.h"
+#include "NMEOptionContainer.h"
 #include "Constants.h"
 #include "MatrixElements.h"
 #include "NuclearUtilities.h"
@@ -15,10 +15,11 @@
 
 #include "NMEConfig.h"
 
-namespace NS = NuclearStructure;
+namespace NS = nme::NuclearStructure;
 namespace NO = NS::nilsson;
 namespace ME = NS::MatrixElements;
-namespace CD = ChargeDistributions;
+namespace CD = bsg::ChargeDistributions;
+namespace utilities = bsg::utilities;
 
 using std::cout;
 using std::endl;
@@ -59,15 +60,15 @@ void NS::NuclearStructureManager::InitializeConstants() {
         "ERROR: Mother and daughter mass number do not agree.");
     return;
   }
-  double Rd = GetNMEOpt(double, Daughter.Radius) * 1e-15 / NATURAL_LENGTH *
+  double Rd = GetNMEOpt(double, Daughter.Radius) * 1e-15 / bsg::NATURAL_LENGTH *
               std::sqrt(5. / 3.);
-  double Rm = GetNMEOpt(double, Mother.Radius) * 1e-15 / NATURAL_LENGTH *
+  double Rm = GetNMEOpt(double, Mother.Radius) * 1e-15 / bsg::NATURAL_LENGTH *
               std::sqrt(5. / 3.);
   if (Rd == 0.0) {
-    Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
+    Rd = 1.2 * std::pow(Ad, 1. / 3.) * 1e-15 / bsg::NATURAL_LENGTH;
   }
   if (Rm == 0.0) {
-    Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / NATURAL_LENGTH;
+    Rm = 1.2 * std::pow(Am, 1. / 3.) * 1e-15 / bsg::NATURAL_LENGTH;
   }
   double motherBeta2 = GetNMEOpt(double, Mother.Beta2);
   double motherBeta4 = GetNMEOpt(double, Mother.Beta4);
@@ -340,8 +341,8 @@ void NS::NuclearStructureManager::GetESPStates(SingleParticleState& spsi,
   double V0p = Vp * (1. + Xp * (mother.A - 2. * mother.Z) / mother.A);
   double V0n = Vn * (1. - Xn * (mother.A - 2. * mother.Z) / mother.A);
 
-  double mR = mother.R * NATURAL_LENGTH * 1e15;
-  double dR = daughter.R * NATURAL_LENGTH * 1e15;
+  double mR = mother.R * bsg::NATURAL_LENGTH * 1e15;
+  double dR = daughter.R * bsg::NATURAL_LENGTH * 1e15;
 
   if (boost::iequals(potential, "SHO")) {
     int ni, li, si, nf, lf, sf;
@@ -632,7 +633,7 @@ double NS::NuclearStructureManager::CalculateWeakMagnetism() {
   double VM111 = CalculateReducedMatrixElement(true, 1, 1, 1);
   double AM101 = CalculateReducedMatrixElement(false, 1, 0, 1);
 
-  result = -std::sqrt(2. / 3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
+  result = -std::sqrt(2. / 3.) * bsg::NUCLEON_MASS_KEV / bsg::ELECTRON_MASS_KEV *
                mother.R / gAeff * VM111 / AM101 +
            (gM - 1) / gAeff;
   nmeResultsLogger->info("Weak magnetism final result: b/Ac = {}", result);
@@ -645,7 +646,7 @@ double NS::NuclearStructureManager::CalculateInducedTensor() {
   double AM110 = CalculateReducedMatrixElement(false, 1, 1, 0);
   double AM101 = CalculateReducedMatrixElement(false, 1, 0, 1);
 
-  result = 2. / std::sqrt(3.) * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV *
+  result = 2. / std::sqrt(3.) * bsg::NUCLEON_MASS_KEV / bsg::ELECTRON_MASS_KEV *
            mother.R * AM110 / AM101;
   nmeResultsLogger->info("Induced tensor final result: a/Ac = {}", result);
   return result;

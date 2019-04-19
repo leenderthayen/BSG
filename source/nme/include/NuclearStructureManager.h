@@ -8,6 +8,8 @@
 #include "NuclearUtilities.h"
 #include "spdlog/spdlog.h"
 
+namespace nme {
+
 namespace NuclearStructure {
 
 /**
@@ -129,5 +131,6 @@ class NuclearStructureManager {
   bool BuildDensityMatrixFromFile(std::string);
   void ReadNuShellXOBD(std::string);
 };
+}
 }
 #endif

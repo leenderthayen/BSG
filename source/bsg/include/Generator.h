@@ -8,6 +8,8 @@
 #include "NuclearUtilities.h"
 #include "spdlog/spdlog.h"
 
+namespace bsg {
+
 class Generator {
  private:
   /**
@@ -42,9 +44,9 @@ class Generator {
   std::string ESShape; /**< name denoting the base shape to use for the U correction */
   std::string NSShape; /**< name denoting the base shape to use for the C correction */
 
-  NuclearStructure::SingleParticleState spsi, spsf; /**< single particle states calculated from the NME library and used in the C_I correction when turned on */
+  nme::NuclearStructure::SingleParticleState spsi, spsf; /**< single particle states calculated from the NME library and used in the C_I correction when turned on */
 
-  NuclearStructure::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
+  nme::NuclearStructure::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
   std::vector<std::vector<double> > spectrum; /**< vector of vectors containing the calculated spectrum */
 
@@ -120,17 +122,19 @@ class Generator {
 
   /**
    * Calculates the beta spectrum by filling the spectrum variable.
-   * 
+   *
    * @returns spectrum variable
    */
   std::vector<std::vector<double> > CalculateSpectrum();
   /**
    * Calculate the decay rate at energy W
-   * 
+   *
    * @param W the total electron energy in units of its rest mass
    * @returns the decay rate at energy W
    */
   std::tuple<double, double> CalculateDecayRate(double W);
 };
+
+}
 
 #endif

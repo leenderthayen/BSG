@@ -3,13 +3,15 @@
 
 #include <vector>
 
+namespace bsg {
+
 namespace screening {
 
 /**
  * Returns the fit parameters of the atomic potential
  * by Salvat et al., Physical Review A 36 (1987) 467-474
  * for Z <= 92. If Z is larger, the Moliere potential is used
- * 
+ *
  * @param Zloc the proton number of the atom
  * @param Aby reference to a vector to be filled with A coefficients
  * @param Bby reference to a vector to be filled with B coefficients
@@ -966,6 +968,7 @@ inline void PotParam(int Zloc, std::vector<double> &Aby,
 
   Aby_loc.clear();
   Bby_loc.clear();
+}
 }
 }
 #endif

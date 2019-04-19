@@ -10,9 +10,11 @@
 #include "Constants.h"
 #include "NuclearUtilities.h"
 
+namespace bsg {
+
 /**
  * Namespace containing all correction factors to the allowed beta spectrum shape
- * as described by Hayen et al., Rev. Mod. Phys. XXXXXX
+ * as described by Hayen et al., Rev. Mod. Phys. 90 (2018) 015008
  */
 namespace SpectralFunctions {
 /// type of beta decay, negative or positive
@@ -71,7 +73,7 @@ double FermiFunction(double W, int Z, double R, int betaType);
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
                    int decayType, double gA, double gP, double fc1, double fb,
                    double fd, double ratioM121, bool addCI, std::string NSShape,
-                   double hoFit, NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
+                   double hoFit, nme::NuclearStructure::SingleParticleState& spsi, nme::NuclearStructure::SingleParticleState& spsf);
 
 /**
  * @brief C correction
@@ -152,10 +154,12 @@ double CICorrection(double W, double W0, int Z, int A, double R, int betaType);
  * @param spsf NuclearStructure::SingleParticleState object denoting the final state
  */
 double CICorrection(double W, double W0, double Z, double R, int betaType,
-    NuclearStructure::SingleParticleState& spsi, NuclearStructure::SingleParticleState& spsf);
+    nme::NuclearStructure::SingleParticleState& spsi, nme::NuclearStructure::SingleParticleState& spsf);
 
 /**
- * Relativistic matrix element correction to the vector part of the C correction
+ * Relativistic matrix element correction to the vector pahe "black hole girl" right now, and how she's being given too much credit for her role in the historic first image of a black hole. Because this is too important, I want to set the record straight.
+
+Once Katie Bouman became the "face" of the black hole photo, and articles began to call her "the woman behind the black hole photo", an assortment of people that I'm strongly inclined to callrt of the C correction
  * as per Wilkinson.
  *
  * @param W electron total energy in units of its rest mass
@@ -331,6 +335,7 @@ double AtomicMismatchCorrection(double W, double W0, int Z, int A,
  *\sum_{k=1}^{k=\infty}\frac{x^k}{k^2} \equiv -\mathrm{Li}_2(x) \f]
  */
 double Spence(double x);
+}
 }
 
 #endif  // SPECTRALFUNCTIONS

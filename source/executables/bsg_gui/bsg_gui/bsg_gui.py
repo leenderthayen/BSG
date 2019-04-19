@@ -251,10 +251,10 @@ class BSG_UI(QtGui.QMainWindow):
         self.askSaveChanges()
 
     def about(self):
-        QtGui.QMessageBox.information(self, "About", "Beta spectrum Generator GUI v 0.2")
+        QtGui.QMessageBox.information(self, "About", "Beta spectrum Generator GUI v 1.0")
 
     def submitFeedback(self):
-        QtGui.QMessageBox.information(self, "Send feedback", "Not yet implemented. Send emails to leendert.hayen@kuleuven.be")
+        QtGui.QMessageBox.information(self, "Send feedback", "Send emails to leendert.hayen@gmail.com")
 
     def findDefaults(self):
         self.log("Looking for defaults in environment variables...")

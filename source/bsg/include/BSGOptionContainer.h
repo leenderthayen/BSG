@@ -1,5 +1,5 @@
-#ifndef NMEOPTIONS
-#define NMEOPTIONS
+#ifndef BSG_OPTIONCONTAINER
+#define BSG_OPTIONCONTAINER
 
 #include <fstream>
 #include <iostream>
@@ -14,13 +14,15 @@
  * @param a variable type
  * @param b variable name
  */
-#define GetNMEOpt(a, b) NMEOptions::GetInstance().GetNMEOption<a>(#b)
+#define GetBSGOpt(a, b) bsg::BSGOptionContainer::GetInstance().GetBSGOption<a>(#b)
 /**
  * Macro to check whether a certain option was present
  *
  * @param a variable name
  */
-#define NMEOptExists(a) NMEOptions::GetInstance().Exists(#a)
+#define OptExists(a) bsg::BSGOptionContainer::GetInstance().Exists(#a)
+
+namespace bsg {
 
 namespace po = boost::program_options;
 
@@ -29,13 +31,13 @@ namespace po = boost::program_options;
  * environment variables.
  * Implemented as a Singleton
  */
-class NMEOptions {
+class BSGOptionContainer {
  public:
   /**
    * Single Constructor
    */
-  static NMEOptions& GetInstance(int argc = 0, char** argv = NULL, bool fromBSG = false) {
-    static NMEOptions instance(argc, argv, fromBSG);
+  static BSGOptionContainer& GetInstance(int argc = 0, char** argv = NULL) {
+    static BSGOptionContainer instance(argc, argv);
     return instance;
   }
   /**
@@ -45,7 +47,7 @@ class NMEOptions {
    * @param name vriable name
    */
   template <typename T>
-  T GetNMEOption(std::string name) {
+  T GetBSGOption(std::string name) {
     return vm[name].as<T>();
   }
   /**
@@ -66,18 +68,18 @@ class NMEOptions {
   inline static po::options_description GetTransitionOptions() {
     return transitionOptions;
   };
-  inline static po::options_description GetEnvOptions() { return envOptions; };
 
  private:
   static po::variables_map vm;
   static po::options_description genericOptions;
   static po::options_description spectrumOptions;
   static po::options_description configOptions;
-  static po::options_description envOptions;
   static po::options_description transitionOptions;
-  NMEOptions(int, char**, bool fromBSG=false);
-  NMEOptions(NMEOptions const& copy);
-  NMEOptions& operator=(NMEOptions const& copy);
+  BSGOptionContainer(int, char**);
+  BSGOptionContainer(BSGOptionContainer const& copy);
+  BSGOptionContainer& operator=(BSGOptionContainer const& copy);
 };
+
+}
 
 #endif

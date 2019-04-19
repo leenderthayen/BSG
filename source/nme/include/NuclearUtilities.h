@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 
+namespace nme {
+
 namespace NuclearStructure {
 
 static const char* atoms[118] = {
@@ -134,6 +136,7 @@ inline std::vector<std::vector<std::string> > GetCSVData(std::string filename, s
   file.close();
 
   return dataList;
+}
 }
 }
 #endif

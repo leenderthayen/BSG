@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+namespace bsg {
+
 const double ELECTRON_MASS_KEV = 510.998902;  /**< the electron rest mass in keV */
 const double NEUTRON_MASS_KEV = 939565.378;   /**< the neutron rest mass in keV */
 const double PROTON_MASS_KEV = 938271.998;    /**< the proton rest mass in keV */
@@ -15,5 +17,7 @@ const double ALPHA = 0.0072973525664; /**< the fine-structure constant */
 const double EULER_MASCHERONI_CONSTANT = 0.577215664901532;  /**< the Euler-Mascheroni constant */
 
 #define sqr(x) ((x) * (x))
+
+}
 
 #endif  // CONSTANTS_H

@@ -2,7 +2,7 @@
 #include <string>
 
 #include "NuclearStructureManager.h"
-#include "NMEOptions.h"
+#include "NMEOptionContainer.h"
 
 #include "boost/algorithm/string.hpp"
 
@@ -10,10 +10,10 @@ using std::cout;
 using std::endl;
 
 int main(int argc, char** argv) {
-  NMEOptions::GetInstance(argc, argv);
+  nme::NMEOptionContainer::GetInstance(argc, argv);
 
   if (NMEOptExists(input)) {
-    NuclearStructure::NuclearStructureManager* nsm = new NuclearStructure::NuclearStructureManager();
+    nme::NuclearStructure::NuclearStructureManager* nsm = new nme::NuclearStructure::NuclearStructureManager();
     if (NMEOptExists(weakmagnetism)) {
       cout << "b/Ac: " << nsm->CalculateWeakMagnetism() << endl;
     }

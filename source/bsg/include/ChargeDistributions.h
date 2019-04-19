@@ -11,10 +11,11 @@
 #include "TF1.h"
 #include "TGraph.h"
 
+namespace bsg {
 /**
- * Namespace containing all kinds of utility functions related to 
+ * Namespace containing all kinds of utility functions related to
  * charge distributions, typically those with harmonic oscillator
- * functions 
+ * functions
 */
 namespace ChargeDistributions {
 
@@ -38,7 +39,7 @@ inline double GetRMSHO(int n, int l, double nu) {
 /**
  * Get the general radial matrix element for a harmonic oscillator function.
  * @f[\langle n_fl_l | r^L | n_il_i \rangle @f]
- * 
+ *
  * @param nf the main radial quantum number of the final state
  * @param lf the orbital quantum number of the final state
  * @param exponent of the radial matrix element
@@ -73,7 +74,7 @@ inline double GetRadialMEHO(int nf, int lf, int L, int ni, int li, double nu) {
 /**
  * Gives the value of a harmonic oscillator function at radius r,
  * defined as the generalized Laguerre polynomial
- * 
+ *
  * @param n the main radial quantum number of the final state
  * @param l the orbital quantum number
  * @param nu the length scale of the harmonic oscillator function
@@ -96,7 +97,7 @@ inline double RadialHO(int n, int l, double nu, double r) {
 /**
  * Calculate the ratio of long over short edge of an ellipse
  * based on the nuclear quadrupole deformation
- * 
+ *
  * @param beta the nuclear quadrupole deformation parameter
  * @returns the ratio of the long and short edge of the ellipsoid
  */
@@ -115,8 +116,8 @@ struct RadialParams {
 };
 
 /**
- * 
- * 
+ *
+ *
  * @param r the radius
  * @param p void pointer to a RadialParams struct
  * @returns the value of r^2 weighted with both HO functions
@@ -137,8 +138,8 @@ inline double RadialHORMS(double r, void* p) {
 }
 
 /**
- * 
- * 
+ *
+ *
  * @param r the radius
  * @param p void pointer to a RadialParams struct
  * @returns the absolute value of the radial overlap between two HO states
@@ -156,9 +157,9 @@ inline double RadialHONorm(double r, void* p) {
   return abs(RadialHO(n1, l1, nu1, r) * RadialHO(n2, l2, nu2, r));
 }
 
-/** 
+/**
  * Calculated the `weak' RMS value of two harmonic oscillator states.
- * 
+ *
  * @param nu1 length scale of the first HO function
  * @param n1 principal quantum number of the first HO state
  * @param l1 orbital quantum number of the first HO state
@@ -212,10 +213,10 @@ inline double WeakIntegratedRMS(double nu1, int n1, int l1, double nu2, int n2,
 /**
  * Calculate the length scale nu of a HO state using the nuclear RMS radius and its Z value
  * by looking at the occupation numbers in a spherical harmonic oscillator way through jj-coupling
- * 
+ *
  * @param rms the RMS nuclear radius
  * @param Z the proton number of the nucleus
- * @return the appropriate nu value 
+ * @return the appropriate nu value
  */
 inline double CalcNu(double rms, int Z) {
   std::vector<int> occNumbers = utilities::GetOccupationNumbers(Z);
@@ -229,7 +230,7 @@ inline double CalcNu(double rms, int Z) {
 
 /**
  * Calculate the length scale nu of the HO states assuming neutrons and protons both to contribute.
- * 
+ *
  * @param rms the RMS nuclear radius
  * @param Z the proton number of the nucleus
  * @returns the appropriate nu value
@@ -251,7 +252,7 @@ inline double CalcChargeIndepNu(double rms, int Z, int N) {
 
 /**
  * Calculate the nuclear charge density based on harmonic oscillator states
- * 
+ *
  * @param r the radius
  * @param rms the nuclear RMS radius
  * @param Z the proton number of the nucleus
@@ -277,7 +278,7 @@ inline double ChargeHO(double r, double rms, int Z, bool normalised) {
 
 /**
  * Calculate the nuclear charge density based on a modified gaussian distribution
- * 
+ *
  * @param r the radius
  * @param A the parameter of the modified gaussian distribution
  * @param R the nuclear radius
@@ -291,7 +292,7 @@ inline double ChargeMG(double r, double A, double R) {
 
 /**
  * Wrapper function around the Harmonic Oscillator charge density functions used by the ROOT fitter
- * 
+ *
  * @param x array of radii
  * @param par vector object containing all other information required by the function
  * @returns the nuclear charge density at radius x[0]
@@ -306,7 +307,7 @@ inline Double_t ChargeHO_f(Double_t x[], Double_t par[]) {
 
 /**
  * Wrapper function around the Modified Gaussian charge density functions used by the ROOT fitter
- * 
+ *
  * @param x array of radii
  * @param par vector object containing all other information required by the function
  * @returns the nuclear charge density at x[0]
@@ -321,7 +322,7 @@ inline Double_t ChargeMG_f(Double_t x[], Double_t par[]) {
 
 /**
  * Calculate the angle-averaged charge density distribution for a quadrupole deformed nucleus
- * 
+ *
  * @param r the radius
  * @param a the short radius in the ellipsoid
  * @param b the long radius in the ellipsoid
@@ -341,7 +342,7 @@ inline double DeformedChargeDist(double r, double a, double b) {
 /**
  * Calculate the derivative of the angle-averaged charge density distribution for a quadrupole
  * deformed nucleus
- * 
+ *
  * @param r the radius
  * @param a the short radius in the ellipsoid
  * @param b the long radius in the ellipsoid
@@ -361,7 +362,7 @@ inline double GetDerivDeformedChargeDist(double r, double a, double b) {
 /**
  * Fit the charge distribution as constructed using Harmonic Oscillator functions
  * to a Modified Gaussian distribution using ROOT.
- * 
+ *
  * @param Z the proton number of the nucleus
  * @param rms the nuclear RMS radius
  * @returns the fitted A parameter of the Modified Gaussian density
@@ -398,6 +399,7 @@ inline double FitHODist(int Z, double rms) {
   //delete funcHO;
   //delete histHO;
   return A;
+}
 }
 }
 #endif

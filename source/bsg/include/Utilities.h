@@ -17,6 +17,8 @@
 #include "gsl/gsl_blas.h"
 #include "gsl/gsl_multifit_nlin.h"
 
+namespace bsg {
+
 namespace utilities {
 
 using std::cout;
@@ -52,7 +54,7 @@ static const char spectroNames[7] = {'s', 'p', 'd', 'f', 'g', 'h', 'i'};
 
 /**
  * Calculate the factorial n!
- * 
+ *
  * @param n integer
  */
 inline int Factorial(int n) {
@@ -65,7 +67,7 @@ inline int Factorial(int n) {
 
 /**
  * Double factorial function n!!
- * 
+ *
  * @param n integer
  */
 inline int DoubleFactorial(int n) {
@@ -78,7 +80,7 @@ inline int DoubleFactorial(int n) {
 
 /**
  * Calculate the Clebsch-Gordan coefficient
- * 
+ *
  * @param two_ja double of first spin
  * @param two_jb double of second spin
  * @param two_jc double of resultant spin
@@ -106,7 +108,7 @@ inline double ClebschGordan(int two_ja, int two_jb, int two_jc, int two_ma,
 /**
  * Calculate the matrix element of a spherical harmonic
  * @f[\langle J_f M_f | Y^M_L | J_i M_i \rangle @f]
- * 
+ *
  * @param lP final spin
  * @param laP z-projection of the final spin
  * @param l rank of spherical tensor of the operator
@@ -130,7 +132,7 @@ inline double SphericalHarmonicME(int lP, int laP, int l, int m, int ll,
 
 /**
  * Calculate the occupation numbers of the shell model orbitals assuming the jj-coupling scheme
- * 
+ *
  * @param N number of nucleons
  */
 inline std::vector<int> GetOccupationNumbers(int N) {
@@ -167,7 +169,7 @@ class Lagrange {
 
 /**
  * Perform Simpson integration
- * 
+ *
  * @param x array of x values
  * @param y array of y values
  * @param size size of the arrays
@@ -187,20 +189,22 @@ inline double Simpson(double x[], double y[], int size) {
 
 inline double Simpson(std::vector<std::vector<double> > values) {
   double result = 0.;
-  for (int i = 0; i < values.size()-2; i += 2) {
-    double xN[] = {values[i][0], values[i+1][0], values[i+2][0]};
-    double yN[] = {values[i][1], values[i+1][1], values[i+2][1]};
-    double h = (xN[2] - xN[0]) / 2.;
-    Lagrange* l = new Lagrange(xN, yN);
-    result += 1. / 3. * h * (values[i][1] + 4. * l->GetValue(xN[0] + h) + values[i + 2][1]);
-    if (result != result) result = 0.;
+  if (values.size() > 2) {
+    for (int i = 0; i < values.size()-2; i += 2) {
+      double xN[] = {values[i][0], values[i+1][0], values[i+2][0]};
+      double yN[] = {values[i][1], values[i+1][1], values[i+2][1]};
+      double h = (xN[2] - xN[0]) / 2.;
+      Lagrange* l = new Lagrange(xN, yN);
+      result += 1. / 3. * h * (values[i][1] + 4. * l->GetValue(xN[0] + h) + values[i + 2][1]);
+      if (result != result) result = 0.;
+    }
   }
   return result;
 }
 
 /**
  * Perform trapezoid integration
- * 
+ *
  * @param x array of x values
  * @param y array of y values
  * @param array size
@@ -213,5 +217,7 @@ inline double Trapezoid(double x[], double y[], int size) {
   }
   return result;
 }
+}
+
 }
 #endif
