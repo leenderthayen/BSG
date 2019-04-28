@@ -36,8 +36,9 @@ class NMEOptionContainer {
   /**
    * Single Constructor
    */
-  static NMEOptionContainer& GetInstance(int argc = 0, char** argv = NULL, bool fromBSG = false) {
-    static NMEOptionContainer instance(argc, argv, fromBSG);
+  static NMEOptionContainer& GetInstance(int argc = 0, char** argv = NULL,
+  bool parseCmdLine = true, std::string configName = "", std::string inputName = "") {
+    static NMEOptionContainer instance(argc, argv, parseCmdLine, configName, inputName);
     return instance;
   }
   /**
@@ -48,7 +49,12 @@ class NMEOptionContainer {
    */
   template <typename T>
   T GetNMEOption(std::string name) {
-    return vm[name].as<T>();
+    try {
+      return vm[name].as<T>();
+    } catch (boost::bad_any_cast& e) {
+      std::cerr << "ERROR: Option \"" << name << "\" not defined. " << std::endl;
+      throw e;
+    }
   }
   /**
    * Check whether an options was given
@@ -77,7 +83,7 @@ class NMEOptionContainer {
   static po::options_description configOptions;
   static po::options_description envOptions;
   static po::options_description transitionOptions;
-  NMEOptionContainer(int, char**, bool fromBSG=false);
+  NMEOptionContainer(int, char**, bool, std::string, std::string);
   NMEOptionContainer(NMEOptionContainer const& copy);
   NMEOptionContainer& operator=(NMEOptionContainer const& copy);
 };

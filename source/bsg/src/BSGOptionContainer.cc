@@ -15,7 +15,8 @@ po::options_description bsg::BSGOptionContainer::transitionOptions(
     "Transition information");
 po::variables_map bsg::BSGOptionContainer::vm;
 
-bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
+bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv, bool parseCmdLine,
+std::string configName, std::string inputName) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
@@ -71,19 +72,6 @@ bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
       "Set the excitation energy of the mother nucleus in MeV")(
       "Daughter.ExcitationEnergy", po::value<double>()->default_value(0.),
       "Set the excitation energy of the daughter nucleus in MeV");
-
-  std::string configName = "config.txt";
-  std::string inputName = "";
-  genericOptions.add_options()("help,h", "Produce help message")(
-      "config,c", po::value<std::string>(&configName),
-      "Change the configuration file.")(
-      "exchangedata,e",
-      po::value<std::string>()->default_value("ExchangeData.dat"),
-      "Set the location of the atomic exchange parameters file.")(
-      "input,i", po::value<std::string>(&inputName),
-      "Specify input file containing transition and nuclear data")(
-      "output,o", po::value<std::string>()->default_value("output"),
-      "Specify the output file name.");
 
   spectrumOptions.add_options()("Spectrum.Fermi,f",
                                 po::value<bool>()->default_value(true),
@@ -158,23 +146,47 @@ bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
       "Constants.gP", po::value<double>()->default_value(0.),
       "Specify the induced pseudoscalar coupling constant, gP");
 
-  /** Parse command line options
-   * Included: generic options & spectrum shape options
-   */
-  po::options_description cmdOptions;
-  cmdOptions.add(genericOptions).add(configOptions);
-  po::store(po::command_line_parser(argc, argv)
-                .options(cmdOptions)
-                .allow_unregistered()
-                .run(),
-            vm);
-  po::notify(vm);
+  if (parseCmdLine) {
+    configName = "config.txt";
+    genericOptions.add_options()("help,h", "Produce help message")(
+        "config,c", po::value<std::string>(&configName),
+        "Change the configuration file.")(
+        "exchangedata,e",
+        po::value<std::string>()->default_value("ExchangeData.dat"),
+        "Set the location of the atomic exchange parameters file.")(
+        "input,i", po::value<std::string>(&inputName),
+        "Specify input file containing transition and nuclear data")(
+        "output,o", po::value<std::string>()->default_value("output"),
+        "Specify the output file name.");
+
+    /** Parse command line options
+     * Included: generic options & spectrum shape options
+     */
+    po::options_description cmdOptions;
+    cmdOptions.add(genericOptions).add(configOptions);
+    po::store(po::command_line_parser(argc, argv)
+                  .options(cmdOptions)
+                  .allow_unregistered()
+                  .run(),
+              vm);
+    po::notify(vm);
+  }
 
   if (vm.count("help")) {
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
+    cout << "BSG Library options" << endl;
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
+    if (parseCmdLine) {
+      cout << genericOptions << endl;
+      cout << "\n\n**************************************************************"
+              "*\n\n" << endl;
+    }
     cout << transitionOptions << endl;
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
-    cout << cmdOptions << endl;
+    cout << configOptions << endl;
   } else {
     /** Parse configuration file
      * Included: configOptions & spectrumOptions
@@ -196,5 +208,5 @@ bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
     po::notify(vm);
   }
 
-  nme::NMEOptionContainer::GetInstance(argc, argv, true);
+  nme::NMEOptionContainer::GetInstance(argc, argv);
 }

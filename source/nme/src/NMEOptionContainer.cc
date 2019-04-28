@@ -10,7 +10,8 @@ po::options_description nme::NMEOptionContainer::transitionOptions("Transition i
 po::options_description nme::NMEOptionContainer::envOptions("Environment options");
 po::variables_map nme::NMEOptionContainer::vm;
 
-nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv, bool fromBSG) {
+nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv, bool parseCmdLine,
+std::string configName, std::string inputName) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
@@ -62,20 +63,6 @@ nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv, bool fromBSG)
                        "Set the spin of the transforming nucleon when "
                        "Computational.ForceSpin is turned on.");
 
-  std::string configName = "config.txt";
-  std::string inputName = "test.ini";
-  genericOptions.add_options()("help,h", "Produce help message")(
-      "config,c", po::value<std::string>(&configName),
-      "Change the configuration file.")(
-      "input,i", po::value<std::string>(&inputName),
-      "Specify input file containing transition and nuclear data")(
-      "output,o", po::value<std::string>()->default_value("output"),
-      "Specify the output file name.")(
-      "weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")(
-      "inducedtensor,d", "Calculate the induced tensor form factor d/Ac")(
-      "matrixelement,M", po::value<std::string>(),
-      "Calculate the matrix element ^XM_{yyy} written as Xyyy");
-
   configOptions.add_options()(
       "Computational.Method", po::value<std::string>()->default_value("ESP"),
       "Set the method to use when calculating matrix elements. "
@@ -119,26 +106,45 @@ nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv, bool fromBSG)
       "Constants.gM", po::value<double>()->default_value(4.706),
       "Set the weak magnetism coupling constant.");
 
-  po::options_description cmdOptions;
-  cmdOptions.add(genericOptions).add(configOptions);
-  po::store(po::command_line_parser(argc, argv)
-                .options(cmdOptions)
-                .allow_unregistered()
-                .run(),
-            vm);
-  // po::store(po::parse_command_line(argc, argv, genericOptions), vm);
-  po::notify(vm);
+  if (parseCmdLine) {
+    std::string configName = "config.txt";
+    std::string inputName = "test.ini";
+    genericOptions.add_options()("help,h", "Produce help message")(
+        "config,c", po::value<std::string>(&configName),
+        "Change the configuration file.")(
+        "input,i", po::value<std::string>(&inputName),
+        "Specify input file containing transition and nuclear data")(
+        "output,o", po::value<std::string>()->default_value("output"),
+        "Specify the output file name.")(
+        "weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")(
+        "inducedtensor,d", "Calculate the induced tensor form factor d/Ac")(
+        "matrixelement,M", po::value<std::string>(),
+        "Calculate the matrix element ^XM_{yyy} written as Xyyy");
+
+    po::options_description cmdOptions;
+    cmdOptions.add(genericOptions).add(configOptions);
+    po::store(po::command_line_parser(argc, argv)
+                  .options(cmdOptions)
+                  .allow_unregistered()
+                  .run(),
+              vm);
+    // po::store(po::parse_command_line(argc, argv, genericOptions), vm);
+    po::notify(vm);
+  }
 
   if (vm.count("help")) {
-    if (fromBSG) {
-      cout << configOptions << endl;
-    } else {
-      cout << transitionOptions << endl;
-      cout << "\n\n**************************************************************"
-              "*\n\n" << endl;
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
+    cout << "NME Library options" << endl;
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
+    if (parseCmdLine) {
       cout << genericOptions << endl;
-      cout << configOptions << endl;
     }
+    cout << transitionOptions << endl;
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
+    cout << configOptions << endl;
   } else {
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {

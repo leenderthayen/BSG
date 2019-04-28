@@ -1,6 +1,6 @@
 /docs/build/
 /docs/doxygen/*/
 *.sh
-/build
+/build*
 *.pyc
 *.swp
