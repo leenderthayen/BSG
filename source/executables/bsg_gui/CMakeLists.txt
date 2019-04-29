@@ -1,3 +1,5 @@
+option(BSG_GUI_INSTALL_PREREQUISITES "Install required python packages for bsg gui. May require sudo privileges." OFF)
+
 find_program(PYTHON "python")
 
 if (PYTHON)
@@ -8,17 +10,24 @@ if (PYTHON)
 
     configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
-    #add_custom_command(OUTPUT ${OUTPUT}
-    #                   COMMAND ${PYTHON} -m pip install -r ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
-    #                   COMMAND ${PYTHON} ${SETUP_PY} build
-    #                   COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-    #                   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui ${PROJECT_BINARY_DIR}/bin/bsg_gui/
-    #                   DEPENDS ${DEPS})
+    if(BSG_GUI_INSTALL_PREREQUISITES)
+      add_custom_command(OUTPUT ${OUTPUT}
+                        COMMAND ${PYTHON} -m pip install -r ${CMAKE_CURRENT_SOURCE_DIR}/requirements.txt
+                        COMMAND ${PYTHON} ${SETUP_PY} build
+                        COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
+                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui ${PROJECT_BINARY_DIR}/bin/bsg_gui/
+                        DEPENDS ${DEPS})
 
-    #add_custom_target(bsg_gui ALL DEPENDS ${OUTPUT})
+      add_custom_target(bsg_gui ALL DEPENDS ${OUTPUT})
+    else()
+      add_custom_command(OUTPUT ${OUTPUT}
+                        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui ${PROJECT_BINARY_DIR}/bin/bsg_gui/
+                        DEPENDS ${DEPS})
 
-    # Uncomment if you want to actually install it as a python package
-    #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
+      add_custom_target(bsg_gui ALL DEPENDS ${OUTPUT})
+      #Uncomment if you want to actually install it as a python package
+      #install(CODE "execute_process(COMMAND ${PYTHON} ${SETUP_PY} install)")
+    endif()
 
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui DESTINATION bin)
 endif()
