@@ -1,9 +1,10 @@
 # Compute installation prefix relative to this file
 get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-get_filename_component(_prefix "${dir}/../.." ABSOLUTE)
+get_filename_component(_prefix "${_dir}/.." ABSOLUTE)
 
 # Import the targets
-include("${_prefix}/lib/bsg/bsg-targets.cmake")
+include("${_prefix}/lib/bsg-targets.cmake")
 
 # Report other information
-set(bsg_INCLUDE_DIRS "${_prefix}/include/bsg" "${_prefix}/include/nme")
+set(BSG_INCLUDE_DIRS "${_prefix}/include")
+set(BSG_LIBRARIES "${_prefix}/lib/libbsg" "${_prefix}/lib/libnme")

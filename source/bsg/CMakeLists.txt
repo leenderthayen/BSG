@@ -17,7 +17,7 @@ add_custom_command(TARGET bsg_static
 
 install(TARGETS bsg bsg_static EXPORT bsg-targets
 	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib/bsg
-	ARCHIVE DESTINATION lib/bsg)
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib)
 
 install(FILES ${bsg_headers} DESTINATION include)

@@ -16,7 +16,7 @@ add_custom_command(TARGET nme_static
 
 install(TARGETS nme nme_static EXPORT bsg-targets
 RUNTIME DESTINATION bin
-LIBRARY DESTINATION lib/nme
-ARCHIVE DESTINATION lib/nme)
+LIBRARY DESTINATION lib
+ARCHIVE DESTINATION lib)
 
 install(FILES ${nme_headers} DESTINATION include)

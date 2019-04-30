@@ -33,16 +33,16 @@ add_subdirectory(source)
 include(BSGInstallData)
 
 # Install the targets file
-install(EXPORT bsg-targets DESTINATION lib/bsg)
+install(EXPORT bsg-targets DESTINATION lib)
 # TODO Make the project usable from the build-tree by creating a file explicitly
-export(TARGETS bsg nme bsg_exec nme_exec FILE bsg-exports.cmake)
+export(TARGETS bsg nme bsg_static nme_static bsg_exec nme_exec FILE bsg-exports.cmake)
 #configure_file(${PROJECT_SOURCE_DIR}/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/bsg-config.cmake @ONLY)
 
 # Make files for finding the package later using find_package in the install tree
 configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/config/bsg-config.cmake @ONLY)
 configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/bsg-config-version.cmake.in ${PROJECT_BINARY_DIR}/config/bsg-config-version.cmake @ONLY)
 install(FILES ${PROJECT_BINARY_DIR}/config/bsg-config.cmake ${PROJECT_BINARY_DIR}/config/bsg-config-version.cmake
-DESTINATION lib/bsg)
+DESTINATION lib)
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION data)
 
