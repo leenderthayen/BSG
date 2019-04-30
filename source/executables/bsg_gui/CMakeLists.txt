@@ -20,6 +20,9 @@ if (PYTHON)
 
       add_custom_target(bsg_gui ALL DEPENDS ${OUTPUT})
     else()
+      message("You have not configured the installation of the python prerequisites.
+      If you will do this manually, please ignore this message. Otherwise, use the
+      -DBSG_GUI_INSTALL_PREREQUISITES option.")
       add_custom_command(OUTPUT ${OUTPUT}
                         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/bsg_gui ${PROJECT_BINARY_DIR}/bin/bsg_gui/
                         DEPENDS ${DEPS})

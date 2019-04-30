@@ -1,6 +1,10 @@
 #include "NMEOptionContainer.h"
 #include <iostream>
 
+#include "spdlog/spdlog.h"
+
+#include "NMEConfig.h"
+
 using std::cout;
 using std::endl;
 
@@ -107,8 +111,8 @@ std::string configName, std::string inputName) {
       "Set the weak magnetism coupling constant.");
 
   if (parseCmdLine) {
-    std::string configName = "config.txt";
-    std::string inputName = "test.ini";
+    configName = "config.txt";
+    inputName = "";
     genericOptions.add_options()("help,h", "Produce help message")(
         "config,c", po::value<std::string>(&configName),
         "Change the configuration file.")(
@@ -119,7 +123,8 @@ std::string configName, std::string inputName) {
         "weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")(
         "inducedtensor,d", "Calculate the induced tensor form factor d/Ac")(
         "matrixelement,M", po::value<std::string>(),
-        "Calculate the matrix element ^XM_{yyy} written as Xyyy");
+        "Calculate the matrix element ^XM_{yyy} written as Xyyy")(
+        "version", "Show the current version");
 
     po::options_description cmdOptions;
     cmdOptions.add(genericOptions).add(configOptions);
@@ -130,6 +135,12 @@ std::string configName, std::string inputName) {
               vm);
     // po::store(po::parse_command_line(argc, argv, genericOptions), vm);
     po::notify(vm);
+  }
+  if (vm.count("version")) {
+    cout << "***********************************" << endl;
+    cout << "NME version " << NME_VERSION << endl;
+    cout << "Last update: " << NME_LAST_UPDATE << endl;
+    cout << "***********************************\n" << endl;
   }
 
   if (vm.count("help")) {
@@ -148,15 +159,13 @@ std::string configName, std::string inputName) {
   } else {
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
-      std::cout << "WARNING: " << configName << " cannot be found.\n\n"
-                << std::endl;
+      spdlog::warn("NME: Configuration file \"{}\" cannot be found.", configName);
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);
     }
     std::ifstream inputStream(inputName.c_str());
     if (!inputStream.is_open()) {
-      std::cerr << "ERROR: " << inputName << " cannot be found.\n\n"
-                << std::endl;
+      spdlog::error("NME: Input file \"{}\" cannot be found.", inputName);
     } else {
       po::store(po::parse_config_file(inputStream, transitionOptions, true),
                 vm);

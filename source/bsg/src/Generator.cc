@@ -1,4 +1,6 @@
 #include "Generator.h"
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 #include "BSGOptionContainer.h"
 #include "ChargeDistributions.h"
@@ -58,27 +60,27 @@ void bsg::Generator::InitializeLoggers() {
 
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
-    debugFileLogger = spdlog::basic_logger_st("debug_file", outputName + ".log");
+    debugFileLogger = spdlog::basic_logger_mt("debug_file", outputName + ".log");
     debugFileLogger->set_level(spdlog::level::debug);
   }
   debugFileLogger->debug("Debugging logger created");
   consoleLogger = spdlog::get("console");
   if (!consoleLogger) {
-    consoleLogger = spdlog::stdout_color_st("console");
+    consoleLogger = spdlog::stdout_color_mt("console");
     consoleLogger->set_pattern("%v");
     consoleLogger->set_level(spdlog::level::warn);
   }
   debugFileLogger->debug("Console logger created");
   rawSpectrumLogger = spdlog::get("BSG_raw");
   if (!rawSpectrumLogger) {
-    rawSpectrumLogger = spdlog::basic_logger_st("BSG_raw", outputName + ".raw");
+    rawSpectrumLogger = spdlog::basic_logger_mt("BSG_raw", outputName + ".raw");
     rawSpectrumLogger->set_pattern("%v");
     rawSpectrumLogger->set_level(spdlog::level::info);
   }
   debugFileLogger->debug("Raw spectrum logger created");
   resultsFileLogger = spdlog::get("BSG_results_file");
   if (!resultsFileLogger) {
-    resultsFileLogger = spdlog::basic_logger_st("BSG_results_file", outputName + ".txt");
+    resultsFileLogger = spdlog::basic_logger_mt("BSG_results_file", outputName + ".txt");
     resultsFileLogger->set_pattern("%v");
     resultsFileLogger->set_level(spdlog::level::info);
   }
@@ -151,7 +153,7 @@ void bsg::Generator::InitializeConstants() {
 
 void bsg::Generator::InitializeShapeParameters() {
   debugFileLogger->debug("Entered InitializeShapeParameters");
-  if (!OptExists(Spectrum.ModGaussFit)) {
+  if (!BSGOptExists(Spectrum.ModGaussFit)) {
     hoFit = CD::FitHODist(Z, R * std::sqrt(3. / 5.));
   } else {
     hoFit = GetBSGOpt(double, Spectrum.ModGaussFit);
@@ -172,11 +174,11 @@ void bsg::Generator::InitializeShapeParameters() {
     vNew[1] = -4./3./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 3./2.);
     vNew[2] = (2.-7.*hoFit)/5./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 5./3.);
   } else {
-    if (OptExists(Spectrum.vold) && OptExists(Spectrum.vnew)) {
+    if (BSGOptExists(Spectrum.vold) && BSGOptExists(Spectrum.vnew)) {
       debugFileLogger->debug("Found v and v'");
       vOld = GetBSGOpt(std::vector<double>, Spectrum.vold);
       vNew = GetBSGOpt(std::vector<double>, Spectrum.vnew);
-    } else if (OptExists(vold) || OptExists(vnew)) {
+    } else if (BSGOptExists(vold) || BSGOptExists(vnew)) {
       consoleLogger->error("ERROR: Both old and new potential expansions must be given.");
     }
   }
@@ -320,7 +322,7 @@ void bsg::Generator::InitializeL0Constants() {
 void bsg::Generator::InitializeNSMInfo() {
   nsm = new NS::NuclearStructureManager();
 
-  if (OptExists(connect)) {
+  if (BSGOptExists(connect)) {
     int dKi, dKf;
     nsm->GetESPStates(spsi, spsf, dKi, dKf);
   }
@@ -331,7 +333,7 @@ void bsg::Generator::InitializeNSMInfo() {
 void bsg::Generator::GetMatrixElements() {
   debugFileLogger->info("Calculating matrix elements");
   double M101 = 1.0;
-  if (!OptExists(Spectrum.Lambda)) {
+  if (!BSGOptExists(Spectrum.Lambda)) {
     M101 = nsm->CalculateReducedMatrixElement(false, 1, 0, 1);
     double M121 = nsm->CalculateReducedMatrixElement(false, 1, 2, 1);
     ratioM121 = M121 / M101;
@@ -340,13 +342,13 @@ void bsg::Generator::GetMatrixElements() {
   }
 
   bAc = dAc = 0;
-  if (!OptExists(Spectrum.WeakMagnetism)) {
+  if (!BSGOptExists(Spectrum.WeakMagnetism)) {
     debugFileLogger->info("Calculating Weak Magnetism");
     bAc = nsm->CalculateWeakMagnetism();
   } else {
     bAc = GetBSGOpt(double, Spectrum.WeakMagnetism);
   }
-  if (!OptExists(Spectrum.InducedTensor)) {
+  if (!BSGOptExists(Spectrum.InducedTensor)) {
     debugFileLogger->info("Calculating Induced Tensor");
     dAc = nsm->CalculateInducedTensor();
   } else {
@@ -405,7 +407,7 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "F microseconds since start: " << elapsed.count() << "\n";
   if (GetBSGOpt(bool, Spectrum.C)) {
-    if (OptExists(connect)) {
+    if (BSGOptExists(connect)) {
       result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
                                 gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit, spsi, spsf);
       neutrinoResult *=
@@ -510,7 +512,7 @@ std::vector<std::vector<double> > bsg::Generator::CalculateSpectrum() {
   }
 
   double stepW = GetBSGOpt(double, Spectrum.StepSize) / ELECTRON_MASS_KEV;
-  if (OptExists(Spectrum.Steps)) {
+  if (BSGOptExists(Spectrum.Steps)) {
     stepW = (endW-beginW)/GetBSGOpt(int, Spectrum.Steps);
   }
 
@@ -567,16 +569,16 @@ void bsg::Generator::PrepareOutputFile() {
   // double kappa = 6147.; // The combination of constants for the ft value in s
   // double ftTheory = std::log10(kappa/BGT);
   // l->info("");
-  if (OptExists(Transition.PartialHalflife)) {
+  if (BSGOptExists(Transition.PartialHalflife)) {
     l->info("Partial halflife: {} s", GetBSGOpt(double, Transition.PartialHalflife));
     l->info("Calculated log ft value: {}", CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife)));
   } else {
     l->info("Partial halflife: not given");
     l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
   }
-  if (OptExists(Transition.LogFt)) {
+  if (BSGOptExists(Transition.LogFt)) {
     l->info("External Log ft: {:.3f}", GetBSGOpt(double, Transition.LogFt));
-    if (OptExists(Transition.PartialHalflife)) {
+    if (BSGOptExists(Transition.PartialHalflife)) {
       l->info("Ratio of calculated/external ft value: {}", std::pow(10.,
         CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife))
          - GetBSGOpt(double, Transition.LogFt)));
@@ -584,11 +586,11 @@ void bsg::Generator::PrepareOutputFile() {
   }
   l->info("Mean energy: {} keV", (CalculateMeanEnergy()-1.)*ELECTRON_MASS_KEV);
   l->info("\nMatrix Element Summary\n{:->30}", "");
-  if (OptExists(Spectrum.WeakMagnetism)) l->info("{:35}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
+  if (BSGOptExists(Spectrum.WeakMagnetism)) l->info("{:35}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
   else l->info("{:35}: {}", "b/Ac (weak magnetism)", bAc);
-  if (OptExists(Spectrum.Inducedtensor)) l->info("{:35}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
+  if (BSGOptExists(Spectrum.Inducedtensor)) l->info("{:35}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
   else l->info("{:35}: {}", "d/Ac (induced tensor)", dAc);
-  if (OptExists(Spectrum.Lambda)) l->info("{:35}: {} ({})", "AM121/AM101", ratioM121, "given");
+  if (BSGOptExists(Spectrum.Lambda)) l->info("{:35}: {} ({})", "AM121/AM101", ratioM121, "given");
   else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
   l->info("Full breakfown written in {}.nme", GetBSGOpt(std::string, output));
@@ -605,7 +607,7 @@ void bsg::Generator::PrepareOutputFile() {
   l->info("{:25}: {}", "Deformation", GetBSGOpt(bool, Spectrum.ESDeformation));
   l->info("{:25}: {}", "U correction", GetBSGOpt(bool, Spectrum.U));
   l->info("    ES Shape: {}", GetBSGOpt(std::string, Spectrum.ESShape));
-  if (OptExists(Spectrum.vold) && OptExists(Spectrum.vnew)) {
+  if (BSGOptExists(Spectrum.vold) && BSGOptExists(Spectrum.vnew)) {
     l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
     l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);
   } else {

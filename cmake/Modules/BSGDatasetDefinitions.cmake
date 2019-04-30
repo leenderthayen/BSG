@@ -4,8 +4,8 @@
 # - ENSDF_099
 bsg_add_dataset(
   NAME      ENSDF_099
-  VERSION   SEPT2018
-  URL       https://www.nndc.bnl.gov/ensarchivals/distributions/dist18/ensdf_180901_099.zip
+  VERSION   JAN2019
+  URL       https://www.nndc.bnl.gov/ensarchivals/distributions/dist19/ensdf_190101_099.zip
   ENVVAR    ENSDF
   NO_EXTRACT   FALSE
   )
@@ -13,8 +13,8 @@ bsg_add_dataset(
 # - ENSDF_199
 bsg_add_dataset(
   NAME      ENSDF_199
-  VERSION   SEPT2018
-  URL       https://www.nndc.bnl.gov/ensarchivals/distributions/dist18/ensdf_180901_199.zip
+  VERSION   JAN2019
+  URL       https://www.nndc.bnl.gov/ensarchivals/distributions/dist19/ensdf_190101_199.zip
   ENVVAR    ENSDF
   NO_EXTRACT   FALSE
   )
@@ -22,8 +22,8 @@ bsg_add_dataset(
 # - ENSDF_299
 bsg_add_dataset(
   NAME      ENSDF_299
-  VERSION   SEPT2018
-  URL       https://www.nndc.bnl.gov/ensarchivals/distributions/dist18/ensdf_180901_299.zip
+  VERSION   JAN2019
+  URL       https://www.nndc.bnl.gov/ensarchivals/distributions/dist19/ensdf_190101_299.zip
   ENVVAR    ENSDF
   NO_EXTRACT   FALSE
   )

@@ -20,7 +20,7 @@
  *
  * @param a variable name
  */
-#define OptExists(a) bsg::BSGOptionContainer::GetInstance().Exists(#a)
+#define BSGOptExists(a) bsg::BSGOptionContainer::GetInstance().Exists(#a)
 
 namespace bsg {
 

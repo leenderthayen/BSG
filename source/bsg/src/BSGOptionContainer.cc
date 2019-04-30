@@ -1,6 +1,9 @@
 #include "BSGOptionContainer.h"
 #include "NMEOptionContainer.h"
+#include "BSGConfig.h"
+
 #include "spdlog/spdlog.h"
+
 #include <iostream>
 
 using std::cout;
@@ -157,7 +160,8 @@ std::string configName, std::string inputName) {
         "input,i", po::value<std::string>(&inputName),
         "Specify input file containing transition and nuclear data")(
         "output,o", po::value<std::string>()->default_value("output"),
-        "Specify the output file name.");
+        "Specify the output file name.")(
+        "version", "Show the current version");
 
     /** Parse command line options
      * Included: generic options & spectrum shape options
@@ -170,6 +174,13 @@ std::string configName, std::string inputName) {
                   .run(),
               vm);
     po::notify(vm);
+  }
+
+  if (vm.count("version")) {
+    cout << "***********************************" << endl;
+    cout << "BSG version: " << BSG_VERSION << endl;
+    cout << "Last update: " << BSG_LAST_UPDATE << endl;
+    cout << "***********************************\n" << endl;
   }
 
   if (vm.count("help")) {
@@ -193,20 +204,18 @@ std::string configName, std::string inputName) {
      */
     std::ifstream configStream(configName.c_str());
     if (!configStream.is_open()) {
-      std::cout << "WARNING: " << configName << " cannot be found.\n\n"
-                << std::endl;
+      spdlog::warn("BSG: Configuration file \"{}\" cannot be found.", configName);
     } else {
       po::store(po::parse_config_file(configStream, configOptions, true), vm);
     }
     std::ifstream inputStream(inputName.c_str());
     if (!inputStream.is_open()) {
-      std::cerr << "ERROR: " << inputName << " cannot be found.\n\n"
-                << std::endl;
+      spdlog::error("BSG: Input file \"{}\" cannot be found.", inputName);
     } else {
       po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
     }
     po::notify(vm);
   }
 
-  nme::NMEOptionContainer::GetInstance(argc, argv);
+  nme::NMEOptionContainer::GetInstance(0, NULL, false, configName, inputName);
 }

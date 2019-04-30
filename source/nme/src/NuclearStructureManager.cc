@@ -5,6 +5,9 @@
 #include "NuclearUtilities.h"
 #include "ChargeDistributions.h"
 
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+
 #include "boost/algorithm/string.hpp"
 #include "gsl/gsl_sf_coupling.h"
 

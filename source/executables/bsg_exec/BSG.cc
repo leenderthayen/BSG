@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
   bsg::BSGOptionContainer::GetInstance(argc, argv);
 
-  if (OptExists(input)) {
+  if (BSGOptExists(input)) {
     bsg::Generator* gen = new bsg::Generator();
     gen->CalculateSpectrum();
     delete gen;
