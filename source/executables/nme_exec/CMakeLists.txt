@@ -1,6 +1,6 @@
 add_executable(nme_exec NME.cc)
 
-target_link_libraries(nme_exec nme)
+target_link_libraries(nme_exec nme ${GSL_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 add_custom_command(TARGET nme_exec
                    POST_BUILD

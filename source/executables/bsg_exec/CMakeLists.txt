@@ -1,6 +1,6 @@
 add_executable(bsg_exec BSG.cc)
 
-target_link_libraries(bsg_exec bsg)
+target_link_libraries(bsg_exec bsg ${GSL_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 add_custom_command(TARGET bsg_exec
                    POST_BUILD

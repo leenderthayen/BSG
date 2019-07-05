@@ -33,6 +33,23 @@ The code gives two possibilities for the calculation of these matrix elements:
 - The simple approach based on the extreme single-particle approximation
 - The more advanced method of loading in OBDME from many-body calculations
 
+Many-body input
+---------------
+
+The code is made ready to accept input from NuShellX@MSU (link_) calculations, specifically .obd files containing the reduced one body transition density matrix elements. This is done through the Transition.ROBTDFile option in the transition input file.
+
+.. _link: https://www.sciencedirect.com/science/article/pii/S0090375214004748
+
+The matrix element calculation then proceeds as normal, using the harmonic oscillator wave functions for which the reduced matrix elements can be computed. 
+
+If no obd file is provided, but a ROBTDFile is specified, it will attempt to read the file assuming a csv format following the template
+
+.. code-block:: bash
+
+   j_i, n_i, l_i, j_f, n_f, l_f, OBDME
+
+in a spherical harmonic oscillator basis.
+
 Extreme single-particle
 -----------------------
 
@@ -77,14 +94,3 @@ When activated, the state closest in energy to the originally proposed level wit
 Once the state is selected, matrix elements are calculated and output is written to a ``.nme`` file, containing information on the wave function composition of initial and final states and the calculation results. An example excerpt is given below
 
 .. literalinclude:: excerpt_output_31S.nme
-
-Many-body input
----------------
-
-While the extreme single-particle can achieve good results with minimal effort, given a good basis, it is oftentimes necessary to use results from nuclear many-body calculations such as the nuclear shell model. Currently, there is support for this by specifying the single-particle state :math:`\alpha` and :math:`\beta` defined above together with their OBMDE in a CSV file as follows
-
-.. code-block:: bash
-
-   j_i, n_i, l_i, j_f, n_f, l_f, OBDME
-
-in a spherical harmonic oscillator basis.

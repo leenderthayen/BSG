@@ -120,7 +120,7 @@ void NS::NuclearStructureManager::InitializeConstants() {
 }
 
 void NS::NuclearStructureManager::InitializeLoggers() {
-  std::string outputName = GetNMEOpt(std::string, output);
+  SetOutputName(GetNMEOpt(std::string, output));
 
   /**
    * Remove result & log files if they already exist
@@ -131,7 +131,7 @@ void NS::NuclearStructureManager::InitializeLoggers() {
   debugFileLogger = spdlog::get("debug_file");
   if (!debugFileLogger) {
     debugFileLogger = spdlog::basic_logger_st(
-        "debug_file", GetNMEOpt(std::string, output) + ".log");
+        "debug_file", outputName + ".log");
     debugFileLogger->set_level(spdlog::level::debug);
   }
   debugFileLogger->debug("Debugging logger found in NSM");
@@ -144,7 +144,7 @@ void NS::NuclearStructureManager::InitializeLoggers() {
   nmeResultsLogger = spdlog::get("nme_results_file");
   if (!nmeResultsLogger) {
     nmeResultsLogger = spdlog::basic_logger_st(
-        "nme_results_file", GetNMEOpt(std::string, output) + ".nme");
+        "nme_results_file", outputName + ".nme");
     nmeResultsLogger->set_level(spdlog::level::info);
     nmeResultsLogger->set_pattern("%v");
   }

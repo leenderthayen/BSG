@@ -111,11 +111,15 @@ class NuclearStructureManager {
 
   void GetESPStates(SingleParticleState&, SingleParticleState&, int&, int&);
 
+  inline void SetOutputName(std::string _output) { outputName = _output; };
+
  private:
   Nucleus mother, daughter;
   BetaType betaType;
   std::map<int, std::vector<ReducedOneBodyTransitionDensity> > reducedOneBodyTransitionDensities;
   std::string method, potential;
+
+  std::string outputName;
 
   std::shared_ptr<spdlog::logger> consoleLogger;
   std::shared_ptr<spdlog::logger> debugFileLogger;

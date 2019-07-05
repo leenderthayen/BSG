@@ -17,6 +17,8 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 find_package(Threads)
 
+message(STATUS "BOOST: I: ${Boost_INCLUDE_DIRS} L: ${Boost_LIBRARIES}")
+
 find_package(spdlog REQUIRED)
 include_directories(${spdlog_INCLUDE_DIRS})
 
@@ -28,7 +30,11 @@ include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/source/nme/include")
 include_directories("${PROJECT_SOURCE_DIR}/source/bsg/include")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+set(EXTRA_COMPILE_FLAGS "-g -std=c++11")
+set(EXTRA_LINKING_FLAGS "-lstdc++")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EXTRA_LINKING_FLAGS}")
 
 add_subdirectory(nme)
 add_subdirectory(bsg)

@@ -18,8 +18,7 @@ po::options_description bsg::BSGOptionContainer::transitionOptions(
     "Transition information");
 po::variables_map bsg::BSGOptionContainer::vm;
 
-bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv, bool parseCmdLine,
-std::string configName, std::string inputName) {
+bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
@@ -44,9 +43,9 @@ std::string configName, std::string inputName) {
       "Set the total number of nucleons of the daughter nucleus.")(
       "Mother.A", po::value<int>(),
       "Set the total number of nucleons of the mother nucleus.")(
-      "Daughter.Radius", po::value<double>(),
+      "Daughter.Radius", po::value<double>()->default_value(0.),
       "Set the nuclear radius of the daughter nucleus in fm.")(
-      "Mother.Radius", po::value<double>(),
+      "Mother.Radius", po::value<double>()->default_value(0.),
       "Set the nucleus radius of the mother nucleus in fm.")(
       "Mother.Beta2", po::value<double>()->default_value(0.),
       "Set the quadrupole deformation beta2 parameter for the mother nucleus.")(
@@ -133,7 +132,7 @@ std::string configName, std::string inputName) {
       "Set the first three coefficients of the radial power expansion of the "
       "new nuclear electrostatic potential")(
       "Spectrum.vold", po::value<std::vector<double> >()->multitoken(),
-      "Set the first three coefficients of the radial power expansion of the "
+      "Set the first three coefficients of the radialConfig power expansion of the "
       "old nuclear electrostatic potential")(
       "Spectrum.NSShape", po::value<std::string>()->default_value("ModGauss"),
       "Set the shape of the weak charge distribution used in the convolutional C correction.");
@@ -149,32 +148,21 @@ std::string configName, std::string inputName) {
       "Constants.gP", po::value<double>()->default_value(0.),
       "Specify the induced pseudoscalar coupling constant, gP");
 
-  if (parseCmdLine) {
-    configName = "config.txt";
-    genericOptions.add_options()("help,h", "Produce help message")(
-        "config,c", po::value<std::string>(&configName),
-        "Change the configuration file.")(
-        "exchangedata,e",
-        po::value<std::string>()->default_value("ExchangeData.dat"),
-        "Set the location of the atomic exchange parameters file.")(
-        "input,i", po::value<std::string>(&inputName),
-        "Specify input file containing transition and nuclear data")(
-        "output,o", po::value<std::string>()->default_value("output"),
-        "Specify the output file name.")(
-        "version", "Show the current version");
+  std::string configName = "";
+  std::string inputName = "";
+  genericOptions.add_options()("help,h", "Produce help message")(
+      "config,c", po::value<std::string>(&configName),
+      "Change the configuration file.")(
+      "exchangedata,e",
+      po::value<std::string>()->default_value("ExchangeData.dat"),
+      "Set the location of the atomic exchange parameters file.")(
+      "input,i", po::value<std::string>(&inputName),
+      "Specify input file containing transition and nuclear data")(
+      "output,o", po::value<std::string>()->default_value("output"),
+      "Specify the output file name.")(
+      "version", "Show the current version");
 
-    /** Parse command line options
-     * Included: generic options & spectrum shape options
-     */
-    po::options_description cmdOptions;
-    cmdOptions.add(genericOptions).add(configOptions);
-    po::store(po::command_line_parser(argc, argv)
-                  .options(cmdOptions)
-                  .allow_unregistered()
-                  .run(),
-              vm);
-    po::notify(vm);
-  }
+  ParseCmdLineOptions(argc, argv);
 
   if (vm.count("version")) {
     cout << "***********************************" << endl;
@@ -182,40 +170,59 @@ std::string configName, std::string inputName) {
     cout << "Last update: " << BSG_LAST_UPDATE << endl;
     cout << "***********************************\n" << endl;
   }
-
   if (vm.count("help")) {
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
     cout << "BSG Library options" << endl;
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
-    if (parseCmdLine) {
-      cout << genericOptions << endl;
-      cout << "\n\n**************************************************************"
-              "*\n\n" << endl;
-    }
+    cout << genericOptions << endl;
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
     cout << transitionOptions << endl;
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
     cout << configOptions << endl;
   } else {
-    /** Parse configuration file
-     * Included: configOptions & spectrumOptions
-     */
-    std::ifstream configStream(configName.c_str());
-    if (!configStream.is_open()) {
-      spdlog::warn("BSG: Configuration file \"{}\" cannot be found.", configName);
-    } else {
-      po::store(po::parse_config_file(configStream, configOptions, true), vm);
-    }
-    std::ifstream inputStream(inputName.c_str());
-    if (!inputStream.is_open()) {
-      spdlog::error("BSG: Input file \"{}\" cannot be found.", inputName);
-    } else {
-      po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
-    }
-    po::notify(vm);
+    ParseConfigOptions(configName);
+    ParseInputOptions(inputName);
+    nme::NMEOptionContainer::GetInstance(argc, argv);
   }
+}
 
-  nme::NMEOptionContainer::GetInstance(0, NULL, false, configName, inputName);
+void bsg::BSGOptionContainer::ParseCmdLineOptions(int argc, char** argv) {
+  /** Parse command line options
+   * Included: generic options & spectrum shape options
+   */
+  po::options_description cmdOptions;
+  cmdOptions.add(genericOptions).add(configOptions);
+  po::store(po::command_line_parser(argc, argv)
+                .options(cmdOptions)
+                .allow_unregistered()
+                .run(),
+            vm);
+  po::notify(vm);
+}
+
+void bsg::BSGOptionContainer::ParseConfigOptions(std::string configName) {
+  /** Parse configuration file
+   * Included: configOptions & spectrumOptions
+   */
+  std::ifstream configStream(configName.c_str());
+  if (!configStream.is_open()) {
+    spdlog::warn("BSG: Configuration file \"{}\" cannot be found.", configName);
+  } else {
+    po::store(po::parse_config_file(configStream, configOptions, true), vm);
+  }
+  po::notify(vm);
+}
+
+void bsg::BSGOptionContainer::ParseInputOptions(std::string inputName) {
+  std::ifstream inputStream(inputName.c_str());
+  if (!inputStream.is_open()) {
+    spdlog::error("BSG: Input file \"{}\" cannot be found.", inputName);
+  } else {
+    po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
+  }
+  po::notify(vm);
 }

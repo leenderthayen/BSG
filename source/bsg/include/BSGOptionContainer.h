@@ -36,9 +36,8 @@ class BSGOptionContainer {
   /**
    * Single Constructor
    */
-  static BSGOptionContainer& GetInstance(int argc = 0, char** argv = NULL,
-    bool parseCmdLine = true, std::string configName = "", std::string inputName = "") {
-    static BSGOptionContainer instance(argc, argv, parseCmdLine, configName, inputName);
+  static BSGOptionContainer& GetInstance(int argc = 0, char** argv = NULL) {
+    static BSGOptionContainer instance(argc, argv);
     return instance;
   }
   /**
@@ -52,10 +51,18 @@ class BSGOptionContainer {
     try {
       return vm[name].as<T>();
     } catch (boost::bad_any_cast& e) {
-      std::cerr << "ERROR: Option \"" << name << "\" not defined. " << std::endl;
+      std::cerr << "BSG ERROR: Option \"" << name << "\" not defined. " << std::endl;
       throw e;
     }
   }
+
+  static void ParseCmdLineOptions(int, char**);
+  static void ParseConfigOptions(std::string);
+  static void ParseInputOptions(std::string);
+
+  inline static void ClearVariablesMap() {
+     vm.clear();
+   };
   /**
    * Check whether an options was given
    *
@@ -81,7 +88,7 @@ class BSGOptionContainer {
   static po::options_description spectrumOptions;
   static po::options_description configOptions;
   static po::options_description transitionOptions;
-  BSGOptionContainer(int, char**, bool, std::string, std::string);
+  BSGOptionContainer(int, char**);
   BSGOptionContainer(BSGOptionContainer const& copy);
   BSGOptionContainer& operator=(BSGOptionContainer const& copy);
 };

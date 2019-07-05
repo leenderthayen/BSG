@@ -8,7 +8,12 @@ The BSG and NME Decay Libraries
 
 The BSG library is a C++ program designed to calculate the allowed beta spectrum shape coming from nuclear beta decay to high precision. It couples to a smaller library, NME, which calculates nuclear matrix elements required for the higher order corrections to the spectrum shape. A graphical user interface is provided to automate parts of the procedure.
 
-Installation
+The formalism is described in this publication_, while the code is published here_.
+
+.. _publication: https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.90.015008
+.. _here: https://www.sciencedirect.com/science/article/pii/S0010465519300645
+
+Installation & Basic execution
 ------------
 
 .. toctree::

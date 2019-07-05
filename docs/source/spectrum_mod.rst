@@ -3,10 +3,10 @@
 Using the BSG spectrum calculation
 ==================================
 
-The beta spectrum of the outgoing beta particle or (anti)neutrino consists of a great number of terms due to the complex environment it is created in. An in-depth discussion on the physical origin and mathematical derivations and discussions can be found in the original work (arXiv_). A summary and additional background on the workings of this code can be found here_.
+The beta spectrum of the outgoing beta particle or (anti)neutrino consists of a great number of terms due to the complex environment it is created in. An in-depth discussion on the physical origin and mathematical derivations and discussions can be found in the original work (RMP_). A summary and additional background on the workings of this code can be found here_.
 
-.. _arXiv: https://arxiv.org/abs/1709.07530
-.. _here: https://arxiv.org
+.. _RMP: https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.90.015008
+.. _here: https://www.sciencedirect.com/science/article/pii/S0010465519300645
 
 Each correction term can be turned on and off individually. The following table shows all included corrections with their corresponding notation and expected magnitude.
 

@@ -36,9 +36,8 @@ class NMEOptionContainer {
   /**
    * Single Constructor
    */
-  static NMEOptionContainer& GetInstance(int argc = 0, char** argv = NULL,
-  bool parseCmdLine = true, std::string configName = "", std::string inputName = "") {
-    static NMEOptionContainer instance(argc, argv, parseCmdLine, configName, inputName);
+  static NMEOptionContainer& GetInstance(int argc = 0, char** argv = NULL) {
+    static NMEOptionContainer instance(argc, argv);
     return instance;
   }
   /**
@@ -48,42 +47,51 @@ class NMEOptionContainer {
    * @param name vriable name
    */
   template <typename T>
-  T GetNMEOption(std::string name) {
+  T GetNMEOption(std::string name) const {
     try {
       return vm[name].as<T>();
     } catch (boost::bad_any_cast& e) {
-      std::cerr << "ERROR: Option \"" << name << "\" not defined. " << std::endl;
+      std::cerr << "NME ERROR: Option \"" << name << "\" not defined. " << std::endl;
       throw e;
     }
   }
+
+  inline void ClearVariablesMap() {
+     vm.clear();
+     po::notify(vm);
+   };
+
+  void ParseCmdLineOptions(int, char**);
+  void ParseConfigOptions(std::string);
+  void ParseInputOptions(std::string);
   /**
    * Check whether an options was given
    *
    * @param name variable name
    */
   bool Exists(std::string name) { return (bool)vm.count(name); }
-  inline static po::options_description GetGenericOptions() {
+  inline po::options_description GetGenericOptions() {
     return genericOptions;
   };
-  inline static po::options_description GetSpectrumOptions() {
+  inline po::options_description GetSpectrumOptions() {
     return spectrumOptions;
   };
-  inline static po::options_description GetConfigOptions() {
+  inline po::options_description GetConfigOptions() {
     return configOptions;
   };
-  inline static po::options_description GetTransitionOptions() {
+  inline po::options_description GetTransitionOptions() {
     return transitionOptions;
   };
-  inline static po::options_description GetEnvOptions() { return envOptions; };
+  inline po::options_description GetEnvOptions() { return envOptions; };
 
  private:
-  static po::variables_map vm;
-  static po::options_description genericOptions;
-  static po::options_description spectrumOptions;
-  static po::options_description configOptions;
-  static po::options_description envOptions;
-  static po::options_description transitionOptions;
-  NMEOptionContainer(int, char**, bool, std::string, std::string);
+  po::variables_map vm;
+  po::options_description genericOptions;
+  po::options_description spectrumOptions;
+  po::options_description configOptions;
+  po::options_description envOptions;
+  po::options_description transitionOptions;
+  NMEOptionContainer(int, char**);
   NMEOptionContainer(NMEOptionContainer const& copy);
   NMEOptionContainer& operator=(NMEOptionContainer const& copy);
 };

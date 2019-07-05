@@ -8,14 +8,13 @@
 using std::cout;
 using std::endl;
 
-po::options_description nme::NMEOptionContainer::genericOptions("Generic options");
+/*po::options_description nme::NMEOptionContainer::genericOptions("Generic options");
 po::options_description nme::NMEOptionContainer::configOptions("NME configuration file options");
 po::options_description nme::NMEOptionContainer::transitionOptions("Transition information");
 po::options_description nme::NMEOptionContainer::envOptions("Environment options");
-po::variables_map nme::NMEOptionContainer::vm;
+po::variables_map nme::NMEOptionContainer::vm;*/
 
-nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv, bool parseCmdLine,
-std::string configName, std::string inputName) {
+nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv) {
   transitionOptions.add_options()("Transition.Process",
                                   po::value<std::string>(),
                                   "Set the decay process: B+, B-")(
@@ -29,9 +28,9 @@ std::string configName, std::string inputName) {
       "Set the total number of nucleons of the daughter nucleus.")(
       "Mother.A", po::value<int>(),
       "Set the total number of nucleons of the mother nucleus.")(
-      "Daughter.Radius", po::value<double>(),
+      "Daughter.Radius", po::value<double>()->default_value(0.),
       "Set the nuclear radius of the daughter nucleus in fm.")(
-      "Mother.Radius", po::value<double>(),
+      "Mother.Radius", po::value<double>()->default_value(0.),
       "Set the nucleus radius of the mother nucleus in fm.")(
       "Mother.Beta2", po::value<double>()->default_value(0.),
       "Set the quadrupole deformation beta2 parameter for the mother nucleus.")(
@@ -110,32 +109,23 @@ std::string configName, std::string inputName) {
       "Constants.gM", po::value<double>()->default_value(4.706),
       "Set the weak magnetism coupling constant.");
 
-  if (parseCmdLine) {
-    configName = "config.txt";
-    inputName = "";
-    genericOptions.add_options()("help,h", "Produce help message")(
-        "config,c", po::value<std::string>(&configName),
-        "Change the configuration file.")(
-        "input,i", po::value<std::string>(&inputName),
-        "Specify input file containing transition and nuclear data")(
-        "output,o", po::value<std::string>()->default_value("output"),
-        "Specify the output file name.")(
-        "weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")(
-        "inducedtensor,d", "Calculate the induced tensor form factor d/Ac")(
-        "matrixelement,M", po::value<std::string>(),
-        "Calculate the matrix element ^XM_{yyy} written as Xyyy")(
-        "version", "Show the current version");
+  std::string configName = "";
+  std::string inputName = "";
+  genericOptions.add_options()("help,h", "Produce help message")(
+      "config,c", po::value<std::string>(&configName)->default_value(""),
+      "Change the configuration file.")(
+      "input,i", po::value<std::string>(&inputName)->default_value(""),
+      "Specify input file containing transition and nuclear data")(
+      "output,o", po::value<std::string>()->default_value("output"),
+      "Specify the output file name.")(
+      "weakmagnetism,b", "Calculate the weak magnetism form factor b/Ac")(
+      "inducedtensor,d", "Calculate the induced tensor form factor d/Ac")(
+      "matrixelement,M", po::value<std::string>(),
+      "Calculate the matrix element ^XM_{yyy} written as Xyyy")(
+      "version", "Show the current version");
 
-    po::options_description cmdOptions;
-    cmdOptions.add(genericOptions).add(configOptions);
-    po::store(po::command_line_parser(argc, argv)
-                  .options(cmdOptions)
-                  .allow_unregistered()
-                  .run(),
-              vm);
-    // po::store(po::parse_command_line(argc, argv, genericOptions), vm);
-    po::notify(vm);
-  }
+  ParseCmdLineOptions(argc, argv);
+
   if (vm.count("version")) {
     cout << "***********************************" << endl;
     cout << "NME version " << NME_VERSION << endl;
@@ -149,27 +139,63 @@ std::string configName, std::string inputName) {
     cout << "NME Library options" << endl;
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
-    if (parseCmdLine) {
-      cout << genericOptions << endl;
-    }
+    cout << genericOptions << endl;
+    cout << "\n\n**************************************************************"
+            "*\n\n" << endl;
     cout << transitionOptions << endl;
     cout << "\n\n**************************************************************"
             "*\n\n" << endl;
     cout << configOptions << endl;
   } else {
-    std::ifstream configStream(configName.c_str());
-    if (!configStream.is_open()) {
-      spdlog::warn("NME: Configuration file \"{}\" cannot be found.", configName);
-    } else {
-      po::store(po::parse_config_file(configStream, configOptions, true), vm);
-    }
-    std::ifstream inputStream(inputName.c_str());
-    if (!inputStream.is_open()) {
-      spdlog::error("NME: Input file \"{}\" cannot be found.", inputName);
-    } else {
-      po::store(po::parse_config_file(inputStream, transitionOptions, true),
-                vm);
-    }
-    po::notify(vm);
+    ParseConfigOptions(configName);
+    ParseInputOptions(inputName);
   }
+}
+
+void nme::NMEOptionContainer::ParseCmdLineOptions(int argc, char** argv) {
+  /** Parse command line options
+   * Included: generic options & spectrum shape options
+   */
+  spdlog::debug("NME:In parseCmdLineOptions");
+  po::options_description cmdOptions;
+  cmdOptions.add(genericOptions).add(configOptions);
+  po::store(po::command_line_parser(argc, argv)
+                .options(cmdOptions)
+                .allow_unregistered()
+                .run(),
+            vm);
+  spdlog::debug("NME: InParseCmdLineOptions {}", vm.count("output"));
+  po::notify(vm);
+  spdlog::debug("NME: In ParseCmdLineOptions end");
+}
+
+void nme::NMEOptionContainer::ParseConfigOptions(std::string configName) {
+  /** Parse configuration file
+   * Included: configOptions & spectrumOptions
+   */
+  spdlog::debug("NME:In parseConfigOptions");
+  std::ifstream configStream(configName.c_str());
+  if (!configStream.is_open()) {
+    spdlog::warn("NME: Configuration file \"{}\" cannot be found.", configName);
+  } else {
+    spdlog::debug("NME: Parsing config file {}", configName);
+    po::store(po::parse_config_file(configStream, configOptions, true), vm);
+  }
+  spdlog::debug("NME:In parseConfigOptions middle");
+  po::notify(vm);
+  spdlog::debug("NME:In parseConfigOptions end");
+}
+
+void nme::NMEOptionContainer::ParseInputOptions(std::string inputName) {
+  spdlog::debug("NME:In parseInputOptions");
+  std::ifstream inputStream(inputName.c_str());
+  if (!inputStream.is_open()) {
+    spdlog::error("NME: Input file \"{}\" cannot be found.", inputName);
+  } else {
+    spdlog::debug("NME: Parsing ini file {}", inputName);
+    po::store(po::parse_config_file(inputStream, transitionOptions, true), vm);
+  }
+  spdlog::debug("NME:In parseInputOptions middle");
+  po::notify(vm);
+  spdlog::debug("NME:In parseInputOptions end");
 }

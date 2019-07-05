@@ -44,12 +44,13 @@ bsg::Generator::Generator() {
     LoadExchangeParameters();
   }
   InitializeNSMInfo();
+  debugFileLogger->debug("Leaving Generator constructor");
 }
 
 bsg::Generator::~Generator() { delete nsm; }
 
 void bsg::Generator::InitializeLoggers() {
-  std::string outputName = GetBSGOpt(std::string, output);
+  SetOutputName(GetBSGOpt(std::string, output));
 
   /**
    * Remove result & log files if they already exist
@@ -320,6 +321,7 @@ void bsg::Generator::InitializeL0Constants() {
 }
 
 void bsg::Generator::InitializeNSMInfo() {
+  debugFileLogger->debug("Entering InitializeNSMInfo");
   nsm = new NS::NuclearStructureManager();
 
   if (BSGOptExists(connect)) {
@@ -499,7 +501,8 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   return std::make_tuple(result, neutrinoResult);
 }
 
-std::vector<std::vector<double> > bsg::Generator::CalculateSpectrum() {
+std::vector<std::vector<double> >* bsg::Generator::CalculateSpectrum() {
+  spectrum = new std::vector<std::vector<double> >();
   // auto start = std::chrono::steady_clock::now();
   debugFileLogger->info("Calculating spectrum");
   double beginEn = GetBSGOpt(double, Spectrum.Begin);
@@ -520,7 +523,7 @@ std::vector<std::vector<double> > bsg::Generator::CalculateSpectrum() {
   while (currentW <= endW) {
     auto result = CalculateDecayRate(currentW);
     std::vector<double> entry = {currentW, std::get<0>(result), std::get<1>(result)};
-    spectrum.push_back(entry);
+    spectrum->push_back(entry);
     currentW += stepW;
   }
   // auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
@@ -533,7 +536,7 @@ std::vector<std::vector<double> > bsg::Generator::CalculateSpectrum() {
 
 double bsg::Generator::CalculateLogFtValue(double partialHalflife) {
   debugFileLogger->debug("Calculating Ft value with partial halflife {}", partialHalflife);
-  double f = utilities::Simpson(spectrum);
+  double f = utilities::Simpson(*spectrum);
   debugFileLogger->debug("f: {}", f);
   double ft = f*partialHalflife;
   double logFt = std::log10(ft);
@@ -544,12 +547,12 @@ double bsg::Generator::CalculateLogFtValue(double partialHalflife) {
 double bsg::Generator::CalculateMeanEnergy() {
   debugFileLogger->debug("Calculating mean energy");
   std::vector<std::vector<double> > weightedSpectrum;
-  for (int i =0; i < spectrum.size(); i++) {
-    std::vector<double> entry = {spectrum[i][0], spectrum[i][0]*spectrum[i][1]};
+  for (int i =0; i < spectrum->size(); i++) {
+    std::vector<double> entry = {(*spectrum)[i][0], (*spectrum)[i][0]* (*spectrum)[i][1]};
     weightedSpectrum.push_back(entry);
   }
   double weightedF = utilities::Simpson(weightedSpectrum);
-  double f = utilities::Simpson(spectrum);
+  double f = utilities::Simpson(*spectrum);
   debugFileLogger->debug("Weighted f: {} Clean f: {}", weightedF, f);
   return weightedF/f;
 }
@@ -559,7 +562,7 @@ void bsg::Generator::PrepareOutputFile() {
 
   auto l = spdlog::get("BSG_results_file");
   l->info("Spectrum input overview\n{:=>30}", "");
-  l->info("Using information from {}\n\n", GetBSGOpt(std::string, input));
+  //l->info("Using information from {}\n\n", GetBSGOpt(std::string, input));
   l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
   l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
   l->info("Process: {}\tType: {}", GetBSGOpt(std::string, Transition.Process), GetBSGOpt(std::string, Transition.Type));
@@ -593,7 +596,7 @@ void bsg::Generator::PrepareOutputFile() {
   if (BSGOptExists(Spectrum.Lambda)) l->info("{:35}: {} ({})", "AM121/AM101", ratioM121, "given");
   else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
-  l->info("Full breakfown written in {}.nme", GetBSGOpt(std::string, output));
+  l->info("Full breakdown written in {}.nme", outputName);
 
   l->info("\nSpectral corrections\n{:->30}", "");
   l->info("{:25}: {}", "Phase space", GetBSGOpt(bool, Spectrum.Phasespace));
@@ -629,11 +632,11 @@ void bsg::Generator::PrepareOutputFile() {
   if (GetBSGOpt(bool, Spectrum.Neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
   else l->info("{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW");
 
-  for (int i = 0; i < spectrum.size(); i++) {
+  for (int i = 0; i < spectrum->size(); i++) {
     if (GetBSGOpt(bool, Spectrum.Neutrino)) {
-      l->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", spectrum[i][0], (spectrum[i][0]-1.)*ELECTRON_MASS_KEV, spectrum[i][1], spectrum[i][2]);
+      l->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)*ELECTRON_MASS_KEV, (*spectrum)[i][1], (*spectrum)[i][2]);
     } else {
-      l->info("{:<10f}\t{:<10f}\t{:<10f}", spectrum[i][0], (spectrum[i][0]-1.)*ELECTRON_MASS_KEV, spectrum[i][1]);
+      l->info("{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)*ELECTRON_MASS_KEV, (*spectrum)[i][1]);
     }
   }
 }

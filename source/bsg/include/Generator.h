@@ -48,7 +48,7 @@ class Generator {
 
   nme::NuclearStructure::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
-  std::vector<std::vector<double> > spectrum; /**< vector of vectors containing the calculated spectrum */
+  std::vector<std::vector<double> >* spectrum; /**< vector of vectors containing the calculated spectrum */
 
   /// recoil correction form factors
   double fb, fc1, fd, ratioM121;
@@ -59,6 +59,8 @@ class Generator {
   std::shared_ptr<spdlog::logger> debugFileLogger;
   std::shared_ptr<spdlog::logger> rawSpectrumLogger;
   std::shared_ptr<spdlog::logger> resultsFileLogger;
+
+  std::string outputName;
 
   /**
    * Calculate the required nuclear matrix elements if they are not given from the commandline
@@ -125,7 +127,7 @@ class Generator {
    *
    * @returns spectrum variable
    */
-  std::vector<std::vector<double> > CalculateSpectrum();
+  std::vector<std::vector<double> >* CalculateSpectrum();
   /**
    * Calculate the decay rate at energy W
    *
@@ -133,6 +135,8 @@ class Generator {
    * @returns the decay rate at energy W
    */
   std::tuple<double, double> CalculateDecayRate(double W);
+
+  inline void SetOutputName(std::string _output) { outputName = _output; };
 };
 
 }
