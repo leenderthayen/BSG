@@ -8,10 +8,10 @@ import re
 import sys
 import copy
 from collections import defaultdict
-from pyneUtils import time_conv_dict
+from utils.pyneUtils import time_conv_dict
 from warnings import warn
 
-from utilities import atoms
+from utils.utilities import atoms
 
 import numpy as np
 

@@ -7,10 +7,11 @@ Created on Fri Sep 3 18:24 2019
 """
 
 import configparser
+import utils.utilities as ut
 
 class ConfigManager:
-    def __init__(self,configName):
-        self.configName = configName
+    def __init__(self):
+        self.configName = ''
 
 
         self.spectrumBoolOptions =  {"Phasespace": True, "Fermi": True, "Radiative": True,\
@@ -25,7 +26,8 @@ class ConfigManager:
         
         self.spectrumDSB = {"Begin": 0.0, "End": 0.0,"StepSize": 0.10, "Steps": 0}
         
-        self.spectrum = self.spectrumBoolOptions
+        self.spectrum = {}
+        self.spectrum.update(self.spectrumBoolOptions)
         self.spectrum.update(self.spectrumStringOptions)
         self.spectrum.update(self.spectrumNME)
         self.spectrum.update(self.spectrumDSB)
@@ -39,7 +41,8 @@ class ConfigManager:
         self.computationalDSB = {"EnergyMargin": 1.0, "Vneutron": 49.60, "Vproton": 49.60, "V0Sneutron": 7.20,
             "V0Sproton": 7.20, "Xneutron": 0.86, "Xproton": 0.86}
         
-        self.computational = self.computationalStringOptions
+        self.computational = {}
+        self.computational.update(self.computationalStringOptions)
         self.computational.update(self.computationalBoolOptions)
         self.computational.update(self.computationalDSB)
         
@@ -48,9 +51,12 @@ class ConfigManager:
         self.config_settings = {"General": self.general, "Spectrum": self.spectrum, "Constants": self.constants, "Computational": self.computational}
 
 
-    def loadConfigFile(self):
-        if self.configName == '':
-            return
+    def loadConfigFile(self,filename=None):
+        if not filename:
+            filename = input("Give the name of the config file you want to load: ")
+            if filename == '':
+                return
+        self.configName = filename
 
         config = configparser.ConfigParser()
         config.read(self.configName)
@@ -72,23 +78,35 @@ class ConfigManager:
 
         print("Loaded config file: %s." % self.configName)
 
-    def writeConfigFile(self):
-        if self.configName == '':
-            return
+    def writeConfigFile(self,filename):
+        if not filename:
+            filename = input("Give the name of the config file: ")
+            if filename == '':
+                return
+        self.configName = filename
         try:
             ut.writeConfigFile(self.configName, self.config_settings)
             print("Config file written to %s." % self.configName)
         except:
             print("Writing config file failed.")
 
-    def createNewConfigFile(self):
+    def createNewConfigFile(self,filename=None):
+        print("Creation of a new config file. If <enter> is pressed the default value is used.")
         print("Spectrum Boolean options: answer with yes or no to decide which spectrum options should be turned on")
         for key in self.spectrumBoolOptions:
-            answer = input(self.spectrumBoolOptions[key]+" (yes/no): ")
-            if answer == 'yes':
-                self.spectrumBoolOptions[key] = True
-            else:
-                self.spectrumBoolOptions[key] = False
+            while True:
+                answer = input(key+" (yes/no): ")
+                if answer == 'yes':
+                    self.spectrumBoolOptions[key] = True
+                    break
+                elif answer == 'no':
+                    self.spectrumBoolOptions[key] = False
+                    break
+                elif answer == '':
+                    break
+                else:
+                    print("Wrong answer. Answer with yes or no!!")
+
 
         print("Spectrum string options: answer with one of the options (numerical)")
         for key in self.spectrumStringOptions:
@@ -125,23 +143,56 @@ class ConfigManager:
 
         print("Spectrum nuclear matrix elements: answer with float")
         for key in self.spectrumNME:
-            self.spectrumNME[key] = float(input(key+ " : "))
+            while True:
+                answer = input(key+ " : ")
+                if answer == '':
+                    break
+                try:
+                    self.spectrumNME[key] = float(answer)
+                    break
+                except ValueError as e:
+                    print('Input is not a float, try again!')
+
 
         print("Spectrum binning optione: starting and final energy binsize (in keV) and number of bins in case binsize is set to a negative value")
         for key in self.spectrumDSB:
-            self.spectrumDSB[key] = float(input(key+ " : "))
+            while True:
+                answer = input(key+ " : ")
+                if answer == '':
+                    break
+                try:
+                    self.spectrumDSB[key] = float(answer)
+                    break
+                except ValueError as e:
+                    print('Input is not a float, try again!')
 
         print("Set the constants")
         for key in self.constants:
-            self.constants[key] = float(input(key + " : "))
+            while True:
+                answer = input(key+ " : ")
+                if answer == '':
+                    break
+                try:
+                    self.constants[key] = float(answer)
+                    break
+                except ValueError as e:
+                    print('Input is not a float, try again!')
 
         print("Boolean options for some computational methods, answer with yes or no")
         for key in self.computationalBoolOptions:
-            answer = input(self.computationalBoolOptions[key]+" (yes/no): ")
-            if answer == 'yes':
-                self.computationalBoolOptions[key] = True
-            else:
-                self.computationalBoolOptions[key] = False
+            while True:
+                answer = input(key+" (yes/no): ")
+                if answer == 'yes':
+                    self.computationalBoolOptions[key] = True
+                    break
+                elif answer == 'no':
+                    self.computationalBoolOptions[key] = False
+                    break
+                elif answer == '':
+                    break
+                else:
+                    print("Wrong answer. Answer with yes or no!!")
+
 
         print("Spectrum string options: answer with one of the options (numerical)")
         while True:
@@ -179,6 +230,14 @@ class ConfigManager:
 
             print("Set the parameters for the ESP model (float)")
             for key in self.computationalDSB:
-                self.computationalDSB[key] = float(input(key + " : "))
+                while True:
+                    answer = input(key+ " : ")
+                    if answer == '':
+                        break
+                    try:
+                        self.computationalDSB[key] = float(answer)
+                        break
+                    except ValueError as e:
+                        print('Input is not a float, try again!')
 
-        self.writeConfigFile()
+        self.writeConfigFile(filename)

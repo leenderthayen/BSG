@@ -31,9 +31,9 @@ from managers_tui.help_mgr import HelpManager
 
 class BSG_UI():
 
-    def __init__(self,iniFile,configFile):
-        self.inputMgr = InputManager(iniFile)
-        self.configMgr = ConfigManager(configFile)
+    def __init__(self):
+        self.inputMgr = InputManager()
+        self.configMgr = ConfigManager()
         self.databaseMgr = DatabaseManager()
         self.helpMgr = HelpManager()
 
@@ -43,7 +43,10 @@ class BSG_UI():
     def log(self, message):
         print(message + '\n')
 
-    def newDecay(self):
+    def loadExistingDecay(self,filename=None):
+        self.inputMgr.loadIniFile(filename)
+    
+    def newDecay(self,filename=None):
         self.inputMgr.checkUnsavedTransitionChanges()
         
         isotope = input('Enter the isotope name (e.g. 238U): ')
@@ -66,36 +69,36 @@ class BSG_UI():
         else:
             process = input('Choose beta process(B-, B+ or EC) ')
             while True:
-                str = input('What is the end point energy of the transition (in keV) (Default is 1000. keV)? ')
-                if str == '':
+                str_temp = input('What is the end point energy of the transition (in keV) (Default is 1000. keV)? ')
+                if str_temp == '':
                     end_point = 1000.
                     break
                 else:
                     try:
-                        end_point = float(str)
+                        end_point = float(str_temp)
                         break
                     except ValueError as e:
                         print('Input is not a float, try again!')
             end_point = input('What is the end point energy of the transition (in keV)? ')
             while True:
-                str = input('What is the logft value of the transition?(Default is 6.) ')
-                if str == '':
+                str_temp = input('What is the logft value of the transition?(Default is 6.) ')
+                if str_temp == '':
                     logft = 6.
                     break
                 else:
                     try:
-                        logft = float(str)
+                        logft = float(str_temp)
                         break
                     except ValueError as e:
                         print('Input is not a float, try again!')
             while True:
-                str = input('What is the half-life of the transition?(Default is 1. s) ')
-                if str == '':
+                str_temp = input('What is the half-life of the transition?(Default is 1. s) ')
+                if str_temp == '':
                     halflife = 1.
                     break
                 else:
                     try:
-                        halflife = float(str)
+                        halflife = float(str_temp)
                         break
                     except ValueError as e:
                         print('Input is not a float, try again!')
@@ -109,8 +112,8 @@ class BSG_UI():
         answer = input('Enter deformation info from the Moeller database? (yes/no) ')
 
         if answer == 'yes':
-            dDef, mDef = self.databaseMgr.loadDeformation()
-            self.inputMgr.setCurrentDeformations(dDef,mDef)
+            mDef, dDef = self.databaseMgr.loadDeformation()
+            self.inputMgr.setCurrentDeformations(mDef,dDef)
         
         answer = input('Load charge radii from database? (yes/no) ')
 
@@ -121,7 +124,7 @@ class BSG_UI():
         answer = input('Save transition in ini file? (yes/no) ')
             
         if answer == 'yes':
-            self.inputMgr.writeIniFile()
+            self.inputMgr.writeIniFile(filename)
 
     def runBSG(self):
 #        self.inputMgr.checkUnsavedTransitionChanges()
@@ -151,23 +154,56 @@ class BSG_UI():
             self.log('CommandError({0}): {1}'.format(e.errno, e.strerror))
         self.log("Ready!")
 
+def exit_error():
+    print("Usage: python bsg_terminal_ui.py -i <.ini filename>(optional) -c <config filename>(optional)\n")
+    sys.exit()
+
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Usage: python bsg_terminal_ui.py <.ini filename> <config filename>")
-    mw = BSG_UI(os.path.join(os.path.abspath(os.path.dirname(__file__)),sys.argv[1]),os.path.join(os.path.abspath(os.path.dirname(__file__)),sys.argv[2]))
+    expected_nArgs = [1,3,5]
+    if len(sys.argv) not in expected_nArgs:
+        exit_error()
+    elif len(sys.argv) == 5:
+        if sys.argv[1] != '-i' and sys.argv[1] != '-c':
+            exit_error()
+        elif sys.argv[1] == '-i' and sys.argv[3] != '-c':
+            exit_error()
+        elif sys.argv[1] == '-c' and sys.argv[3] != '-i':
+            exit_error()
+    elif len(sys.argv) == 3:
+        if sys.argv[1] != '-i' and sys.argv[1] != '-c':
+            exit_error()
+
+    mw = BSG_UI()
     while True:
+        arg_array = [None,None]
+        if len(sys.argv) == 5:
+            if sys.argv[1] == "-i" and sys.argv[3] == "-c" :
+                arg_array[0] = sys.argv[2]
+                arg_array[1] = sys.argv[4]
+            else:
+                arg_array[0] = sys.argv[4]
+                arg_array[1] = sys.argv[2]
+        elif len(sys.argv) == 3:
+            if sys.argv[1] == "-i":
+                arg_array[0] = sys.argv[2]
+            else:
+                arg_array[1] = sys.argv[2]
+
         answer = input("create new .ini file from databases (yes), or load from existing .ini file (no)? ")
         if answer == 'yes':
-            mw.newDecay()
+            mw.newDecay(arg_array[0])
         else:
-            mw.inputMgr.loadIniFile()
+            mw.loadExistingDecay(arg_array[0])
         answer = input("create new config file from scratch (yes), or load from existing config file (no)? ")
         if answer == 'yes':
-            mw.configMgr.createNewConfigFile()
+            mw.configMgr.createNewConfigFile(arg_array[1])
         else:
-            mw.configMgr.loadConfigFile()
+            mw.configMgr.loadConfigFile(arg_array[1])
+
         mw.runBSG()
+
         answer = input("Would you like to Proceed (yes) or exit the program (no) ? ")
         if answer == 'no':
             break
+
     sys.exit()
