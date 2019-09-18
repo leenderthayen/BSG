@@ -8,6 +8,12 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+//TODO Put these somewhere
+std::vector<double> vOld; /**< power expansion in r for old electrostatic potential */
+std::vector<double> vNew; /**< power expansion in r for new electrostatic potential */
+std::string ESShape; /**< name denoting the base shape to use for the U correction */
+std::string NSShape; /**< name denoting the base shape to use for the C correction */
+
 /**
  * Macro to easily get the options from the OptionContainer object
  *

@@ -22,10 +22,8 @@
 using std::cout;
 using std::endl;
 
-double bsg::SpectralFunctions::PhaseSpace(double W, double W0, int motherSpinParity,
-                                     int daughterSpinParity) {
+double bsg::SpectralFunctions::PhaseSpace(double W, double W0) {
   double result = std::sqrt(W * W - 1.) * W * std::pow(W0 - W, 2.);
-  // TODO forbidden transitions
   return result;
 }
 

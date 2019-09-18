@@ -22,8 +22,7 @@ enum BetaType { BETA_PLUS = -1, BETA_MINUS = 1 };
 enum DecayType { FERMI, GAMOW_TELLER, MIXED };
 
 // the different corrections
-double PhaseSpace(double W, double W0, int motherSpinParity,
-                  int daughterSpinParity);
+double PhaseSpace(double W, double W0);
 /**
  * @brief Fermi function
  * @param W total energy in units of electron mass
@@ -157,9 +156,7 @@ double CICorrection(double W, double W0, double Z, double R, int betaType,
     nme::NuclearStructure::SingleParticleState& spsi, nme::NuclearStructure::SingleParticleState& spsf);
 
 /**
- * Relativistic matrix element correction to the vector pahe "black hole girl" right now, and how she's being given too much credit for her role in the historic first image of a black hole. Because this is too important, I want to set the record straight.
-
-Once Katie Bouman became the "face" of the black hole photo, and articles began to call her "the woman behind the black hole photo", an assortment of people that I'm strongly inclined to callrt of the C correction
+ * Relativistic matrix element correction to the vector part of the C correction
  * as per Wilkinson.
  *
  * @param W electron total energy in units of its rest mass
@@ -335,6 +332,7 @@ double AtomicMismatchCorrection(double W, double W0, int Z, int A,
  *\sum_{k=1}^{k=\infty}\frac{x^k}{k^2} \equiv -\mathrm{Li}_2(x) \f]
  */
 double Spence(double x);
+
 }
 }
 
