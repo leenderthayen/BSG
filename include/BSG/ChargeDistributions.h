@@ -23,18 +23,6 @@ using std::cout;
 using std::endl;
 
 /**
- * Calculate the ratio of long over short edge of an ellipse
- * based on the nuclear quadrupole deformation
- *
- * @param beta the nuclear quadrupole deformation parameter
- * @returns the ratio of the long and short edge of the ellipsoid
- */
-inline double CalcBoverA(double beta) {
-  double C = 5. / 3. * std::sqrt(5. / M_PI) * beta * (1. + 0.16 * beta);
-  return std::sqrt((1 + C) / (1 - C / 2.));
-}
-
-/**
  * Helper struct in calculating the overlap integral between two
  * HO states.
  */
