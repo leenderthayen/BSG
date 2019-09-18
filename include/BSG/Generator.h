@@ -8,10 +8,10 @@
 #include "NuclearUtilities.h"
 #include "spdlog/spdlog.h"
 
+#include "particle_data_structure/core/particle_definition.h"
+
 namespace bsg {
 
-class Generator {
- private:
   /**
    * Enum to distinguish beta+/-
    */
@@ -20,31 +20,35 @@ class Generator {
    * Enum to distinguish the type of beta decay
    */
   enum DecayType { FERMI, GAMOW_TELLER, MIXED };
-  double aNeg[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
-  double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
-  double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction */
-  double QValue; /**< Q value of the particular decay */
-  double W0;  /**< the total electron energy in units of its rest mass */
-  double R;   /**< the nuclear radius in natural units (HBAR=c=m_e=1) */
-  double A;   /**< Mass number */
-  double Z;   /**< the proton number of the daughter nucleus */
-  double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
-  double hoFit; /**< the fit value obtained after fitting the nuclear charge distribution with a Modified Gaussian */
-  double daughterBeta2; /**< the quadrupole deformation of the daughter nucleus */
-  double motherBeta2; /**< the quadrupole deofrmation of the mother nucleus */
-  double motherExcitationEn; /**< the excitation energy in keV of the mother state */
-  double daughterExcitationEn; /**< the excitation energy in keV of the daughter state */
-  double atomicEnergyDeficit; /**< explicit energy difference between Q value and endpoint energy due to incomplete atomic overlap (atomic excitations) */
-  int motherSpinParity; /**< the double of the spin parity of the mother state */
-  int daughterSpinParity; /**< the double of the spin parity of the daughter state */
-  BetaType betaType;  /**< internal state of the beta type */
-  DecayType decayType; /**< internal state of the decay type */
-  std::vector<double> vOld; /**< power expansion in r for old electrostatic potential */
-  std::vector<double> vNew; /**< power expansion in r for new electrostatic potential */
-  std::string ESShape; /**< name denoting the base shape to use for the U correction */
-  std::string NSShape; /**< name denoting the base shape to use for the C correction */
 
-  nme::NuclearStructure::SingleParticleState spsi, spsf; /**< single particle states calculated from the NME library and used in the C_I correction when turned on */
+  struct BetaParams {
+    int Zi; /**< Proton number of initial state */
+    int Zf; /**< Proton number of final state */
+    int A; /**< Mass number of initial and final states */
+    double R; /**< Nuclear radius of the final state */
+    double W0;  /**< the total electron energy in units of its rest mass */
+    double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
+    BetaType betaType;  /**< internal state of the beta type */
+    DecayType decayType; /**< internal state of the decay type */
+    double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction */
+  };
+
+  struct NuclearParams {
+    ParticleDefinition* initialParticle, finalParticle;
+    int initState, finalState;
+    double daughterBeta2; /**< the quadrupole deformation of the daughter nucleus */
+    double motherBeta2; /**< the quadrupole deofrmation of the mother nucleus */
+    nme::NuclearStructure::SingleParticleState spsi, spsf; /**< single particle states calculated from the NME library and used in the C_I correction when turned on */
+  };
+
+class Generator {
+ private:
+  static double aNeg[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
+  static double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
+
+  double QValue; /**< Q value of the particular decay */
+  double hoFit; /**< the fit value obtained after fitting the nuclear charge distribution with a Modified Gaussian */
+  double atomicEnergyDeficit; /**< explicit energy difference between Q value and endpoint energy due to incomplete atomic overlap (atomic excitations) */
 
   nme::NuclearStructure::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
@@ -97,11 +101,6 @@ class Generator {
   void InitializeNSMInfo();
 
   /**
-   * Construct the output file
-   */
-  void PrepareOutputFile();
-
-  /**
    * Calculate the properly normalized ft value
    * @param partialHalflife the halflife of the transition
    */
@@ -122,12 +121,24 @@ class Generator {
    */
   ~Generator();
 
+  void SetInitialState(Nucleus*, int);
+
+  void SetFinalState(Nucleus*, int);
+
+  void SetDecayKinematics(ReactionChannel*);
+
   /**
    * Calculates the beta spectrum by filling the spectrum variable.
    *
    * @returns spectrum variable
    */
   std::vector<std::vector<double> >* CalculateSpectrum();
+
+  /**
+   * Construct the output file
+   */
+  void PrepareOutputFile();
+
   /**
    * Calculate the decay rate at energy W
    *
