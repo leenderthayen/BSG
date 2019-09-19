@@ -207,7 +207,7 @@ def getENSDFBetaBranches(filename, Z, A, state):
     :param state: number designating metastability (0 ground state, 1 1st metastable state)
 
     """
-    import ensdf
+    import utils.ensdf as ensdf
     logger = logging.getLogger(__name__)
 
     daughterNameBetaM = '%3s' % str(A) + atoms[Z+1].upper()
@@ -358,14 +358,14 @@ robtdFile=None, **kwargs):
 
     if not name:
         name = '%sZ%d_A%d_Q%.0f.ini' % (prefix, Zm, A, Q)
-    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config = configparser.ConfigParser()
     config.optionxform = str
     config.add_section('Transition')
     config.add_section('Mother')
     config.add_section('Daughter')
     config.set('Transition', 'Process', process)
     config.set('Transition', 'Type', decayType)
-    config.set('Transition', 'MixingRatio', 0.0)
+    config.set('Transition', 'MixingRatio', str(0.0))
     config.set('Transition', 'QValue', Q)
     if phl:
         config.set('Transition', 'PartialHalflife', phl)
@@ -389,20 +389,22 @@ robtdFile=None, **kwargs):
     config.set('Daughter', 'Beta6', beta6d)
     config.set('Daughter', 'SpinParity', dJpi)
     config.set('Daughter', 'ExcitationEnergy', dE)
-    with open(name, 'wb') as configFile:
+    with open(name, 'w') as configFile:
         config.write(configFile)
 
 def writeConfigFile(name, config_settings):
     config = configparser.ConfigParser()
     config.optionxform = str
-    for conf_key in self.config_settings:
+    for conf_key in config_settings:
+        print('Adding section: ',conf_key)
         config.add_section(conf_key)
-        for key in self.config_settings[conf_key]:
+        print(conf_key, ' section added')
+        for key in config_settings[conf_key]:
             try:
-                if isinstance(self.config_settings[conf_key][key],tuple):
-                    value = self.config_settings[conf_key][key][0]
+                if isinstance(config_settings[conf_key][key],tuple):
+                    value = config_settings[conf_key][key][0]
                 else:
-                    value = self.config_settings[conf_key][key]
+                    value = config_settings[conf_key][key]
                 if isinstance(value,bool):
                     config.set(conf_key, key,'True' if value==True else 'False')
                 elif isinstance(value,int):
@@ -413,6 +415,6 @@ def writeConfigFile(name, config_settings):
                     config.set(conf_key, key, value)
             except (configparser.NoSectionError, configparser.NoOptionError):
                 continue
-
-    with open(name, 'wb') as configFile:
+    print("writing to file...")
+    with open(name, 'w') as configFile:
         config.write(configFile)

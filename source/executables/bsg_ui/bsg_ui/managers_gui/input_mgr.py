@@ -30,7 +30,7 @@ class InputManager:
         if filename == '':
             return
         try:
-            config = ConfigParser.RawConfigParser(allow_no_value=True)
+            config = configparser.ConfigParser()
             config.read(filename)
             
             self.bsg_ui.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(config.get('Transition', 'Process')))
@@ -149,10 +149,10 @@ class InputManager:
 
     def checkUnsavedTransitionChanges(self):
         self.clearUnsavedChanges()
-        if self.inputMgr.iniName == '':
+        if self.iniName == '':
             self.addUnsavedChanges("No information currently saved.")
         else:
-            config = ConfigParser.RawConfigParser(allow_no_value=True)
+            config = configparser.ConfigParser()
             config.read(self.inputMgr.iniName)
 
             if config.get('Transition', 'Process') != self.ui.cb_process.currentText():
@@ -166,12 +166,12 @@ class InputManager:
             try:
                 if config.getfloat('Transition', 'PartialHalflife') != self.ui.dsb_halflife.value():
                     self.addUnsavedChanges('Partial Halflife (Prev. %s)' % config.get('Transition', 'PartialHalflife'))
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
             try:
                 if config.getfloat('Transition', 'LogFt') != self.ui.dsb_logft.value():
                     self.addUnsavedChanges('Log Ft (Prev. %s)' % config.get('Transition', 'LogFt'))
-            except ConfigParser.NoOptionError:
+            except configparser.NoOptionError:
                 pass
 
             if config.getint('Mother', 'Z') != self.ui.sb_ZM.value():

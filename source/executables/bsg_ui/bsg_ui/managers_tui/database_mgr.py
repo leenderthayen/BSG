@@ -7,6 +7,8 @@ Created on Fri Sep 3 18:24 2019
 """
 
 import os
+import utils.utilities as ut
+import numpy as np
 
 class DatabaseManager:
     def __init__(self):
@@ -64,9 +66,13 @@ class DatabaseManager:
                 print(i+1,': ',e)
             while True:
                 try:
-                    choice = int(input('Choose a transition (1- {})'.format(len(items))))
+                    choice = int(input('Choose a transition (1- {})'.format(len(items))))-1
                     if choice>0 and choice <= len(items):
                         branch = bbs[choice]
+                        self.mA = A
+                        self.mZ = Z
+                        self.dA = A
+                        self.dZ = Z+1 if branch.process == 'B-' else Z-1
                         return branch
                     else:
                         print("Wrong index! Choose a number between (1 and {})".format(len(items)))
