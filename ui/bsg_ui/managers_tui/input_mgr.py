@@ -96,7 +96,7 @@ class InputManager:
                 return
         self.iniName = filename
 
-        ut.writeIniFile(str(self.mZ), str(self.dZ), str(self.mA), str(self.qValue), str(self.process), str(self.type), str(self.mBeta2), str(self.mBeta4), str(self.mBeta6),str(self.dBeta2), str(self.dBeta4), str(self.dBeta6), str(self.mRad), str(self.dRad), str(self.mJpi), str(self.dJpi), mE=str(self.mE), dE=str(self.dE), name=filename,phl=str(phl), logft=str(logft), robtdFile=robtdFile)
+        ut.writeIniFile(self.mZ, self.dZ, self.mA, self.qValue, self.process, self.type, self.mBeta2, self.mBeta4, self.mBeta6,self.dBeta2, self.dBeta4, self.dBeta6, self.mRad, self.dRad, self.mJpi, self.dJpi, mE=self.mE, dE=self.dE, name=filename,phl=phl, logft=logft, robtdFile=robtdFile)
         print('Ini file written to %s.' % filename)
 
     def setCurrentTransition(self,A,Z,branch):

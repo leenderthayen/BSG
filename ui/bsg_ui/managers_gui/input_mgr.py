@@ -11,6 +11,7 @@ from PySide2 import QtGui
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
 #import bsg_gui.utils.utilities as ut
 import configparser
+import utils.utilities as ut
 
 class InputManager:
     def __init__(self,bsg_ui):
@@ -69,7 +70,7 @@ class InputManager:
             self.bsg_ui.setTransitionLabel()
             self.bsg_ui.log("Loaded Ini file: %s." % filename)
         except:
-            QtGui.QErrorMessage(self).showMessage("Failed to load %s file" % filename)
+            QtGui.QErrorMessage(self.bsg_ui).showMessage("Failed to load %s file" % filename)
 
     def writeIniFile(self):
         Zm = self.bsg_ui.ui.sb_ZM.value()
@@ -80,10 +81,10 @@ class InputManager:
         process = self.bsg_ui.ui.cb_process.currentText()
 
         if Am != Ad:
-            QtGui.QErrorMessage(self).showMessage("Mass numbers do not agree.")
+            QtGui.QErrorMessage(self.bsg_ui).showMessage("Mass numbers do not agree.")
             return
         if Zd != (Zm + 1 if process == "B-" else Zm -1):
-            QtGui.QErrorMessage(self).showMessage("Z values do not agree with process")
+            QtGui.QErrorMessage(self.bsg_ui).showMessage("Z values do not agree with process")
             return
 
         Q = self.bsg_ui.ui.dsb_Q.value()
@@ -115,7 +116,7 @@ class InputManager:
         
         robtdFile = self.robtdFile if not self.robtdFile == '' else None
         
-        filename = QtGui.QFileDialog.getSaveFileName(self, "Save .ini file")[0]
+        filename = QtGui.QFileDialog.getSaveFileName(self.bsg_ui, "Save .ini file")[0]
         if filename == '':
             return
 
@@ -142,7 +143,7 @@ class InputManager:
             for i in self.unsavedTransitionChanges:
                 s += i + '\n'
             s += '\nThese will not be taken into account. Save info?'
-            button = QtGui.QMessageBox.question(self, 'Unsaved changes',
+            button = QtGui.QMessageBox.question(self.bsg_ui, 'Unsaved changes',
             s, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if button == QtGui.QMessageBox.Yes:
                 self.writeIniFile()
@@ -213,7 +214,7 @@ class InputManager:
 
     def setROBTDFile(self, filename=None):
         if not filename:
-            filename = QtGui.QFileDialog.getOpenFileName(self, "Choose ROBTD data file")[0]
+            filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose ROBTD data file")[0]
             if filename == '':
                 return
         self.robtdFile = filename

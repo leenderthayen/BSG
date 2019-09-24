@@ -9,6 +9,7 @@ Created on Fri Sep 3 18:24 2019
 from PySide2.QtWidgets import QApplication, QMainWindow
 from PySide2 import QtGui
 import os
+import utils.utilities as ut
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
 
 class DatabaseManager:
@@ -52,7 +53,7 @@ class DatabaseManager:
 
     def loadESNDFBranches(self, Z, A):
         if not self.ensdfFolder:
-            self.ensdfFolder = QtGui.QFileDialog.getExistingDirectory(self, "Choose the ENSDF directory", ".")
+            self.ensdfFolder = QtGui.QFileDialog.getExistingDirectory(self.bsg_ui, "Choose the ENSDF directory", ".")
             if self.ensdfFolder == '':
                 self.ensdfFolder = None
                 return
@@ -68,7 +69,7 @@ class DatabaseManager:
             items.append(s)
         
         if len(items):
-            choice, ok  = QtGui.QInputDialog.getItem(self, "Transition", "Choose the beta transition:", items, editable=False)
+            choice, ok  = QtGui.QInputDialog.getItem(self.bsg_ui, "Transition", "Choose the beta transition:", items, editable=False)
             if ok:
                 branch = bbs[items.index(choice)]
 
@@ -76,7 +77,7 @@ class DatabaseManager:
                 self.bsg_ui.ui.sb_AM.setValue(A)
                 self.bsg_ui.ui.sb_ZD.setValue(Z+1 if branch.process == 'B-' else Z-1)
                 self.bsg_ui.ui.sb_AD.setValue(A)
-                self.bsg_ui.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(branch.process))
+                self.bsg_ui.ui.cb_process.setCurrentIndex(self.bsg_ui.ui.cb_process.findText(branch.process))
                 self.bsg_ui.ui.cb_type.setCurrentIndex(1)
                 self.bsg_ui.ui.dsb_motherEn.setValue(branch.motherLevel.E)
                 self.bsg_ui.ui.dsb_daughterEn.setValue(branch.daughterLevel.E)
@@ -85,20 +86,20 @@ class DatabaseManager:
                 self.bsg_ui.ui.dsb_JM.setValue(float(mJpi.split('/2')[0])/2. if '/2' in mJpi else float(mJpi[:-1]))
                 dJpi = branch.daughterLevel.Jpi
                 self.bsg_ui.ui.dsb_JD.setValue(float(dJpi.split('/2')[0])/2. if '/2' in dJpi else float(dJpi[:-1]))
-                self.bsg_ui.ui.cb_PiM.setCurrentIndex(self.ui.cb_PiM.findText(mJpi[-1]))
-                self.bsg_ui.ui.cb_PiD.setCurrentIndex(self.ui.cb_PiD.findText(dJpi[-1]))
+                self.bsg_ui.ui.cb_PiM.setCurrentIndex(self.bsg_ui.ui.cb_PiM.findText(mJpi[-1]))
+                self.bsg_ui.ui.cb_PiD.setCurrentIndex(self.bsg_ui.ui.cb_PiD.findText(dJpi[-1]))
                 self.bsg_ui.ui.dsb_halflife.setValue(branch.partialHalflife)
                 self.bsg_ui.ui.dsb_logft.setValue(branch.logft)
                 
                 self.bsg_ui.setTransitionLabel()
                 return True
         else:
-            QtGui.QErrorMessage(self).showMessage("No transitions found.")
+            QtGui.QErrorMessage(self.bsg_ui).showMessage("No transitions found.")
         return False
 
     def loadDeformation(self):
         if not self.deformationFile:
-            self.deformationFile = QtGui.QFileDialog.getOpenFileName(self, "Choose the deformation file")[0]
+            self.deformationFile = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose the deformation file")[0]
         if self.deformationFile == '':
             return
         mDef = ut.loadDeformation(self.bsg_ui.ui.sb_ZM.value(), self.bsg_ui.ui.sb_AM.value(), self.deformationFile)
@@ -113,7 +114,7 @@ class DatabaseManager:
 
     def loadRadii(self):
         if not self.radiiFile:
-            self.radiiFile = QtGui.QFileDialog.getOpenFileName(self, "Choose the radii file")[0]
+            self.radiiFile = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose the radii file")[0]
         if self.radiiFile == '':
             return
         mRad = ut.loadChargeRadius(self.bsg_ui.ui.sb_ZM.value(), self.bsg_ui.ui.sb_AM.value(), self.radiiFile)
@@ -123,13 +124,13 @@ class DatabaseManager:
         self.bsg_ui.ui.dsb_RD.setValue(dRad)
 
     def changeBSGExec(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, "Choose BSG exec")[0]
+        filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose BSG exec")[0]
         if filename == '':
             return
         self.execPath = filename
     
     def changeBSGExchange(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, "Choose Exchange data file")[0]
+        filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose Exchange data file")[0]
         if filename == '':
             return
         self.exchangePath = filename
