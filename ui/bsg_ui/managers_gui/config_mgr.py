@@ -10,6 +10,7 @@ from PySide2.QtWidgets import QApplication, QMainWindow
 from PySide2 import QtGui
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
 import configparser
+import utils.utilities as ut
 
 class ConfigManager:
     def __init__(self,bsg_ui):
@@ -63,7 +64,7 @@ class ConfigManager:
 
     def loadConfigFile(self, filename = None, nuclearStructure=True, spectrumShape=True):
         if not filename:
-            filename = QtGui.QFileDialog.getOpenFileName(self, "Choose config file")[0]
+            filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose config file")[0]
         if filename == '':
             return
 
@@ -147,7 +148,7 @@ class ConfigManager:
 
     def writeConfigFile(self):
         self.updateConfigData()
-        filename = QtGui.QFileDialog.getSaveFileName(self, "Save config file")[0]
+        filename = QtGui.QFileDialog.getSaveFileName(self.bsg_ui, "Save config file")[0]
         if filename == '':
             return
         try:
@@ -158,7 +159,7 @@ class ConfigManager:
             self.setCurrentConfigFile(filename)
             self.bsg_ui.log("Config file written to %s." % filename)
         except:
-            QtGui.QErrorMessage(self).showMessage("Writing config file failed.")
+            QtGui.QErrorMessage(self.bsg_ui).showMessage("Writing config file failed.")
 
     def updateConfigData(self):
         for conf_key in self.config_settings:
