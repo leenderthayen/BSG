@@ -1,29 +1,19 @@
-project(spdlog-utests CXX)
+project(BSG-utests CXX)
 
-find_package(Threads REQUIRED)
+find_package(GSL REQUIRED)
 
-set(SPDLOG_UTESTS_SOURCES
-    test_errors.cpp
-    test_file_helper.cpp
-    test_file_logging.cpp
-    test_misc.cpp
-    test_pattern_formatter.cpp
-    test_async.cpp
-    includes.h
-    test_registry.cpp
-    test_macros.cpp
-    utils.cpp
-    utils.h
-    main.cpp
-    test_mpmc_q.cpp
-    test_sink.h
-    test_fmt_helper.cpp)
+set(BSG_MAIN main.cc)
 
-add_executable(${PROJECT_NAME} ${SPDLOG_UTESTS_SOURCES})
-target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
-
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/logs")
+set(BSG_UTESTS_SOURCES
+empty)
 
 enable_testing()
-add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
+
+foreach(TEST_NAME IN ITEMS ${BSG_UTESTS_SOURCES})
+  get_filename_component(TEST_NAME_NOEXT ${TEST_NAME} NAME_WE)
+  add_executable(${TEST_NAME_NOEXT} ${BSG_MAIN} ${TEST_NAME})
+  target_include_directories(${TEST_NAME_NOEXT} PUBLIC ${GSL_INCLUDE_DIRS})
+  target_link_libraries(${TEST_NAME_NOEXT} PRIVATE BSG)
+  target_link_libraries(${TEST_NAME_NOEXT} PUBLIC ${GSL_LIBRARIES})
+  add_test(NAME ${TEST_NAME_NOEXT} COMMAND ${TEST_NAME_NOEXT} -r console)
+endforeach()

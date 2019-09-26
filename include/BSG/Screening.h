@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace bsg {
+namespace BSG {
 
 namespace screening {
 

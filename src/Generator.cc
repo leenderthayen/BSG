@@ -1,12 +1,8 @@
-#include "Generator.h"
+#include "BSG/Generator.h"
+#include "BSG/SpectralFunctions.h"
+
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-
-#include "BSGOptionContainer.h"
-#include "ChargeDistributions.h"
-#include "Constants.h"
-#include "Utilities.h"
-#include "SpectralFunctions.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -14,13 +10,9 @@
 #include <cmath>
 #include <chrono>
 
-#include "boost/algorithm/string.hpp"
-
-#include "BSGConfig.h"
+//#include "BSGConfig.h"
 
 namespace SF = bsg::SpectralFunctions;
-namespace CD = bsg::ChargeDistributions;
-namespace NS = nme::NuclearStructure;
 
 using std::cout;
 using std::endl;
@@ -29,8 +21,8 @@ void ShowBSGInfo() {
   std::string author = "L. Hayen (leendert.hayen@kuleuven.be)";
   auto logger = spdlog::get("BSG_results_file");
   logger->info("{:*>60}", "");
-  logger->info("{:^60}", "BSG v" + std::string(BSG_VERSION));
-  logger->info("{:^60}", "Last update: " + std::string(BSG_LAST_UPDATE));
+  //logger->info("{:^60}", "BSG v" + std::string(BSG_VERSION));
+  //logger->info("{:^60}", "Last update: " + std::string(BSG_LAST_UPDATE));
   logger->info("{:^60}", "Author: " + author);
   logger->info("{:*>60}\n", "");
 }

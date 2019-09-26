@@ -10,44 +10,71 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     message(FATAL_ERROR "in-source build detected")
 endif()
 
-cmake_minimum_required(VERSION 2.8)
-
-project(BSG)
+cmake_minimum_required(VERSION 3.1)
+project(BSG VERSION 1.0 LANGUAGES CXX)
 
 # - Prepend our own CMake Modules to the search path
 # NB: if our custom modules include others that we don't supply, those in
 # the base path will be used, so watch for incompatibilities!!
 #
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/Modules ${CMAKE_MODULE_PATH})
-
+include(CMakeDependentOption)
+include(GNUInstallDirs)
 include(CMakeUninstallTarget)
 
-# Offer the user the choice of overriding the installation directories
-set(INSTALL_LIB_DIR ${PROJECT_BINARY_DIR}/lib CACHE PATH "Installation directory for libraries")
-set(INSTALL_BIN_DIR ${PROJECT_BINARY_DIR}/bin CACHE PATH "Installation directory for executables")
-set(INSTALL_INCLUDE_DIR ${PROJECT_BINARY_DIR}/include CACHE PATH
-  "Installation directory for header files")
+#---------------------------------------------------------------------------------------
+# compiler config
+#---------------------------------------------------------------------------------------
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(source)
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    add_compile_options("-Wall")
+    add_compile_options("-Wextra")
+    add_compile_options("-Wconversion")
+    add_compile_options("-pedantic")
+    add_compile_options("-Wfatal-errors")
+endif()
 
-include(BSGInstallData)
+#---------------------------------------------------------------------------------------
+# Options
+#---------------------------------------------------------------------------------------
+option(BSG_BUILD_TESTS "Build tests" ON)
+option(BSG_INSTALL "Generate the install target." ${BSG_MASTER_PROJECT})
+option(BSG_BUILD_EXAMPLES "Build examples" ${BSG_MASTER_PROJECT})
 
-# Install the targets file
-install(EXPORT bsg-targets DESTINATION lib)
-# TODO Make the project usable from the build-tree by creating a file explicitly
-export(TARGETS bsg nme bsg_static nme_static bsg_exec nme_exec FILE bsg-exports.cmake)
-#configure_file(${PROJECT_SOURCE_DIR}/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/bsg-config.cmake @ONLY)
+find_package(spdlog REQUIRED)
 
-# Make files for finding the package later using find_package in the install tree
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/bsg-config.cmake.in ${PROJECT_BINARY_DIR}/config/bsg-config.cmake @ONLY)
-configure_file(${PROJECT_SOURCE_DIR}/cmake/Templates/bsg-config-version.cmake.in ${PROJECT_BINARY_DIR}/config/bsg-config-version.cmake @ONLY)
-install(FILES ${PROJECT_BINARY_DIR}/config/bsg-config.cmake ${PROJECT_BINARY_DIR}/config/bsg-config-version.cmake
-DESTINATION lib)
+#---------------------------------------------------------------------------------------
+# BSG target
+#---------------------------------------------------------------------------------------
+add_library(BSG SHARED src/Generator.cc src/ConfigParser.cc src/SpectralFunctions.cc)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION data)
+set(NHL_INCLUDE_DIRS "/home/leendert/git/NHL/include")
+set(PDS_INCLUDE_DIRS "/home/leendert/git/PDS/include")
+set(NME_INCLUDE_DIRS "/home/leendert/git/NME/include")
+set(NME_LIBRARIES "-L/home/leendert/git/NME/build -lNME")
 
-# Copy over the documentation
-#install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/doxygen/html/ DESTINATION doc/bsg)
-#install(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/build/html/ DESTINATION doc/bsg)
+target_include_directories(
+    BSG
+    PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>"
+)
+target_include_directories(BSG PUBLIC ${spdlog_INCLUDE_DIRS})
+target_include_directories(BSG PUBLIC ${NHL_INCLUDE_DIRS})
+target_include_directories(BSG PUBLIC ${NME_INCLUDE_DIRS})
+target_include_directories(BSG PUBLIC ${PDS_INCLUDE_DIRS})
+target_link_libraries(BSG PUBLIC ${NME_LIBRARIES})
 
-install(FILES ${PROJECT_BINARY_DIR}/BSGConfig.h ${PROJECT_BINARY_DIR}/NMEConfig.h DESTINATION include)
+set(HEADER_BASE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+if(BSG_BUILD_TESTS)
+    include(CTest)
+    add_subdirectory(tests)
+endif()
+
+if(BSG_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()

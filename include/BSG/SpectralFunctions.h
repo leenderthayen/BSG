@@ -10,7 +10,7 @@
 #include "Constants.h"
 #include "NuclearUtilities.h"
 
-namespace bsg {
+namespace BSG {
 
 /**
  * Namespace containing all correction factors to the allowed beta spectrum shape

@@ -10,7 +10,7 @@
 
 #include "particle_data_structure/core/particle_definition.h"
 
-namespace bsg {
+namespace BSG {
 
   /**
    * Enum to distinguish beta+/-
