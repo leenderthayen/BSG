@@ -2,9 +2,17 @@
 
 #include "CLI11.hpp"
 
-namespace NME {
+namespace BSG {
 
-  void parse(CLI::App& app) {
+  void parse(CLI::App& app, int argc, char** argv) {
+    try {
+      app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+      app.exit(e);
+    }
+  }
+
+  void parseEmpty(CLI::App& app) {
     int argc = 1;
     char* argv[1] = {"coupling"};
 
@@ -13,16 +21,6 @@ namespace NME {
     } catch (const CLI::ParseError &e) {
       app.exit(e);
     }
-  }
-
-  void ParseROBTDMethod(std::string filename, ConfigOptions& configOptions) {
-    CLI::App app{"Coupling constants"};
-    app.allow_config_extras(true);
-    app.set_config("-c", filename);
-    CLI::App* comp = app.add_subcommand("Computational", "This is the computational subcommand");
-    comp->add_option("--ROBTDMethod", configOptions.robtdMethod, "");
-
-    parse(app);
   }
 
   CouplingConstants ParseCouplingConstants (std::string filename) {
@@ -37,58 +35,98 @@ namespace NME {
     coupling->add_option("--gM", couplingConstants.gM, "Weak magnetism coupling constant.");
     coupling->add_option("--gP", couplingConstants.gP, "Induced pseudoscalar coupling constant.");
 
-    parse(app);
+    parseEmpty(app);
 
     return couplingConstants;
   }
 
-  WSPotentialOptions ParseWSPotentialOptions (std::string filename) {
-    WSPotentialOptions wsPotentialOptions;
+  CorrectionOptions ParseCorrectionOptions (std::string filename) {
+    CorrectionOptions correctionOptions;
 
-    CLI::App app{"Woods-Saxon Potential Options"};
+    CLI::App app{"Correction options"};
     app.allow_config_extras(true);
     app.set_config("-c", filename);
-    CLI::App* comp = app.add_subcommand("Computational", "This is the computational subcommand");
-    CLI::App* ws = comp->add_subcommand("Woods-Saxon", "Woods-Saxon potential options");
-    ws->add_option("--SurfaceThickness", wsPotentialOptions.surfaceThickness, "Surface thickness in fm");
-    ws->add_option("--Vneutron", wsPotentialOptions.vNeutron, "");
-    ws->add_option("--Vproton", wsPotentialOptions.vProton, "");
-    ws->add_option("--Xneutron", wsPotentialOptions.xNeutron, "");
-    ws->add_option("--Xproton", wsPotentialOptions.xProton, "");
-    ws->add_option("--V0Sneutron", wsPotentialOptions.v0sNeutron, "");
-    ws->add_option("--V0Sproton", wsPotentialOptions.v0sProton, "");
+    CLI::App* correction = app.add_subcommand("Spectrum", "This is the spectrum subcommand");
+    correction->add_option("-p,--phasespace", correctionOptions.phaseSpace, "Vector correction constant.");
+    correction->add_option("-f,--fermi", correctionOptions.FermiFunction, "Axial vector correction constant.");
+    correction->add_option("-l,--esfinitesize", correctionOptions.ESFiniteSize, "Weak magnetism correction constant.");
+    correction->add_option("-C,--shapefactor", correctionOptions.shapeFactor, "");
+    correction->add_option("-I,--isovector", correctionOptions.isovector, "");
+    correction->add_option("-R,--relativistic", correctionOptions.relativistic, "");
+    correction->add_option("-D,--esdeformation", correctionOptions.ESDeformation, "");
+    correction->add_option("-U,--esfermi", correctionOptions.ESFermi, "");
+    correction->add_option("-Q,--coulombrecoil", correctionOptions.CoulombRecoil, "");
+    correction->add_option("-r,--radiative", correctionOptions.radiative, "");
+    correction->add_option("-n,--kinematicrecoil", correctionOptions.kinRecoil, "");
+    correction->add_option("-s,--screening", correctionOptions.atomicScreen, "");
+    correction->add_option("-x,--exchange", correctionOptions.atomicExchange, "");
+    correction->add_option("-m,--atomicmismatch", correctionOptions.atomicMismatch, "");
 
-    parse(app);
+    parseEmpty(app);
 
-    return wsPotentialOptions;
+    return correctionOptions;
   }
 
-  ESPOptions ParseESPOptions (std::string filename) {
-    ESPOptions espOptions;
-    CLI::App app{"Extremely Single Particle Options"};
+  SpectrumCalculationOptions ParseSpectrumCalculationOptions(filename) {
+    SpectrumCalculationOptions spectrumCalcOptions;
+
+    CLI::App app{"Spectrum calculation options"};
     app.allow_config_extras(true);
     app.set_config("-c", filename);
-    CLI::App* comp = app.add_subcommand("Computational", "This is the computational subcommand");
-    CLI::App* esp = comp->add_subcommand("ESP", "Extremely Single Particle options");
-    esp->add_option("--Potential", espOptions.potential, "");
-    esp->add_option("--EnergyMargin", espOptions.energyMargin, "");
-    esp->add_option("--ForceSpin", espOptions.forceSpin, "");
-    esp->add_option("--ReversedGhallagher", espOptions.reversedGhallagher, "");
-    esp->add_option("--OverrideSPCoupling", espOptions.overrideSPCoupling, "");
+    CLI::App* calc = app.add_subcommand("Calculation", "This is the calculation subcommand");
+    calc->add_option("-b,--begin", spectrumCalcOptions.begin, "");
+    calc->add_option("-e,--end", spectrumCalcOptions.end, "");
+    calc->add_option("-s,--stepsize", spectrumCalcOptions.stepSize, "");
+    calc->add_option("-n,--steps", spectrumCalcOptions.steps, "");
+    calc->add_option("-v,--neutrino", spectrumCalcOptions.includeNeutrino, "");
 
-    parse(app);
+    parseEmpty(app);
 
-    return espOptions;
+    return spectrumCalcOptions;
+  }
+
+  AdvancedOptions ParseAdvancedOptions(std::string filename) {
+    AdvancedOptions advancedOptions;
+
+    CLI::App app{"Advanced options"};
+    app.allow_config_extras(true);
+    app.set_config("-c", filename);
+    CLI::App* adv = app.add_subcommand("Advanced", "This is the advanced subcommand");
+    adv->add_option("-c,--connect", spectrumCalcOptions.connectSPS, "");
+    adv->add_option("-e,--esshape", spectrumCalcOptions.ESShape, "");
+    adv->add_option("-n,--nsshape", spectrumCalcOptions.NSShape, "");
+    adv->add_option("-v,--vold", spectrumCalcOptions.vold, "");
+    adv->add_option("-V,--vnew", spectrumCalcOptions.vnew, "");
+
+    parseEmpty(app);
+
+    return advancedOptions;
+  }
+
+  AllowedMatrixElements ParseAllowedMatrixElements {
+    AllowedMatrixElements allowedME;
+
+    CLI::App app{"Allowed matrix elements"};
+    app.allow_config_extras(true);
+    app.set_config("-c", filename);
+    CLI::App* me = app.add_subcommand("MatrixElements", "This is the MatrixElements subcommand");
+    me->add_option("-b,--weakmagnetism", allowedME.bAc, "");
+    me->add_option("-d,--inducedtensor", allowedME.dAc, "");
+    me->add_option("-l,--lambda", allowedME.lambda, "");
+
+    parseEmpty(app);
+
+    return allowedME;
   }
 
   ConfigOptions ParseConfigFile(std::string filename) {
     ConfigOptions configOptions;
 
-    ParseROBTDMethod(filename, configOptions);
-
     configOptions.couplingConstants = ParseCouplingConstants(filename);
-    configOptions.wsPotentialOptions = ParseWSPotentialOptions(filename);
-    configOptions.espOptions = ParseESPOptions(filename);
+    configOptions.correctionOptions = ParseCorrectionOptions(filename);
+    configOptions.spectrumCalcOptions = ParseSpectrumCalculationOptions(filename);
+    configOptions.advancedOptions = ParseAdvancedOptions(filename);
+    configOptions.allowedME = ParseAllowedMatrixElements(filename);
 
     return configOptions;
   }

@@ -1,11 +1,15 @@
 #ifndef NME_CONFIG_CONTAINER_H
 #define NME_CONFIG_CONTAINER_H
 
+#include "NHL/Containers.h"
 #include "PDS/Units/GlobalSystemOfUnits.h"
 
 #include <string>
+#include <vector>
 
 namespace BSG {
+
+  enum class NuclearShapes {FERMI, MODGAUSS};
 
   struct CorrectionOptions{
     bool phaseSpace = true;
@@ -24,12 +28,25 @@ namespace BSG {
     bool atomicMismatch = true;
   };
 
+  struct AdvancedOptions {
+    bool connectSPS = false;
+    NuclearShapes ESShape = NuclearShapes::FERMI;
+    NuclearShapes NSShape = NuclearShapes::FERMI;
+    std::vector<double> vnew, vold;
+  };
+
   struct SpectrumCalculationOptions {
     double begin = 0.1 * keV;
     double end = 0. * keV;
     double stepSize = 0.1 * keV;
     int steps;
     bool includeNeutrino = true;
+  };
+
+  struct AllowedMatrixElements {
+    double bAc;
+    double dAc;
+    double lambda;
   };
 
   struct CouplingConstants {
@@ -40,17 +57,33 @@ namespace BSG {
   };
 
   struct ConfigOptions {
-    ROBTDMethod robtdMethod;
-    ESPOptions espOptions;
-    WSPotentialOptions wsPotentialOptions;
+    CorrectionOptions correctionOptions;
+    SpectrumCalculationOptions spectrumCalcOptions;
     CouplingConstants couplingConstants;
+    AdvancedOptions advancedOptions;
+    AllowedMatrixElements allowedME;
   };
 
   ConfigOptions ParseConfigFile(std::string);
 
   CouplingConstants ParseCouplingConstants(std::string);
-  WSPotentialOptions ParseWSPotentialOptions(std::string);
-  ESPOptions ParseESPOptions(std::string);
+  CorrectionOptions ParseCorrectionOptions(std::string);
+  SpectrumCalculationOptions ParseSpectrumCalculationOptions(std::string);
+  AdvancedOptions ParseAdvancedOptions(std::string);
+  AllowedMatrixElements ParseAllowedMatrixElements(std::string);
+
+  //FUTURE
+
+  struct _FUTURE_AllowedShapeFactor {
+    bool isovector;
+    bool relativistic;
+    bool ESDeformation;
+    double bAc;
+    double dAc;
+    double lambda;
+  };
+
+
 
 }
 
