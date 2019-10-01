@@ -1,5 +1,8 @@
 #include "BSG/SpectralFunctions.h"
 
+#include "PDS/Units/GlobalPhysicalConstants.h"
+#include "NHL/Units/BetaDecayPhysicalConstants.h"
+
 #include <complex>
 #include <stdio.h>
 
@@ -23,19 +26,19 @@ double BSG::SpectralFunctions::PhaseSpace(double W, double W0) {
 
 double BSG::SpectralFunctions::FermiFunction(double W, int Z, double R,
                                         int betaType) {
-  double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
+  double gamma = std::sqrt(1. - std::pow(fine_structure_const * Z, 2.));
   double p = std::sqrt(W * W - 1.);
   double first = 2. * (gamma + 1.);
   // the second term will be incorporated in the fifth
   // double second = 1/std::pow(gsl_sf_gamma(2*gamma+1),2);
   double third = std::pow(2. * p * R, 2. * (gamma - 1.));
-  double fourth = std::exp(betaType * M_PI * ALPHA * Z * W / p);
+  double fourth = std::exp(betaType * M_PI * fine_structure_const * Z * W / p);
 
   // the fifth is a bit tricky
   // we use the complex gamma function from GSL
   gsl_sf_result magn;
   gsl_sf_result phase;
-  gsl_sf_lngamma_complex_e(gamma, betaType * ALPHA * Z * W / p, &magn, &phase);
+  gsl_sf_lngamma_complex_e(gamma, betaType * fine_structure_const * Z * W / p, &magn, &phase);
   // now we have what we wAt in magn.val
 
   // but we incorporate the second term here as well
@@ -43,6 +46,105 @@ double BSG::SpectralFunctions::FermiFunction(double W, int Z, double R,
 
   double result = first * third * fourth * fifth;
   return result;
+}
+
+std::tuple<double, double> BSG::SpectralFunctions::CCorrectionComponents(
+  double W, BetaParams betaParams, AdvancedOptions advancedOptions,
+  CouplingConstants couplingConstants, AllowedMatrixElements allowedME) {
+  double W0 = betaParams.W0;
+  int Z = betaParams.Zf;
+  int A = betaParams.A;
+  double R = betaParams.R;
+  int betaType = betaParams.betaType:
+  DecayType decayType = betaParams.decayType;
+
+  double AC0, AC1, ACm1, AC2;
+  double VC0, VC1, VCm1, VC2;
+
+  //Uniformly charged sphere results
+  double F1111 = 27./35.;
+  double F1221 = 57./70.;
+  double F1222 = 233./210.;
+  double F1211 = -3./70.;
+
+  if (advancedOptions.NSShape == NuclearShapes::MODGAUSS) {
+    F1111 = 0.757 + 0.0069 * (1 - std::exp(-advancedOptions.hoFit / 1.008));
+    F1221 = 0.844 - 0.0182 * (1 - std::exp(-advancedOptions.hoFit / 1.974));
+    F1222 = 1.219 - 0.0640 * (1 - std::exp(-advancedOptions.hoFit / 1.550));
+  }
+
+  VC0 = -std::pow(W0 * R, 2.) / 5. -
+        betaType * 2. / 9. * fine_structure_const * Z * W0 * R * F1111 -
+        std::pow(fine_structure_const * Z, 2.) / 3. * F1222;
+
+  VC1 = 4. / 15. * W0 * R * R -
+        betaType * 2. / 3. * fine_structure_const * Z * R * (F1221 - F1111 / 3.);
+
+  VCm1 = 2. / 15. * W0 * R * R - betaType * fine_structure_const * Z * R / 3. * F1211;
+
+  VC2 = -4. / 15. * R * R;
+
+  AC0 = -1. / 3. * std::pow(fine_structure_const * Z, 2.) * F1222 -
+        1. / 5. * (W0 * W0 - 1.) * R * R +
+        betaType * 2. / 27. * fine_structure_const * Z * W0 * R * F1111 + 11. / 45. * R * R;
+
+  AC1 = 4. / 9. * W0 * R * R -
+        betaType * 2. / 3. * fine_structure_const * Z * R * (1. / 9. * F1111 + F1221);
+
+  ACm1 = -2. / 45. * W0 * R * R + betaType * fine_structure_const * Z * R / 3. * F1211;
+
+  AC2 = -4. / 9. * R * R;
+
+  double cShape = 0.;
+
+  if (decayType == FERMI) {
+    cShape = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
+  } else if (decayType == GAMOW_TELLER) {
+    cShape = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
+  }
+
+  double cNS = 0;
+  if (decayType == GAMOW_TELLER) {
+    double M = A * NHL::nucleon_mass_bu;
+
+    double Lambda = std::sqrt(2.)/3.*10.*ratioM121;
+
+    double phi = gP/gA/sqr(2.*M*R/A);
+
+    double NSC0 = -1. / 45. * R * R * Lambda +
+                  1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) +
+                  betaType * 2. / 5. * fine_structure_const * Z / M / R / fc1 *
+                      (betaType * 2. * fb + fd) -
+                  betaType * 2. / 35. * fine_structure_const * Z * W0 * R * Lambda;
+
+    double NSC1 = betaType * 4. / 3. * fb / M / fc1 -
+                  2. / 45. * W0 * R * R * Lambda +
+                  betaType * fine_structure_const * Z * R * 2. / 35. * Lambda;
+
+    double NSCm1 = -1. / 3. / M / fc1 * (betaType * 2. * fb + fd) +
+                   2. / 45. * W0 * R * R * Lambda;
+
+    double NSC2 = 2. / 45. * R * R * Lambda;
+
+    double gamma = std::sqrt(1.-sqr(fine_structure_const*Z));
+
+    double P0 = betaType*2./25.*fine_structure_const*Z*R*W0 + 51./250.*sqr(fine_structure_const*Z);
+    double P1 = betaType*2./25.*fine_structure_const*Z*R;
+    double Pm1 = -2./3.*gamma*W0*R*R+betaType*26./25.*fine_structure_const*Z*R*gamma;
+
+    cNS = NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
+
+    cNS += phi*(P0 + P1 * W + Pm1 / W);
+  }
+
+  return std::make_tuple(cShape, cNS);
+}
+
+std::tuple<double, double> BSG::SpectralFunctions::CCorrectionComponents(
+    double W, double W0, int Z, int A, double R, int betaType, int decayType,
+    double gA, double gP, double fc1, double fb, double fd,
+    double ratioM121, std::string NSShape, double hoFit) {
+
 }
 
 double BSG::SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
@@ -84,92 +186,6 @@ double BSG::SpectralFunctions::CCorrection(
   return result;
 }
 
-std::tuple<double, double> BSG::SpectralFunctions::CCorrectionComponents(
-    double W, double W0, int Z, int A, double R, int betaType, int decayType,
-    double gA, double gP, double fc1, double fb, double fd,
-    double ratioM121, std::string NSShape, double hoFit) {
-  double AC0, AC1, ACm1, AC2;
-  double VC0, VC1, VCm1, VC2;
-
-  //Uniformly charged sphere results
-  double F1111 = 27./35.;
-  double F1221 = 57./70.;
-  double F1222 = 233./210.;
-  double F1211 = -3./70.;
-
-  if (boost::iequals(NSShape, "ModGauss")) {
-    F1111 = 0.757 + 0.0069 * (1 - std::exp(-hoFit / 1.008));
-    F1221 = 0.844 - 0.0182 * (1 - std::exp(-hoFit / 1.974));
-    F1222 = 1.219 - 0.0640 * (1 - std::exp(-hoFit / 1.550));
-  }
-
-  VC0 = -std::pow(W0 * R, 2.) / 5. -
-        betaType * 2. / 9. * ALPHA * Z * W0 * R * F1111 -
-        std::pow(ALPHA * Z, 2.) / 3. * F1222;
-
-  VC1 = 4. / 15. * W0 * R * R -
-        betaType * 2. / 3. * ALPHA * Z * R * (F1221 - F1111 / 3.);
-
-  VCm1 = 2. / 15. * W0 * R * R - betaType * ALPHA * Z * R / 3. * F1211;
-
-  VC2 = -4. / 15. * R * R;
-
-  AC0 = -1. / 3. * std::pow(ALPHA * Z, 2.) * F1222 -
-        1. / 5. * (W0 * W0 - 1.) * R * R +
-        betaType * 2. / 27. * ALPHA * Z * W0 * R * F1111 + 11. / 45. * R * R;
-
-  AC1 = 4. / 9. * W0 * R * R -
-        betaType * 2. / 3. * ALPHA * Z * R * (1. / 9. * F1111 + F1221);
-
-  ACm1 = -2. / 45. * W0 * R * R + betaType * ALPHA * Z * R / 3. * F1211;
-
-  AC2 = -4. / 9. * R * R;
-
-  double cShape = 0.;
-
-  if (decayType == FERMI) {
-    cShape = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
-  } else if (decayType == GAMOW_TELLER) {
-    cShape = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
-  }
-
-  double cNS = 0;
-  if (decayType == GAMOW_TELLER) {
-    double M = A * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV;
-
-    double Lambda = std::sqrt(2.)/3.*10.*ratioM121;
-
-    double phi = gP/gA/sqr(2.*M*R/A);
-
-    double NSC0 = -1. / 45. * R * R * Lambda +
-                  1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) +
-                  betaType * 2. / 5. * ALPHA * Z / M / R / fc1 *
-                      (betaType * 2. * fb + fd) -
-                  betaType * 2. / 35. * ALPHA * Z * W0 * R * Lambda;
-
-    double NSC1 = betaType * 4. / 3. * fb / M / fc1 -
-                  2. / 45. * W0 * R * R * Lambda +
-                  betaType * ALPHA * Z * R * 2. / 35. * Lambda;
-
-    double NSCm1 = -1. / 3. / M / fc1 * (betaType * 2. * fb + fd) +
-                   2. / 45. * W0 * R * R * Lambda;
-
-    double NSC2 = 2. / 45. * R * R * Lambda;
-
-    double gamma = std::sqrt(1.-sqr(ALPHA*Z));
-
-    double P0 = betaType*2./25.*ALPHA*Z*R*W0 + 51./250.*sqr(ALPHA*Z);
-    double P1 = betaType*2./25.*ALPHA*Z*R;
-    double Pm1 = -2./3.*gamma*W0*R*R+betaType*26./25.*ALPHA*Z*R*gamma;
-
-    cNS = NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
-
-    cNS += phi*(P0 + P1 * W + Pm1 / W);
-  }
-
-  return std::make_tuple(cShape, cNS);
-}
-
 double BSG::SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
                                        double R, int betaType) {
   double AC0, AC1, AC2, ACm1;
@@ -191,7 +207,7 @@ double BSG::SpectralFunctions::CICorrection(double W, double W0, int Z, int A,
   // occNumbersZ[occNumbersZ.size() - 1] << endl;
 
   double w = (4 * nZ + 2 * lZ - 1) / 5.;
-  double V0 = betaType * 3 * ALPHA * Z / 2. / R;
+  double V0 = betaType * 3 * fine_structure_const * Z / 2. / R;
   double e = (sqr(W0 - W) + sqr(W + V0) - 1) / 6.;
 
   double Ap = 1.;
@@ -212,7 +228,7 @@ double BSG::SpectralFunctions::CICorrection(
     double W, double W0, double Z, double R, int betaType,
     nme::NuclearStructure::SingleParticleState& spsi,
     nme::NuclearStructure::SingleParticleState& spsf) {
-  double V0 = betaType * 3. * Z * ALPHA / 2. / R;
+  double V0 = betaType * 3. * Z * fine_structure_const / 2. / R;
   double epsilon = 1. / 6. * (sqr(W0 - W) + sqr(W + V0) - 1.);
 
   double nu = ChargeDistributions::CalcNu(R * std::sqrt(3. / 5.), Z);
@@ -246,19 +262,19 @@ double BSG::SpectralFunctions::RelativisticCorrection(double W, double W0, int Z
                                                  int A, double R, int betaType,
                                                  int decayType) {
   if (decayType == FERMI) {
-    double Wb = W + betaType * 3 * ALPHA * Z / (2. * R);
+    double Wb = W + betaType * 3 * fine_structure_const * Z / (2. * R);
     double pb = std::sqrt(Wb * Wb - 1.);
     double H2 = -std::pow(pb * R, 2.) / 6.;
     double D1 = Wb * R / 3.;
     double D3 =
-        -Wb * R * std::pow(pb * R, 2.) / 30 - betaType * ALPHA * Z / 10.;
+        -Wb * R * std::pow(pb * R, 2.) / 30 - betaType * fine_structure_const * Z / 10.;
     double d1 = R / 3.;
     double d3 = -R * std::pow(pb * R, 2.) / 30.;
     double N1 = (W0 - W) * R / 3.;
     double N2 = -std::pow((W0 - W) * R, 2.) / 6.;
     double N3 = std::pow((W0 - W) * R, 3.) / 30;
 
-    double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
+    double gamma = std::sqrt(1. - std::pow(fine_structure_const * Z, 2.));
 
     double Vf2, Vf3;
     double Af2, Af3;
@@ -270,7 +286,7 @@ double BSG::SpectralFunctions::RelativisticCorrection(double W, double W0, int Z
     Af3 = 2. * std::sqrt(2. / 3.) * (D1 - N1) -
           2. * std::sqrt(2. / 3.) * gamma / W * d1;
 
-    double mismatch = W0 - betaType * 2.5 + betaType * 6. / 5. * ALPHA * Z / R;
+    double mismatch = W0 - betaType * 2.5 + betaType * 6. / 5. * fine_structure_const * Z / R;
 
     return 1. - 3. / 10 * R * mismatch * Vf2 - 3. / 28. * R * mismatch * Vf3;
   } else {
@@ -289,7 +305,7 @@ double L0Integral(double r, void * p) {
   int betaType = (params->betaType);
   double aPos[7] = {*(params->aPos)};
   double aNeg[7] = {*(params->aNeg)};
-  double gamma = std::sqrt(1. - std::pow(BSG::ALPHA * Z, 2.));
+  double gamma = std::sqrt(1. - std::pow(BSG::fine_structure_const * Z, 2.));
 
   return std::pow(r, 3.) *
    abs(BSG::ChargeDistributions::GetDerivDeformedChargeDist(r, a, b))
@@ -307,14 +323,14 @@ double BSG::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
   a = R * std::sqrt(3. / (bOverA * bOverA + 2.));
   b = bOverA * a;
 
-  double V0s = 3. * ALPHA * Z / 2. / R;
+  double V0s = 3. * fine_structure_const * Z / 2. / R;
   double V0d = 0.;
 
   if (beta2 > 0) {
-    V0d = 3. * ALPHA * Z / 2. / a / std::sqrt(bOverA * bOverA - 1.) *
+    V0d = 3. * fine_structure_const * Z / 2. / a / std::sqrt(bOverA * bOverA - 1.) *
           std::log(std::sqrt(bOverA * bOverA - 1) + bOverA);
   } else if (beta2 < 0) {
-    V0d = 3. * ALPHA * Z / 2. / a / std::sqrt(1. - bOverA * bOverA) *
+    V0d = 3. * fine_structure_const * Z / 2. / a / std::sqrt(1. - bOverA * bOverA) *
           asin(std::sqrt(1 - bOverA * bOverA));
   }
   double etaS =
@@ -323,7 +339,7 @@ double BSG::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
       1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + betaType * V0d, 2.) - 1.);
   double DC0 = (1 - etaD * 3. / 5. * R * R) / (1 - etaS * 3. / 5. * R * R);
 
-  double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
+  double gamma = std::sqrt(1. - std::pow(fine_structure_const * Z, 2.));
   double prefact = 4. / 3. * M_PI * std::pow(R, 2. * (1 - gamma));
 
   gsl_integration_workspace * w
@@ -349,7 +365,7 @@ double BSG::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
 
 double BSG::SpectralFunctions::L0Correction(double W, int Z, double r, int betaType,
                                        double aPos[], double aNeg[]) {
-  double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
+  double gamma = std::sqrt(1. - std::pow(fine_structure_const * Z, 2.));
   double sum = 0;
   double common = 0;
   double specific = 0;
@@ -359,16 +375,16 @@ double BSG::SpectralFunctions::L0Correction(double W, int Z, double r, int betaT
     else
       sum += aNeg[i] * std::pow(W * r, i - 1);
   }
-  common = 1. + 13. / 60. * std::pow(ALPHA * Z, 2) -
-           betaType * W * r * ALPHA * Z * (41. - 26. * gamma) / 15. /
+  common = 1. + 13. / 60. * std::pow(fine_structure_const * Z, 2) -
+           betaType * W * r * fine_structure_const * Z * (41. - 26. * gamma) / 15. /
                (2. * gamma - 1) -
-           betaType * ALPHA * Z * r * gamma * (17. - 2. * gamma) / 30. / W /
+           betaType * fine_structure_const * Z * r * gamma * (17. - 2. * gamma) / 30. / W /
                (2. * gamma - 1) +
            sum;
   if (betaType == BETA_PLUS)
-    specific = aPos[0] * r / W + 0.22 * (r - 0.0164) * std::pow(ALPHA * Z, 4.5);
+    specific = aPos[0] * r / W + 0.22 * (r - 0.0164) * std::pow(fine_structure_const * Z, 4.5);
   else
-    specific = aNeg[0] * r / W + 0.41 * (r - 0.0164) * std::pow(ALPHA * Z, 4.5);
+    specific = aNeg[0] * r / W + 0.41 * (r - 0.0164) * std::pow(fine_structure_const * Z, 4.5);
   return (common + specific) * 2. / (1. + gamma);
 }
 
@@ -408,11 +424,11 @@ double BSG::SpectralFunctions::UCorrection(double W, int Z, double R, int betaTy
   double delta4 = 4. / 3. * (vp[0] - v[0]) + 4. / 5. * (vp[1] - v[1]) +
                   4. / 7. * (vp[2] - v[2]);
 
-  double gamma = std::sqrt(1. - (ALPHA * Z) * (ALPHA * Z));
+  double gamma = std::sqrt(1. - (fine_structure_const * Z) * (fine_structure_const * Z));
 
-  double result = 1. + betaType * ALPHA * Z * W * R * delta1 +
-                  betaType * gamma / W * ALPHA * Z * R * delta2 +
-                  (ALPHA * Z) * (ALPHA * Z) * delta3 -
+  double result = 1. + betaType * fine_structure_const * Z * W * R * delta1 +
+                  betaType * gamma / W * fine_structure_const * Z * R * delta2 +
+                  (fine_structure_const * Z) * (fine_structure_const * Z) * delta3 -
                   (W * R) * (W * R) * delta4;
 
   return result;
@@ -433,7 +449,7 @@ double BSG::SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
 
   double p = std::sqrt(W * W - 1.);
 
-  return 1. - betaType * M_PI * ALPHA * Z / M / p * (1. + a * (W0 - W) / 3. / M);
+  return 1. - betaType * M_PI * fine_structure_const * Z / M / p * (1. + a * (W0 - W) / 3. / M);
 }
 
 double BSG::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
@@ -451,11 +467,11 @@ double BSG::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
             4. * std::atanh(beta));
 
   double O1corr =
-      ALPHA / 2. / M_PI *
+      fine_structure_const / 2. / M_PI *
       (g - 3. * std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV / 2. / W0));
 
   double L =
-      1.026725 * std::pow(1. - 2. * ALPHA / 3. / M_PI * std::log(2. * W0), 9. / 4.);
+      1.026725 * std::pow(1. - 2. * fine_structure_const / 3. / M_PI * std::log(2. * W0), 9. / 4.);
 
   // 2nd order
   double d1f, d2, d3, d14;
@@ -478,7 +494,7 @@ double BSG::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
        (EULER_MASCHERONI_CONSTANT - 1. + std::log(std::sqrt(10) / lambdaOverM) +
         M_PI / 4 / std::sqrt(10) * lambdaOverM);
 
-  double O2corr = ALPHA * ALPHA * Z * (d14 + d1f + d2 + d3);
+  double O2corr = fine_structure_const * fine_structure_const * Z * (d14 + d1f + d2 + d3);
 
   // 3rd order
   double a = 0.5697;
@@ -488,7 +504,7 @@ double BSG::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
   double g2 = 0.5 * (std::pow(std::log(R), 2.) - std::pow(std::log(2 * W), 2.)) +
               5. / 3. * std::log(2 * R * W);
 
-  double O3corr = std::pow(ALPHA, 3) * std::pow(Z, 2) *
+  double O3corr = std::pow(fine_structure_const, 3) * std::pow(Z, 2) *
                   (a * std::log(lambda / W) + b * f + 4. / M_PI / 3. * g2 -
                    0.649 * std::log(2 * W0));
 
@@ -504,7 +520,7 @@ double BSG::SpectralFunctions::NeutrinoRadiativeCorrection(double Wv) {
        8 * (std::atan(beta) / beta - 1) * std::log(2 * Wv * beta) +
        4 * std::atan(beta) / beta *
            ((7 + 3 * beta * beta) / 8 - 2 * std::atan(beta));
-  return 1 + ALPHA / 2 / M_PI * h;
+  return 1 + fine_structure_const / 2 / M_PI * h;
 }
 
 double BSG::SpectralFunctions::Spence(double x) { return -gsl_sf_dilog(x); }
@@ -552,18 +568,18 @@ double BSG::SpectralFunctions::AtomicScreeningCorrection(double W, int Z,
 
   double p = std::sqrt(W * W - 1);
 
-  double Wt = W - betaType * 0.5 * ALPHA * (Z - betaType) * l;
+  double Wt = W - betaType * 0.5 * fine_structure_const * (Z - betaType) * l;
 
   std::complex<double> pt;
 
   pt = 0.5 * p +
        0.5 * std::sqrt(std::complex<double>(p * p -
-                                            betaType * 2 * ALPHA * Z * Wt * l));
+                                            betaType * 2 * fine_structure_const * Z * Wt * l));
 
-  double y = betaType * ALPHA * Z * W / p;
-  std::complex<double> yt = betaType * ALPHA * Z * Wt / pt;
+  double y = betaType * fine_structure_const * Z * W / p;
+  std::complex<double> yt = betaType * fine_structure_const * Z * Wt / pt;
 
-  double gamma = std::sqrt(1. - pow(ALPHA * Z, 2.));
+  double gamma = std::sqrt(1. - pow(fine_structure_const * Z, 2.));
 
   /*cout << "V: " << W-Wt << endl;
   cout << W << " " << yt.real() << " " << yt.imag() << endl;
@@ -614,11 +630,11 @@ double BSG::SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int
   // std::sqrt(W0^2-1)/2
   double vR = std::sqrt(1 - M * M / (M * M + (W0 * W0 - 1) / 4.));
 
-  double psi2 = 1 + 2 * ALPHA / vp * (std::atan(1 / l) - l / 2 / (1 + l * l));
+  double psi2 = 1 + 2 * fine_structure_const / vp * (std::atan(1 / l) - l / 2 / (1 + l * l));
 
-  double C0 = -ALPHA * ALPHA * Z * ALPHA / vp * l / (1 + l * l) / psi2;
+  double C0 = -fine_structure_const * fine_structure_const * Z * fine_structure_const / vp * l / (1 + l * l) / psi2;
 
-  double C1 = 2 * ALPHA * ALPHA * Z * vR / vp *
+  double C1 = 2 * fine_structure_const * fine_structure_const * Z * vR / vp *
               ((0.5 + l * l) / (1 + l * l) - l * std::atan(1 / l)) / psi2;
 
   return 1 - 2 / (W0 - W) * (0.5 * dBdZ2 + 2 * (C0 + C1));

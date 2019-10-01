@@ -11,6 +11,16 @@ namespace BSG {
 
   enum class NuclearShapes {FERMI, MODGAUSS};
 
+  struct TransitionOptions {
+    int betaType = 1;
+    NHL::DecayType decayType = NHL::DecayType::GAMOWTELLER;
+    double mixingRatio = 0;
+    double QValue;
+    double atomicEnergyDeficit;
+    double partialHalflife;
+    double logft;
+  };
+
   struct CorrectionOptions{
     bool phaseSpace = true;
     bool FermiFunction = true;

@@ -61,6 +61,7 @@ double FermiFunction(double W, int Z, double R, int betaType);
  * The C correction describing effects of finite nuclear size and induced currents when the connection
    to the NME library has been made and actual single-particle wave functions will be used in C_I
  */
+
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
                    int decayType, double gA, double gP, double fc1, double fb,
                    double fd, double ratioM121, bool addCI, std::string NSShape,
@@ -114,6 +115,9 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * The C correction describing effects of finite nuclear size and induced currents.
    Return the shape and nuclear-sensitive parts separately in a tuple.
  */
+std::tuple<double, double> CCorrectionComponents(double W, BetaParams betaParams, AdvancedOptions advancedOptions,
+  CouplingConstants couplingConstants, AllowedMatrixElements allowedME)
+
 std::tuple<double, double> CCorrectionComponents(double W, double W0, int Z, int A, double R, int betaType,
                    int decayType, double gA, double gP, double fc1, double fb, double fd, double ratioM121,
                    std::string NSShape, double hoFit);

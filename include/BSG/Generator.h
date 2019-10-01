@@ -33,8 +33,8 @@ namespace BSG {
     double R; /**< Nuclear radius of the final state */
     double W0;  /**< the total electron energy in units of its rest mass */
     double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
-    BetaType betaType;  /**< internal state of the beta type */
-    DecayType decayType; /**< internal state of the decay type */
+    NHL::BetaType betaType;  /**< internal state of the beta type */
+    NHL::DecayType decayType; /**< internal state of the decay type */
     std::array<double, 9> exPars; /**< array for the fit coefficients of the atomic exchange correction */
   };
 

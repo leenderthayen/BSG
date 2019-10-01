@@ -4,6 +4,7 @@
 #include "NHL/ParticleParser.h"
 #include "NHL/Units/BetaDecayUnits.h"
 #include "NHL/Math/Integration.h"
+#include "PDS/Units/GlobalSystemOfUnits.h"
 
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -181,8 +182,8 @@ namespace BSG {
   std::vector<std::vector<double> >* Generator::CalculateSpectrum() {
     spectrum = new std::vector<std::vector<double> >();
     debugFileLogger->info("Calculating spectrum");
-    double beginEn = configOptions.spectrumCalcOptions.begin;
-    double endEn = configOptions.spectrumCalcOptions.begin;
+    double beginEn = configOptions.spectrumCalcOptions.begin * keV;
+    double endEn = configOptions.spectrumCalcOptions.begin * keV;
 
     double beginW = beginEn / NHL::betaEnergy + 1.;
     double endW = endEn / NHL::betaEnergy + 1.;
@@ -236,16 +237,15 @@ namespace BSG {
     double Wv = W0 - W + 1;
 
     if (configOptions.correctionOptions.phaseSpace) {
-      result *= SF::PhaseSpace(W, W0, motherSpinParity, daughterSpinParity);
-      neutrinoResult *=
-          SF::PhaseSpace(Wv, W0, motherSpinParity, daughterSpinParity);
+      result *= SF::PhaseSpace(W, W0);
+      neutrinoResult *= SF::PhaseSpace(Wv, W0);
     }
     if (configOptions.correctionOptions.Fermi) {
       result *= SF::FermiFunction(W, Z, R, betaType);
       neutrinoResult *= SF::FermiFunction(Wv, Z, R, betaType);
     }
     if (configOptions.correctionOptions.shapeFactor) {
-      if (BSGOptExists(connect)) {
+      if (configOptions.advancedOptions.connectSPS) {
         result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
                                   gP, fc1, fb, fd, ratioM121, configOptions.correctionOptions.isovector, NSShape, hoFit, spsi, spsf);
         neutrinoResult *=
@@ -310,7 +310,7 @@ namespace BSG {
     result = std::max(0., result);
     neutrinoResult = std::max(0., neutrinoResult);
     //TODO Units
-    rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.) * NHL::betaEnergy, result, neutrinoResult);
+    rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.) * NHL::betaEnergy / keV, result, neutrinoResult);
     return std::make_tuple(result, neutrinoResult);
   }
 
