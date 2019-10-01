@@ -1,14 +1,9 @@
-#ifndef SPECTRALFUNCTIONS
-#define SPECTRALFUNCTIONS
+#ifndef BSG_SPECTRAL_FUNCTIONS_H
+#define BSG_SPECTRAL_FUNCTIONS_H
 
 #include <string>
-#include <iostream>
 #include <vector>
-#include <gsl/gsl_complex.h>
 #include <tuple>
-
-#include "Constants.h"
-#include "NuclearUtilities.h"
 
 namespace BSG {
 
@@ -17,9 +12,6 @@ namespace BSG {
  * as described by Hayen et al., Rev. Mod. Phys. 90 (2018) 015008
  */
 namespace SpectralFunctions {
-/// type of beta decay, negative or positive
-enum BetaType { BETA_PLUS = -1, BETA_MINUS = 1 };
-enum DecayType { FERMI, GAMOW_TELLER, MIXED };
 
 // the different corrections
 double PhaseSpace(double W, double W0);
@@ -198,8 +190,8 @@ double DeformationCorrection(double W, double W0, int Z, double R, double beta2,
  * @param aPos array of fitted constants for beta+ decay
  * @param aNeg array of fitted constants for beta- decay
  */
-double L0Correction(double W, int Z, double r, int betaType, double aPos[],
-                    double aNeg[]);
+double L0Correction(double W, int Z, double r, int betaType, std::array<double, 7> aPos,
+                    std::array<double, 7> aNeg);
 
 /**
  * Correction to L0 by moving from a uniformly charged sphere to a more elaborate nuclear shape

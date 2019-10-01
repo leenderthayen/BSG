@@ -5,12 +5,13 @@
 #include "PDS/Core/ParticleDefinition.h"
 #include "NHL/Containers.h"
 
+#include "spdlog/spdlog.h"
+
 #include <vector>
 #include <string>
 #include <tuple>
-
-#include "spdlog/spdlog.h"
-
+#include <array>
+#include <map>
 
 namespace BSG {
 
@@ -34,7 +35,7 @@ namespace BSG {
     double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
     BetaType betaType;  /**< internal state of the beta type */
     DecayType decayType; /**< internal state of the decay type */
-    double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction */
+    std::array<double, 9> exPars; /**< array for the fit coefficients of the atomic exchange correction */
   };
 
   class Generator {
@@ -53,8 +54,8 @@ namespace BSG {
 
     bool Initialize(std::string, std::string);
 
-    inline void SetInitialState(Particle _p) { transitionInfo.initNucleus = _p; }
-    inline void SetFinalState(Particle _p) { transitionInfo.finalNucleus = _p; }
+    inline void SetInitialState(Particle _p) { transitionInfo.initNucleus = _p; InitializeBetaParams(); }
+    inline void SetFinalState(Particle _p) { transitionInfo.finalNucleus = _p; InitializeBetaParams(); }
 
     inline void SetNSM(NME::NuclearStructureManager* _nsm) { delete nsm; nsm = _nsm; }
 
@@ -84,8 +85,10 @@ namespace BSG {
 
   private:
     ConfigOptions configOptions;
+    BetaParams betaParams;
     static double aNeg[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
     static double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
+    static std::map<int, std::array<double, 9> > exchangeCoefficients;
 
     NME::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
@@ -144,8 +147,6 @@ namespace BSG {
     * Initialize all Nuclear structure manager-related stuff, like single particle states when C_I and NME are connected, and calculating the required matrix elements
     */
     void InitializeNSMInfo();
-    bool InitializeParticlesFromFile(std::string);
-    bool InitializeOptionsFromConfigFile(std::string);
   };
 
 }
