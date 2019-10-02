@@ -30,7 +30,7 @@ void ShowBSGInfo() {
 
 namespace BSG {
 
-  Generator::Generator(std::string _outputName) : ouputName(_outputName) {
+  Generator::Generator(std::string _outputName) : outputName(_outputName) {
     InitializeLoggers();
     InitializeL0Constants();
     LoadExchangeParameters();
@@ -53,7 +53,7 @@ namespace BSG {
   }
 
   bool Generator::InitializeOptionsFromConfigFile(std::string filename) {
-    configOptions = ParseConfigFile(filename);
+    configOptions = ParseOptions(filename);
     return true;
   }
 
@@ -75,6 +75,15 @@ namespace BSG {
         - transitionInfo.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy - 1;
     }
     betaParams.exPars = exchangeCoefficients[initNucleusDef->GetZ()];
+
+    for (int i = 0; i < bDim1; i++) {
+      betaParams.aPos[i] = 0;
+      betaParams.aNeg[i] = 0;
+      for (int j = 0; j < bDim2; j++) {
+        betaParams.aNeg[i] += bNeg[i][j] * std::pow(fine_structure_const * betaParams.Zf, j + 1);
+        betaParams.aPos[i] += bPos[i][j] * std::pow(fine_structure_const * betaParams.Zf, j + 1);
+      }
+    }
   }
 
   // void Generator::InitializeShapeParameters() {
@@ -188,7 +197,7 @@ namespace BSG {
     double beginW = beginEn / NHL::betaEnergy + 1.;
     double endW = endEn / NHL::betaEnergy + 1.;
     if (endEn == 0.0) {
-      endW = W0;
+      endW = betaParams.W0;
     }
 
     double stepW = configOptions.spectrumCalcOptions.stepSize / NHL::betaEnergy;
@@ -220,7 +229,7 @@ namespace BSG {
   double Generator::CalculateMeanEnergy() {
     debugFileLogger->debug("Calculating mean energy");
     std::vector<std::vector<double> > weightedSpectrum;
-    for (int i =0; i < spectrum->size(); i++) {
+    for (unsigned int i = 0; i < spectrum->size(); i++) {
       std::vector<double> entry = {(*spectrum)[i][0], (*spectrum)[i][0]* (*spectrum)[i][1]};
       weightedSpectrum.push_back(entry);
     }
@@ -231,80 +240,112 @@ namespace BSG {
   }
 
   std::tuple<double, double> Generator::CalculateDecayRate(double W) {
+    //Setting constants for ease of use
+
+    //Basic parameters
+    double atomicEnergyDeficit = transitionInfo.atomicEnergyDeficit;
+    double W0 = betaParams.W0;
+    int Z = betaParams.Zf;
+    int A = betaParams.A;
+    double R = betaParams.R;
+    int betaType = betaParams.betaType;
+    NHL::BetaDecayType decayType = betaParams.decayType;
+    double mixingRatio = betaParams.mixingRatio;
+    std::array<double, 7> aNeg = betaParams.aNeg;
+    std::array<double, 7> aPos = betaParams.aPos;
+    std::array<double, 9> exPars = betaParams.exPars;
+
+    //Coupling constants
+    double gA = configOptions.couplingConstants.gA;
+    double gP = configOptions.couplingConstants.gP;
+    double gM = configOptions.couplingConstants.gM;
+
+    //Matrix element ratios relevant for allowed beta decay
+    double bAc = configOptions.allowedME.bAc;
+    double dAc = configOptions.allowedME.dAc;
+    double lambda = configOptions.allowedME.lambda;
+
+    //Advanced options
+    NHL::NuclearShapes NSShape = configOptions.advancedOptions.NSShape;
+    NHL::NuclearShapes ESShape = configOptions.advancedOptions.ESShape;
+    double modGaussFit = configOptions.advancedOptions.modGaussFit;
+    std::vector<double> vOld = configOptions.advancedOptions.vold;
+    std::vector<double> vNew = configOptions.advancedOptions.vnew;
+
     double result = 1;
     double neutrinoResult = 1;
 
     double Wv = W0 - W + 1;
 
     if (configOptions.correctionOptions.phaseSpace) {
-      result *= SF::PhaseSpace(W, W0);
-      neutrinoResult *= SF::PhaseSpace(Wv, W0);
+      result *= SpectralFunctions::PhaseSpace(W, W0);
+      neutrinoResult *= SpectralFunctions::PhaseSpace(Wv, W0);
     }
-    if (configOptions.correctionOptions.Fermi) {
-      result *= SF::FermiFunction(W, Z, R, betaType);
-      neutrinoResult *= SF::FermiFunction(Wv, Z, R, betaType);
+    if (configOptions.correctionOptions.FermiFunction) {
+      result *= SpectralFunctions::FermiFunction(W, Z, R, betaType);
+      neutrinoResult *= SpectralFunctions::FermiFunction(Wv, Z, R, betaType);
     }
     if (configOptions.correctionOptions.shapeFactor) {
-      if (configOptions.advancedOptions.connectSPS) {
-        result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
+      /*if (configOptions.advancedOptions.connectSPS) {
+        result *= SpectralFunctions::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
                                   gP, fc1, fb, fd, ratioM121, configOptions.correctionOptions.isovector, NSShape, hoFit, spsi, spsf);
         neutrinoResult *=
-            SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
+            SpectralFunctions::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
                             fc1, fb, fd, ratioM121, configOptions.correctionOptions.isovector, NSShape, hoFit, spsi, spsf);
-      } else {
-        result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
-                                  gP, fc1, fb, fd, ratioM121, configOptions.correctionOptions.isovector, NSShape, hoFit);
+      } else {*/
+        result *= SpectralFunctions::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
+                                  gP, bAc, dAc, lambda, configOptions.correctionOptions.isovector, NSShape, modGaussFit);
         neutrinoResult *=
-            SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
-                            fc1, fb, fd, ratioM121, configOptions.correctionOptions.isovector, NSShape, hoFit);
-      }
+            SpectralFunctions::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
+                            bAc, dAc, lambda, configOptions.correctionOptions.isovector, NSShape, modGaussFit);
+      //}
     }
     if (configOptions.correctionOptions.relativistic) {
-      result *= SF::RelativisticCorrection(W, W0, Z, A, R, betaType, decayType);
+      result *= SpectralFunctions::RelativisticCorrection(W, W0, Z, R, betaType, decayType);
       neutrinoResult *=
-          SF::RelativisticCorrection(Wv, W0, Z, A, R, betaType, decayType);
+          SpectralFunctions::RelativisticCorrection(Wv, W0, Z, R, betaType, decayType);
     }
     if (configOptions.correctionOptions.ESDeformation) {
-      result *=
-          SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
+      /*result *=
+          SpectralFunctions::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
       neutrinoResult *=
-          SF::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
+          SpectralFunctions::DeformationCorrection(Wv, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);*/
     }
     if (configOptions.correctionOptions.ESFiniteSize) {
-      result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);
-      neutrinoResult *= SF::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
+      result *= SpectralFunctions::L0Correction(W, Z, R, betaType, aPos, aNeg);
+      neutrinoResult *= SpectralFunctions::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
     }
     if (configOptions.correctionOptions.ESFermi) {
-      result *= SF::UCorrection(W, Z, R, betaType, ESShape, vOld, vNew);
-      neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, ESShape, vOld, vNew);
+      result *= SpectralFunctions::UCorrection(W, Z, R, betaType, ESShape, vOld, vNew);
+      neutrinoResult *= SpectralFunctions::UCorrection(Wv, Z, R, betaType, ESShape, vOld, vNew);
     }
     if (configOptions.correctionOptions.CoulombRecoil) {
-      result *= SF::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
+      result *= SpectralFunctions::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
       neutrinoResult *=
-          SF::QCorrection(Wv, W0, Z, A, betaType, decayType, mixingRatio);
+          SpectralFunctions::QCorrection(Wv, W0, Z, A, betaType, decayType, mixingRatio);
     }
     if (configOptions.correctionOptions.radiative) {
-      result *= SF::RadiativeCorrection(W, W0, Z, R, betaType, gA, gM);
-      neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
+      result *= SpectralFunctions::RadiativeCorrection(W, W0, Z, R, betaType, gA, gM);
+      neutrinoResult *= SpectralFunctions::NeutrinoRadiativeCorrection(Wv);
     }
     if (configOptions.correctionOptions.kinRecoil) {
-      result *= SF::RecoilCorrection(W, W0, A, decayType, mixingRatio);
-      neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
+      result *= SpectralFunctions::RecoilCorrection(W, W0, A, decayType, mixingRatio);
+      neutrinoResult *= SpectralFunctions::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
     }
     if (configOptions.correctionOptions.atomicScreen) {
-      result *= SF::AtomicScreeningCorrection(W, Z, betaType);
-      neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, betaType);
+      result *= SpectralFunctions::AtomicScreeningCorrection(W, Z, betaType);
+      neutrinoResult *= SpectralFunctions::AtomicScreeningCorrection(Wv, Z, betaType);
     }
     if (configOptions.correctionOptions.atomicExchange) {
-      if (betaType == BETA_MINUS) {
-        result *= SF::AtomicExchangeCorrection(W, exPars);
-        neutrinoResult *= SF::AtomicExchangeCorrection(Wv, exPars);
+      if (betaType == NHL::BETA_MINUS) {
+        result *= SpectralFunctions::AtomicExchangeCorrection(W, exPars);
+        neutrinoResult *= SpectralFunctions::AtomicExchangeCorrection(Wv, exPars);
       }
     }
     if (configOptions.correctionOptions.atomicMismatch) {
       if (atomicEnergyDeficit == 0.) {
-        result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
-        neutrinoResult *= SF::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
+        result *= SpectralFunctions::AtomicMismatchCorrection(W, W0, Z, A, betaType);
+        neutrinoResult *= SpectralFunctions::AtomicMismatchCorrection(Wv, W0, Z, A, betaType);
       }
     }
     result = std::max(0., result);
@@ -317,7 +358,7 @@ namespace BSG {
   void Generator::PrepareOutputFile() {
     ShowBSGInfo();
 
-    auto l = spdlog::get("BSG_results_file");
+/*    auto l = spdlog::get("BSG_results_file");
     l->info("Spectrum input overview\n{:=>30}", "");
     //l->info("Using information from {}\n\n", GetBSGOpt(std::string, input));
     l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
@@ -395,7 +436,7 @@ namespace BSG {
       } else {
         l->info("{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)*ELECTRON_MASS_KEV, (*spectrum)[i][1]);
       }
-    }
+    }*/
   }
 
   //Initialization/loading
@@ -439,14 +480,16 @@ namespace BSG {
 
   void Generator::LoadExchangeParameters() {
     debugFileLogger->debug("Entered LoadExchangeParameters");
-    std::string exParamFile = GetBSGOpt(std::string, exchangedata);
+    //TODO
+    //std::string exParamFile = GetBSGOpt(std::string, exchangedata);
+    std::string exParamFile = "";
     std::ifstream paramStream(exParamFile.c_str());
     std::string line;
 
     if (paramStream.is_open()) {
       while (getline(paramStream, line)) {
         std::array<double, 9> exPars;
-        double z;
+        int z;
 
         std::istringstream iss(line);
         iss >> z >> exPars[0] >> exPars[1] >> exPars[2] >> exPars[3] >> exPars[4]
@@ -462,8 +505,6 @@ namespace BSG {
 
   void Generator::InitializeL0Constants() {
     debugFileLogger->debug("Entering InitializeL0Constants");
-    //double b[7][6];
-    double bNeg[7][6];
     bNeg[0][0] = 0.115;
     bNeg[0][1] = -1.8123;
     bNeg[0][2] = 8.2498;
@@ -507,7 +548,6 @@ namespace BSG {
     bNeg[6][4] = -1641.2845;
     bNeg[6][5] = 1095.358;
 
-    double bPos[7][6];
     bPos[0][0] = 0.0701;
     bPos[0][1] = -2.572;
     bPos[0][2] = 27.5971;
@@ -550,16 +590,6 @@ namespace BSG {
     bPos[6][3] = -3633.9181;
     bPos[6][4] = 6727.6296;
     bPos[6][5] = -4795.0481;
-
-    //TODO
-    for (int i = 0; i < 7; i++) {
-      aPos[i] = 0;
-      aNeg[i] = 0;
-      for (int j = 0; j < 6; j++) {
-        aNeg[i] += bNeg[i][j] * std::pow(ALPHA * Z, j + 1);
-        aPos[i] += bPos[i][j] * std::pow(ALPHA * Z, j + 1);
-      }
-    }
     debugFileLogger->debug("Leaving InitializeL0Constants");
   }
 }

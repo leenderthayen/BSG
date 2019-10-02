@@ -2,6 +2,9 @@
 #define SCREENING
 
 #include <vector>
+#include <math.h>
+
+#include "PDS/Units/GlobalPhysicalConstants.h"
 
 namespace BSG {
 
@@ -958,7 +961,7 @@ inline void PotParam(int Zloc, std::vector<double> &Aby,
   }
 
   // Parameters are in atomic units, thus conversion in natural units
-  for (int i = 0; i < (int)Bby_loc.size(); i++) Bby_loc[i] = Bby_loc[i] * ALPHA;
+  for (int i = 0; i < (int)Bby_loc.size(); i++) Bby_loc[i] = Bby_loc[i] * fine_structure_const;
 
   // Parameters are put in the global std::vectors for the required nucleus
   for (int i = 0; i < (int)Aby_loc.size(); i++) {

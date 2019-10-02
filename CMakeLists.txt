@@ -53,8 +53,8 @@ add_library(BSG SHARED src/Generator.cc src/ConfigParser.cc src/SpectralFunction
 
 set(NHL_INCLUDE_DIRS "/home/leendert/git/NHL/include")
 set(PDS_INCLUDE_DIRS "/home/leendert/git/PDS/include")
-set(NME_INCLUDE_DIRS "/home/leendert/git/NME/include")
-set(NME_LIBRARIES "-L/home/leendert/git/NME/build -lNME")
+#set(NME_INCLUDE_DIRS "/home/leendert/git/NME/include")
+#set(NME_LIBRARIES "-L/home/leendert/git/NME/build -lNME")
 
 target_include_directories(
     BSG
@@ -64,9 +64,9 @@ target_include_directories(
 )
 target_include_directories(BSG PUBLIC ${spdlog_INCLUDE_DIRS})
 target_include_directories(BSG PUBLIC ${NHL_INCLUDE_DIRS})
-target_include_directories(BSG PUBLIC ${NME_INCLUDE_DIRS})
+#target_include_directories(BSG PUBLIC ${NME_INCLUDE_DIRS})
 target_include_directories(BSG PUBLIC ${PDS_INCLUDE_DIRS})
-target_link_libraries(BSG PUBLIC ${NME_LIBRARIES})
+#target_link_libraries(BSG PUBLIC ${NME_LIBRARIES})
 
 set(HEADER_BASE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 

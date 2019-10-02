@@ -5,7 +5,9 @@ find_package(GSL REQUIRED)
 set(BSG_MAIN main.cc)
 
 set(BSG_UTESTS_SOURCES
-empty)
+  test_gamma_functions.cc
+  test_spectral_functions.cc
+  test_config_parser.cc)
 
 enable_testing()
 

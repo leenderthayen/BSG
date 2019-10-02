@@ -1,6 +1,9 @@
 #ifndef BSG_GENERATOR_H
 #define BSG_GENERATOR_H
 
+//Same package
+#include "BSG/ConfigParser.h"
+
 //Own libraries
 #include "PDS/Core/ParticleDefinition.h"
 #include "NHL/Containers.h"
@@ -34,8 +37,10 @@ namespace BSG {
     double W0;  /**< the total electron energy in units of its rest mass */
     double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
     NHL::BetaType betaType;  /**< internal state of the beta type */
-    NHL::DecayType decayType; /**< internal state of the decay type */
+    NHL::BetaDecayType decayType; /**< internal state of the decay type */
     std::array<double, 9> exPars; /**< array for the fit coefficients of the atomic exchange correction */
+    std::array<double, 7> aNeg;
+    std::array<double, 7> aPos;
   };
 
   class Generator {
@@ -50,14 +55,14 @@ namespace BSG {
      * Destructor for Generator.
      * Deletes the reference to the nuclear structure manager
      */
-    ~Generator() { delete nsm; };
+    ~Generator() {};
 
     bool Initialize(std::string, std::string);
 
-    inline void SetInitialState(Particle _p) { transitionInfo.initNucleus = _p; InitializeBetaParams(); }
-    inline void SetFinalState(Particle _p) { transitionInfo.finalNucleus = _p; InitializeBetaParams(); }
+    inline void SetInitialState(PDS::core::Particle _p) { transitionInfo.initNucleus = _p; InitializeBetaParams(); }
+    inline void SetFinalState(PDS::core::Particle _p) { transitionInfo.finalNucleus = _p; InitializeBetaParams(); }
 
-    inline void SetNSM(NME::NuclearStructureManager* _nsm) { delete nsm; nsm = _nsm; }
+    //inline void SetNSM(NME::NuclearStructureManager* _nsm) { delete nsm; nsm = _nsm; }
 
     void SetDecayKinematics(ReactionChannel*);
 
@@ -84,13 +89,16 @@ namespace BSG {
     inline void SetOutputName(std::string _output) { outputName = _output; };
 
   private:
+    TransitionInfo transitionInfo;
     ConfigOptions configOptions;
     BetaParams betaParams;
-    static double aNeg[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
-    static double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
-    static std::map<int, std::array<double, 9> > exchangeCoefficients;
+    static constexpr int bDim1 = 7;
+    static constexpr int bDim2 = 6;
+    double bNeg[bDim1][bDim2]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
+    double bPos[bDim1][bDim2]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
+    std::map<int, std::array<double, 9> > exchangeCoefficients;
 
-    NME::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
+    //NME::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
     std::vector<std::vector<double> >* spectrum; /**< vector of vectors containing the calculated spectrum */
 

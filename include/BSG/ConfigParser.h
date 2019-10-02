@@ -4,16 +4,16 @@
 #include "NHL/Containers.h"
 #include "PDS/Units/GlobalSystemOfUnits.h"
 
+#include "CLI11.hpp"
+
 #include <string>
 #include <vector>
 
 namespace BSG {
 
-  enum class NuclearShapes {FERMI, MODGAUSS};
-
   struct TransitionOptions {
     int betaType = 1;
-    NHL::DecayType decayType = NHL::DecayType::GAMOWTELLER;
+    NHL::BetaDecayType decayType = NHL::BetaDecayType::GAMOWTELLER;
     double mixingRatio = 0;
     double QValue;
     double atomicEnergyDeficit;
@@ -40,9 +40,10 @@ namespace BSG {
 
   struct AdvancedOptions {
     bool connectSPS = false;
-    NuclearShapes ESShape = NuclearShapes::FERMI;
-    NuclearShapes NSShape = NuclearShapes::FERMI;
+    NHL::NuclearShapes ESShape = NHL::NuclearShapes::FERMI;
+    NHL::NuclearShapes NSShape = NHL::NuclearShapes::FERMI;
     std::vector<double> vnew, vold;
+    double modGaussFit = 5;
   };
 
   struct SpectrumCalculationOptions {
@@ -74,13 +75,13 @@ namespace BSG {
     AllowedMatrixElements allowedME;
   };
 
-  ConfigOptions ParseConfigFile(std::string);
+  ConfigOptions ParseOptions(std::string, int argc = 0, const char** argv = nullptr);
 
-  CouplingConstants ParseCouplingConstants(std::string);
-  CorrectionOptions ParseCorrectionOptions(std::string);
-  SpectrumCalculationOptions ParseSpectrumCalculationOptions(std::string);
-  AdvancedOptions ParseAdvancedOptions(std::string);
-  AllowedMatrixElements ParseAllowedMatrixElements(std::string);
+  void SetCouplingOptions(CLI::App&, CouplingConstants&);
+  void SetCorrectionOptions(CLI::App&, CorrectionOptions&);
+  void SetSpectrumCalculationOptions(CLI::App&, SpectrumCalculationOptions&);
+  void SetAdvancedOptions(CLI::App&, AdvancedOptions&);
+  void SetAllowedMatrixElementOptions(CLI::App&, AllowedMatrixElements&);
 
   //FUTURE
 
