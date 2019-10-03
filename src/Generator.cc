@@ -1,5 +1,6 @@
 #include "BSG/Generator.h"
 #include "BSG/SpectralFunctions.h"
+#include "BSG/ConfigParser.h"
 
 #include "NHL/ParticleParser.h"
 #include "NHL/Units/BetaDecayUnits.h"
@@ -37,42 +38,42 @@ namespace BSG {
     debugFileLogger->debug("Leaving Generator constructor");
   }
 
-  bool Generator::Initialize(std::string particlesFile, std::string configFile) {
-    bool success = InitializeParticlesFromFile(particlesFile);
-    if (success) {
-      success = InitializeOptionsFromConfigFile(configFile);
-    }
+  bool Generator::Initialize(std::string transitionFile, std::string configFile, int argc, const char** argv) {
+    bool success = InitializeTransitionFromFile(transitionFile);
+    InitializeOptionsFromConfigFile(configFile, argc, argv);
     return success;
   }
 
-  bool Generator::InitializeParticlesFromFile(std::string filename) {
-    transitionInfo.initNucleus = NHL::ParseInitialNucleus(filename);
-    transitionInfo.finalNucleus = NHL::ParseFinalNucleus(filename);
-    InitializeBetaParams();
-    return true;
+  bool Generator::InitializeTransitionFromFile(std::string filename) {
+    TransitionOptions newTransitionOptions = ParseTransitionOptions(filename);
+    if (TransitionSanityCheck(newTransitionOptions)) {
+      transitionOptions = newTransitionOptions;
+      InitializeBetaParams();
+      return true;
+    }
+    return false;
   }
 
-  bool Generator::InitializeOptionsFromConfigFile(std::string filename) {
-    configOptions = ParseOptions(filename);
-    return true;
+  void Generator::InitializeOptionsFromConfigFile(std::string filename, int argc, const char** argv) {
+    configOptions = ParseConfigOptions(filename, argc, argv);
   }
 
   void Generator::InitializeBetaParams() {
-    PDS::core::Nucleus* initNucleusDef = static_cast<PDS::core::Nucleus*>(transitionInfo.initNucleus.GetParticleDefinition());
-    PDS::core::Nucleus* finalNucleusDef = static_cast<PDS::core::Nucleus*>(transitionInfo.finalNucleus.GetParticleDefinition());
+    PDS::core::Nucleus* initNucleusDef = static_cast<PDS::core::Nucleus*>(transitionOptions.initNucleus.GetParticleDefinition());
+    PDS::core::Nucleus* finalNucleusDef = static_cast<PDS::core::Nucleus*>(transitionOptions.finalNucleus.GetParticleDefinition());
     betaParams.Zi = initNucleusDef->GetZ();
     betaParams.Zf = finalNucleusDef->GetZ();
     betaParams.A = initNucleusDef->GetA();
     //sqrt(5/3) transforms <r^2>^{1/2} into the equivalent radius for a uniformly charged sphere
     betaParams.R = finalNucleusDef->GetRadius() / NHL::betaLength * std::sqrt(5./3.);
-    if (transitionInfo.betaType == NHL::BETA_MINUS) {
-      betaParams.W0 = (transitionInfo.Q - transitionInfo.atomicEnergyDeficit
-        + transitionInfo.initNucleus.GetExcitationEnergy()
-        - transitionInfo.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy + 1;
-    } else if (transitionInfo.betaType == NHL::BETA_PLUS) {
-      betaParams.W0 = (transitionInfo.Q - transitionInfo.atomicEnergyDeficit
-        + transitionInfo.initNucleus.GetExcitationEnergy()
-        - transitionInfo.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy - 1;
+    if (transitionOptions.betaType == NHL::BETA_MINUS) {
+      betaParams.W0 = (transitionOptions.QValue - transitionOptions.atomicEnergyDeficit
+        + transitionOptions.initNucleus.GetExcitationEnergy()
+        - transitionOptions.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy + 1;
+    } else if (transitionOptions.betaType == NHL::BETA_PLUS) {
+      betaParams.W0 = (transitionOptions.QValue - transitionOptions.atomicEnergyDeficit
+        + transitionOptions.initNucleus.GetExcitationEnergy()
+        - transitionOptions.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy - 1;
     }
     betaParams.exPars = exchangeCoefficients[initNucleusDef->GetZ()];
 
@@ -243,7 +244,7 @@ namespace BSG {
     //Setting constants for ease of use
 
     //Basic parameters
-    double atomicEnergyDeficit = transitionInfo.atomicEnergyDeficit;
+    double atomicEnergyDeficit = transitionOptions.atomicEnergyDeficit;
     double W0 = betaParams.W0;
     int Z = betaParams.Zf;
     int A = betaParams.A;
@@ -362,7 +363,7 @@ namespace BSG {
     l->info("Spectrum input overview\n{:=>30}", "");
     //l->info("Using information from {}\n\n", GetBSGOpt(std::string, input));
     l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
-    l->info("Q Value: {} keV\tEffective endpoint energy: {}", QValue, (W0-1.)*ELECTRON_MASS_KEV);
+    l->info("Q Value: {} keV\tEffective endpoint energy: {}", transitionOptions.QValue, (W0-1.)*ELECTRON_MASS_KEV);
     l->info("Process: {}\tType: {}", GetBSGOpt(std::string, Transition.Process), GetBSGOpt(std::string, Transition.Type));
     if (mixingRatio != 0) l->info("Mixing ratio: {}", mixingRatio);
 

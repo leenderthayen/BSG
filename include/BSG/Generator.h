@@ -18,16 +18,6 @@
 
 namespace BSG {
 
-  //Container for all relevant transition info
-  struct TransitionInfo {
-    PDS::core::Particle initNucleus, finalNucleus;
-    NHL::BetaType betaType;
-    double Q;
-    double atomicEnergyDeficit;
-    double partialLifetime;
-    double logft;
-  };
-
   //Struct that is passed to the Spectral Corrections
   struct BetaParams {
     int Zi; /**< Proton number of initial state */
@@ -50,17 +40,19 @@ namespace BSG {
      * Performs the full initialization of the Generator by fetching arguments
      * from the commandline or config file, performing the L0 initialization and charge distribution fitting
      */
-    Generator(std::string _ouput = "output");
+    Generator(std::string _ouput = "bsg_output");
     /**
      * Destructor for Generator.
      * Deletes the reference to the nuclear structure manager
      */
     ~Generator() {};
 
-    bool Initialize(std::string, std::string);
+    bool Initialize(std::string, std::string, int argc = 0, const char** argv = nullptr);
+    bool InitializeTransitionFromFile(std::string);
+    void InitializeOptionsFromConfigFile(std::string, int argc = 0, const char** = nullptr);
 
-    inline void SetInitialState(PDS::core::Particle _p) { transitionInfo.initNucleus = _p; InitializeBetaParams(); }
-    inline void SetFinalState(PDS::core::Particle _p) { transitionInfo.finalNucleus = _p; InitializeBetaParams(); }
+    inline void SetInitialState(PDS::core::Particle _p) { transitionOptions.initNucleus = _p; InitializeBetaParams(); }
+    inline void SetFinalState(PDS::core::Particle _p) { transitionOptions.finalNucleus = _p; InitializeBetaParams(); }
 
     //inline void SetNSM(NME::NuclearStructureManager* _nsm) { delete nsm; nsm = _nsm; }
 
@@ -88,8 +80,10 @@ namespace BSG {
 
     inline void SetOutputName(std::string _output) { outputName = _output; };
 
+    inline const BetaParams GetBetaParams() const { return betaParams; }
+
   private:
-    TransitionInfo transitionInfo;
+    TransitionOptions transitionOptions;
     ConfigOptions configOptions;
     BetaParams betaParams;
     static constexpr int bDim1 = 7;
@@ -108,9 +102,6 @@ namespace BSG {
     std::shared_ptr<spdlog::logger> resultsFileLogger;
 
     std::string outputName;
-
-    bool InitializeParticlesFromFile(std::string);
-    bool InitializeOptionsFromConfigFile(std::string);
 
     /**
     * Calculate the properly normalized ft value

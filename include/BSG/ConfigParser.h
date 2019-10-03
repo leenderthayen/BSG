@@ -3,6 +3,7 @@
 
 #include "NHL/Containers.h"
 #include "PDS/Units/GlobalSystemOfUnits.h"
+#include "PDS/Core/ParticleDefinition.h"
 
 #include "CLI11.hpp"
 
@@ -12,7 +13,8 @@
 namespace BSG {
 
   struct TransitionOptions {
-    int betaType = 1;
+    PDS::core::Particle initNucleus, finalNucleus;
+    NHL::BetaType betaType = NHL::BETA_MINUS;
     NHL::BetaDecayType decayType = NHL::BetaDecayType::GAMOWTELLER;
     double mixingRatio = 0;
     double QValue;
@@ -75,13 +77,18 @@ namespace BSG {
     AllowedMatrixElements allowedME;
   };
 
-  ConfigOptions ParseOptions(std::string, int argc = 0, const char** argv = nullptr);
+  TransitionOptions ParseTransitionOptions(std::string);
+  void SetTransitionOptions(CLI::App&, TransitionOptions&);
+
+  ConfigOptions ParseConfigOptions(std::string, int argc = 0, const char** argv = nullptr);
 
   void SetCouplingOptions(CLI::App&, CouplingConstants&);
   void SetCorrectionOptions(CLI::App&, CorrectionOptions&);
   void SetSpectrumCalculationOptions(CLI::App&, SpectrumCalculationOptions&);
   void SetAdvancedOptions(CLI::App&, AdvancedOptions&);
   void SetAllowedMatrixElementOptions(CLI::App&, AllowedMatrixElements&);
+
+  bool TransitionSanityCheck(TransitionOptions&);
 
   //FUTURE
 

@@ -7,7 +7,8 @@ set(BSG_MAIN main.cc)
 set(BSG_UTESTS_SOURCES
   test_gamma_functions.cc
   test_spectral_functions.cc
-  test_config_parser.cc)
+  test_config_parser.cc
+  test_generator.cc)
 
 enable_testing()
 
