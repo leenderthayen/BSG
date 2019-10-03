@@ -83,7 +83,7 @@ namespace BSG {
     me->add_option("-l,--lambda", allowedME.lambda, "")->ignore_case();
   }
 
-  TransitionOptions ParseTransitionOptions(std::string filename) {
+  TransitionOptions ParseTransitionOptions(std::string filename, int argc, const char** argv) {
     TransitionOptions transitionOptions;
 
     transitionOptions.initNucleus = NHL::ParseNucleus(filename, "Mother");
@@ -96,7 +96,7 @@ namespace BSG {
 
     SetTransitionOptions(app, transitionOptions);
 
-    parse(app);
+    parse(app, argc, argv);
 
     return transitionOptions;
   }
@@ -118,9 +118,5 @@ namespace BSG {
     parse(app, argc, argv);
 
     return configOptions;
-  }
-
-  bool TransitionSanityCheck(TransitionOptions& tr) {
-    return true;
   }
 }//end of BSG namespace

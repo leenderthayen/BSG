@@ -39,18 +39,19 @@ namespace BSG {
   }
 
   bool Generator::Initialize(std::string transitionFile, std::string configFile, int argc, const char** argv) {
-    bool success = InitializeTransitionFromFile(transitionFile);
+    bool success = InitializeTransitionFromFile(transitionFile, argc, argv);
     InitializeOptionsFromConfigFile(configFile, argc, argv);
     return success;
   }
 
-  bool Generator::InitializeTransitionFromFile(std::string filename) {
-    TransitionOptions newTransitionOptions = ParseTransitionOptions(filename);
+  bool Generator::InitializeTransitionFromFile(std::string filename, int argc, const char** argv) {
+    TransitionOptions newTransitionOptions = ParseTransitionOptions(filename, argc, argv);
     if (TransitionSanityCheck(newTransitionOptions)) {
       transitionOptions = newTransitionOptions;
       InitializeBetaParams();
       return true;
     }
+    consoleLogger->warn("Sanity check was unsuccessful.");
     return false;
   }
 
@@ -457,6 +458,39 @@ namespace BSG {
         l->info("{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)* NHL::betaEnergy / keV, (*spectrum)[i][1]);
       }
     }
+  }
+
+  bool Generator::TransitionSanityCheck(TransitionOptions& tr) {
+    bool ok = true;
+    if (tr.QValue <= 0) {
+      ok = false;
+      consoleLogger->error("ERROR: Q Value is smaller than 0.");
+    }
+    if (tr.mixingRatio < 0) {
+      ok = false;
+      consoleLogger->error("ERROR: Mixing ratio is smaller than 0.");
+    }
+    if (tr.partialHalflife < 0) {
+      ok = false;
+      consoleLogger->error("ERROR: Partial halflife is smaller than 0");
+    }
+    try {
+      PDS::core::Nucleus* nI = static_cast<PDS::core::Nucleus*>(tr.initNucleus.GetParticleDefinition());
+      PDS::core::Nucleus* nF = static_cast<PDS::core::Nucleus*>(tr.finalNucleus.GetParticleDefinition());
+
+      if (nI->GetA() != nF->GetA()) {
+        ok = false;
+        consoleLogger->error("ERROR: Mass numbers of initial and final nuclei are not the same.");
+      }
+      if ((nI->GetZ() - nF->GetZ() + tr.betaType) != 0) {
+        ok = false;
+        consoleLogger->error("ERROR: Z values of initial and final nucleus do not match beta process.");
+      }
+    } catch (...) {
+      consoleLogger->error("ERROR: Initial and/or final states are not recognized as nuclei.");
+      ok = false;
+    }
+    return ok;
   }
 
   //Initialization/loading

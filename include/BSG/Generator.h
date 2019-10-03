@@ -48,7 +48,7 @@ namespace BSG {
     ~Generator() {};
 
     bool Initialize(std::string, std::string, int argc = 0, const char** argv = nullptr);
-    bool InitializeTransitionFromFile(std::string);
+    bool InitializeTransitionFromFile(std::string, int argc = 0, const char** argv = nullptr);
     void InitializeOptionsFromConfigFile(std::string, int argc = 0, const char** = nullptr);
 
     inline void SetInitialState(PDS::core::Particle _p) { transitionOptions.initNucleus = _p; InitializeBetaParams(); }
@@ -111,6 +111,8 @@ namespace BSG {
     double CalculateMeanEnergy();
 
     void InitializeBetaParams();
+
+    bool TransitionSanityCheck(TransitionOptions&);
 
     /**
     * Calculate the required nuclear matrix elements if they are not given from the commandline

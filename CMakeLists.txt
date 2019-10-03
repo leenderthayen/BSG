@@ -41,8 +41,8 @@ endif()
 # Options
 #---------------------------------------------------------------------------------------
 option(BSG_BUILD_TESTS "Build tests" ON)
-option(BSG_INSTALL "Generate the install target." ${BSG_MASTER_PROJECT})
-option(BSG_BUILD_EXAMPLES "Build examples" ${BSG_MASTER_PROJECT})
+option(BSG_INSTALL "Generate the install target." OFF)
+option(BSG_BUILD_EXAMPLES "Build examples" ON)
 
 find_package(spdlog REQUIRED)
 

@@ -77,7 +77,7 @@ namespace BSG {
     AllowedMatrixElements allowedME;
   };
 
-  TransitionOptions ParseTransitionOptions(std::string);
+  TransitionOptions ParseTransitionOptions(std::string, int argc = 0, const char** argv = nullptr);
   void SetTransitionOptions(CLI::App&, TransitionOptions&);
 
   ConfigOptions ParseConfigOptions(std::string, int argc = 0, const char** argv = nullptr);
@@ -87,8 +87,6 @@ namespace BSG {
   void SetSpectrumCalculationOptions(CLI::App&, SpectrumCalculationOptions&);
   void SetAdvancedOptions(CLI::App&, AdvancedOptions&);
   void SetAllowedMatrixElementOptions(CLI::App&, AllowedMatrixElements&);
-
-  bool TransitionSanityCheck(TransitionOptions&);
 
   //FUTURE
 
