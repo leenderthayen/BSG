@@ -20,14 +20,14 @@ namespace BSG {
 
   //Struct that is passed to the Spectral Corrections
   struct BetaParams {
-    int Zi; /**< Proton number of initial state */
-    int Zf; /**< Proton number of final state */
-    int A; /**< Mass number of initial and final states */
-    double R; /**< Nuclear radius of the final state */
-    double W0;  /**< the total electron energy in units of its rest mass */
-    double mixingRatio; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
-    NHL::BetaType betaType;  /**< internal state of the beta type */
-    NHL::BetaDecayType decayType; /**< internal state of the decay type */
+    int Zi = 0; /**< Proton number of initial state */
+    int Zf = 0; /**< Proton number of final state */
+    int A = 0; /**< Mass number of initial and final states */
+    double R = 0.; /**< Nuclear radius of the final state */
+    double W0 = 1.;  /**< the total electron energy in units of its rest mass */
+    double mixingRatio = 0.; /**< the mixing ratio of Fermi vs Gamow-Teller decay */
+    NHL::BetaType betaType = NHL::BETA_MINUS;  /**< internal state of the beta type */
+    NHL::BetaDecayType decayType = NHL::BetaDecayType::GAMOWTELLER; /**< internal state of the decay type */
     std::array<double, 9> exPars; /**< array for the fit coefficients of the atomic exchange correction */
     std::array<double, 7> aNeg;
     std::array<double, 7> aPos;
@@ -53,10 +53,9 @@ namespace BSG {
 
     inline void SetInitialState(PDS::core::Particle _p) { transitionOptions.initNucleus = _p; InitializeBetaParams(); }
     inline void SetFinalState(PDS::core::Particle _p) { transitionOptions.finalNucleus = _p; InitializeBetaParams(); }
+    inline void SetQValue(double q) { transitionOptions.QValue = q; InitializeBetaParams(); }
 
     //inline void SetNSM(NME::NuclearStructureManager* _nsm) { delete nsm; nsm = _nsm; }
-
-    void SetDecayKinematics(ReactionChannel*);
 
     /**
      * Calculates the beta spectrum by filling the spectrum variable.

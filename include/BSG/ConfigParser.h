@@ -17,10 +17,10 @@ namespace BSG {
     NHL::BetaType betaType = NHL::BETA_MINUS;
     NHL::BetaDecayType decayType = NHL::BetaDecayType::GAMOWTELLER;
     double mixingRatio = 0;
-    double QValue;
-    double atomicEnergyDeficit;
-    double partialHalflife;
-    double logft;
+    double QValue = 0.;
+    double atomicEnergyDeficit = 0.;
+    double partialHalflife = 0.;
+    double logft = 0.;
   };
 
   struct CorrectionOptions{
@@ -35,7 +35,7 @@ namespace BSG {
     bool CoulombRecoil = true;
     bool radiative = true;
     bool kinRecoil = true;
-    bool atomicScreen = true;
+    bool atomicScreening = true;
     bool atomicExchange = true;
     bool atomicMismatch = true;
   };
@@ -51,15 +51,15 @@ namespace BSG {
   struct SpectrumCalculationOptions {
     double begin = 0.1 * keV;
     double end = 0. * keV;
-    double stepSize = 0.1 * keV;
-    int steps;
+    double stepSize = 10 * keV;
+    int steps = 0;
     bool includeNeutrino = true;
   };
 
   struct AllowedMatrixElements {
-    double bAc;
-    double dAc;
-    double lambda;
+    double bAc = 0.;
+    double dAc = 0.;
+    double lambda = 0.;
   };
 
   struct CouplingConstants {

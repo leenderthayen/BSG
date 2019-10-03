@@ -65,17 +65,19 @@ namespace BSG {
     betaParams.Zf = finalNucleusDef->GetZ();
     betaParams.A = initNucleusDef->GetA();
     //sqrt(5/3) transforms <r^2>^{1/2} into the equivalent radius for a uniformly charged sphere
-    betaParams.R = finalNucleusDef->GetRadius() / NHL::betaLength * std::sqrt(5./3.);
+    betaParams.R = finalNucleusDef->GetRadius() * fermi / NHL::betaLength * std::sqrt(5./3.);
     if (transitionOptions.betaType == NHL::BETA_MINUS) {
       betaParams.W0 = (transitionOptions.QValue - transitionOptions.atomicEnergyDeficit
         + transitionOptions.initNucleus.GetExcitationEnergy()
-        - transitionOptions.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy + 1;
+        - transitionOptions.finalNucleus.GetExcitationEnergy()) * keV / NHL::betaEnergy + 1;
     } else if (transitionOptions.betaType == NHL::BETA_PLUS) {
       betaParams.W0 = (transitionOptions.QValue - transitionOptions.atomicEnergyDeficit
         + transitionOptions.initNucleus.GetExcitationEnergy()
         - transitionOptions.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy - 1;
     }
-    betaParams.exPars = exchangeCoefficients[initNucleusDef->GetZ()];
+    if (exchangeCoefficients.count(initNucleusDef->GetZ())) {
+      betaParams.exPars = exchangeCoefficients[initNucleusDef->GetZ()];
+    }
 
     for (int i = 0; i < bDim1; i++) {
       betaParams.aPos[i] = 0;
@@ -192,8 +194,8 @@ namespace BSG {
   std::vector<std::vector<double> >* Generator::CalculateSpectrum() {
     spectrum = new std::vector<std::vector<double> >();
     debugFileLogger->info("Calculating spectrum");
-    double beginEn = configOptions.spectrumCalcOptions.begin * keV;
-    double endEn = configOptions.spectrumCalcOptions.begin * keV;
+    double beginEn = configOptions.spectrumCalcOptions.begin;
+    double endEn = configOptions.spectrumCalcOptions.end;
 
     double beginW = beginEn / NHL::betaEnergy + 1.;
     double endW = endEn / NHL::betaEnergy + 1.;
@@ -201,10 +203,15 @@ namespace BSG {
       endW = betaParams.W0;
     }
 
+    debugFileLogger->debug("Start W: {}", beginW);
+    debugFileLogger->debug("End W: {}", endW);
+
     double stepW = configOptions.spectrumCalcOptions.stepSize / NHL::betaEnergy;
     if (configOptions.spectrumCalcOptions.steps) {
       stepW = (endW-beginW)/configOptions.spectrumCalcOptions.steps;
     }
+
+    debugFileLogger->debug("Step W: {}", stepW);
 
     double currentW = beginW;
     while (currentW <= endW) {
@@ -333,7 +340,7 @@ namespace BSG {
       result *= SpectralFunctions::RecoilCorrection(W, W0, A, decayType, mixingRatio);
       neutrinoResult *= SpectralFunctions::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
     }
-    if (configOptions.correctionOptions.atomicScreen) {
+    if (configOptions.correctionOptions.atomicScreening) {
       result *= SpectralFunctions::AtomicScreeningCorrection(W, Z, betaType);
       neutrinoResult *= SpectralFunctions::AtomicScreeningCorrection(Wv, Z, betaType);
     }
@@ -359,85 +366,97 @@ namespace BSG {
   void Generator::PrepareOutputFile() {
     ShowBSGInfo();
 
-/*    auto l = spdlog::get("BSG_results_file");
+    PDS::core::Particle& nI = transitionOptions.initNucleus;
+    PDS::core::Particle& nF = transitionOptions.finalNucleus;
+    /*PDS::core::Nucleus* nI = static_cast<PDS::core::Nucleus*>(transitionOptions.initNucleus.GetParticleDefinition());
+    PDS::core::Nucleus* nF = static_cast<PDS::core::Nucleus*>(transitionOptions.finalNucleus.GetParticleDefinition());*/
+
+    auto l = spdlog::get("BSG_results_file");
     l->info("Spectrum input overview\n{:=>30}", "");
     //l->info("Using information from {}\n\n", GetBSGOpt(std::string, input));
-    l->info("Transition from {}{} [{}/2] ({} keV) to {}{} [{}/2] ({} keV)", A, utilities::atoms[int(Z-1-betaType)], motherSpinParity, motherExcitationEn, A, utilities::atoms[int(Z-1)], daughterSpinParity, daughterExcitationEn);
-    l->info("Q Value: {} keV\tEffective endpoint energy: {}", transitionOptions.QValue, (W0-1.)*ELECTRON_MASS_KEV);
-    l->info("Process: {}\tType: {}", GetBSGOpt(std::string, Transition.Process), GetBSGOpt(std::string, Transition.Type));
-    if (mixingRatio != 0) l->info("Mixing ratio: {}", mixingRatio);
+    l->info("Transition from {} [{}{}] ({} keV) to {} [{}{}] ({} keV)", PDS::util::GetIsotopeName(betaParams.Zi, betaParams.A),
+    (nI.GetParity() > 0) ? "+" : "-", nI.GetSpin(), nI.GetExcitationEnergy(),
+    PDS::util::GetIsotopeName(betaParams.Zf, betaParams.A), (nF.GetParity() > 0) ? "+" : "-", nF.GetSpin(), nF.GetExcitationEnergy());
+    l->info("Q Value: {} keV\tEffective endpoint energy: {} keV", transitionOptions.QValue / keV, (betaParams.W0-1.)* NHL::betaEnergy / keV);
+    l->info("Process: {}\tType: {}", (betaParams.betaType == NHL::BETA_MINUS) ? "B-" : "B+",
+    (betaParams.decayType == NHL::BetaDecayType::FERMI) ? "Fermi" : "Gamow-Teller");
+    if (betaParams.mixingRatio != 0) l->info("Mixing ratio: {}", betaParams.mixingRatio);
 
     // double BGT = fc1*fc1/(std::abs(motherSpinParity)+1)
     // double kappa = 6147.; // The combination of constants for the ft value in s
     // double ftTheory = std::log10(kappa/BGT);
     // l->info("");
-    if (BSGOptExists(Transition.PartialHalflife)) {
-      l->info("Partial halflife: {} s", GetBSGOpt(double, Transition.PartialHalflife));
-      l->info("Calculated log ft value: {}", CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife)));
+    if (transitionOptions.partialHalflife != 0) {
+      l->info("Partial halflife: {} s", transitionOptions.partialHalflife / s);
+      l->info("Calculated log ft value: {}", CalculateLogFtValue(transitionOptions.partialHalflife / s));
     } else {
       l->info("Partial halflife: not given");
       l->info("Calculated log f value: {}", CalculateLogFtValue(1.0));
     }
-    if (BSGOptExists(Transition.LogFt)) {
-      l->info("External Log ft: {:.3f}", GetBSGOpt(double, Transition.LogFt));
-      if (BSGOptExists(Transition.PartialHalflife)) {
+    if (transitionOptions.logft != 0) {
+      l->info("External Log ft: {:.3f}", transitionOptions.logft);
+      if (transitionOptions.partialHalflife) {
         l->info("Ratio of calculated/external ft value: {}", std::pow(10.,
-          CalculateLogFtValue(GetBSGOpt(double, Transition.PartialHalflife))
-           - GetBSGOpt(double, Transition.LogFt)));
+          CalculateLogFtValue(transitionOptions.partialHalflife)
+           - transitionOptions.logft));
       }
     }
-    l->info("Mean energy: {} keV", (CalculateMeanEnergy()-1.)*ELECTRON_MASS_KEV);
+    l->info("Mean energy: {} keV", (CalculateMeanEnergy()-1.) * NHL::betaEnergy / keV);
     l->info("\nMatrix Element Summary\n{:->30}", "");
-    if (BSGOptExists(Spectrum.WeakMagnetism)) l->info("{:35}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
+    l->info("{:35}: {}", "b/Ac (weak magnetism)", configOptions.allowedME.bAc);
+    l->info("{:35}: {}", "d/Ac (induced tensor)", configOptions.allowedME.dAc);
+    l->info("{:35}: {}", "Lambda (induced pseudoscalar)", configOptions.allowedME.lambda);
+    /*if (BSGOptExists(Spectrum.WeakMagnetism)) l->info("{:35}: {} ({})", "b/Ac (weak magnetism)", bAc, "given");
     else l->info("{:35}: {}", "b/Ac (weak magnetism)", bAc);
     if (BSGOptExists(Spectrum.Inducedtensor)) l->info("{:35}: {} ({})", "d/Ac (induced tensor)", dAc, "given");
     else l->info("{:35}: {}", "d/Ac (induced tensor)", dAc);
     if (BSGOptExists(Spectrum.Lambda)) l->info("{:35}: {} ({})", "AM121/AM101", ratioM121, "given");
     else l->info("{:35}: {}", "AM121/AM101", ratioM121);
 
-    l->info("Full breakdown written in {}.nme", outputName);
+    l->info("Full breakdown written in {}.nme", outputName);*/
 
     l->info("\nSpectral corrections\n{:->30}", "");
-    l->info("{:25}: {}", "Phase space", GetBSGOpt(bool, Spectrum.Phasespace));
-    l->info("{:25}: {}", "Fermi function", GetBSGOpt(bool, Spectrum.Fermi));
-    l->info("{:25}: {}", "L0 correction", GetBSGOpt(bool, Spectrum.ESFiniteSize));
-    l->info("{:25}: {}", "C correction", GetBSGOpt(bool, Spectrum.C));
-    l->info("    NS Shape: {}", GetBSGOpt(std::string, Spectrum.NSShape));
-    l->info("{:25}: {}", "Isovector correction", GetBSGOpt(bool, Spectrum.Isovector));
-    l->info("    Connected: {}", GetBSGOpt(bool, Spectrum.Connect));
-    l->info("{:25}: {}", "Relativistic terms", GetBSGOpt(bool, Spectrum.Relativistic));
-    l->info("{:25}: {}", "Deformation", GetBSGOpt(bool, Spectrum.ESDeformation));
-    l->info("{:25}: {}", "U correction", GetBSGOpt(bool, Spectrum.U));
-    l->info("    ES Shape: {}", GetBSGOpt(std::string, Spectrum.ESShape));
-    if (BSGOptExists(Spectrum.vold) && BSGOptExists(Spectrum.vnew)) {
-      l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
-      l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);
-    } else {
-      l->info("    v : not given");
-      l->info("    v': not given");
-    }
-    l->info("{:25}: {}", "Q correction", GetBSGOpt(bool, Spectrum.CoulombRecoil));
-    l->info("{:25}: {}", "Radiative correction", GetBSGOpt(bool, Spectrum.Radiative));
-    l->info("{:25}: {}", "Nuclear recoil", GetBSGOpt(bool, Spectrum.Recoil));
-    l->info("{:25}: {}", "Atomic screening", GetBSGOpt(bool, Spectrum.Screening));
-    l->info("{:25}: {}", "Atomic exchange", GetBSGOpt(bool, Spectrum.Exchange));
-    l->info("{:25}: {}", "Atomic mismatch", GetBSGOpt(bool, Spectrum.AtomicMismatch));
-    l->info("{:25}: {}", "Export neutrino", GetBSGOpt(bool, Spectrum.Neutrino));
+    l->info("{:25}: {}", "Phase space", configOptions.correctionOptions.phaseSpace);
+    l->info("{:25}: {}", "Fermi function", configOptions.correctionOptions.FermiFunction);
+    l->info("{:25}: {}", "L0 correction", configOptions.correctionOptions.ESFiniteSize);
+    l->info("{:25}: {}", "C correction", configOptions.correctionOptions.shapeFactor);
+    //l->info("    NS Shape: {}", configOptions.advancedOptions.NSShape);
+    l->info("{:25}: {}", "Isovector correction", configOptions.correctionOptions.isovector);
+    l->info("    Connected: {}", configOptions.advancedOptions.connectSPS);
+    l->info("{:25}: {}", "Relativistic terms", configOptions.correctionOptions.relativistic);
+    l->info("{:25}: {}", "Deformation", configOptions.correctionOptions.ESDeformation);
+    l->info("{:25}: {}", "U correction", configOptions.correctionOptions.ESFermi);
+    //l->info("    ES Shape: {}", configOptions.advancedOptions.ESShape);
+    // /*if (BSGOptExists(Spectrum.vold) && BSGOptExists(Spectrum.vnew)) {
+    //   l->info("    v : {}, {}, {}", vOld[0], vOld[1], vOld[2]);
+    //   l->info("    v': {}, {}, {}", vNew[0], vNew[1], vNew[2]);
+    // } else {
+    //   l->info("    v : not given");
+    //   l->info("    v': not given");
+    // }*/
+    l->info("{:25}: {}", "Q correction", configOptions.correctionOptions.CoulombRecoil);
+    l->info("{:25}: {}", "Radiative correction", configOptions.correctionOptions.radiative);
+    l->info("{:25}: {}", "Nuclear recoil", configOptions.correctionOptions.kinRecoil);
+    l->info("{:25}: {}", "Atomic screening", configOptions.correctionOptions.atomicScreening);
+    l->info("{:25}: {}", "Atomic exchange", configOptions.correctionOptions.atomicExchange);
+    l->info("{:25}: {}", "Atomic mismatch", configOptions.correctionOptions.atomicMismatch);
+    l->info("{:25}: {}", "Export neutrino", configOptions.spectrumCalcOptions.includeNeutrino);
 
     l->info("\n\nSpectrum calculated from {} keV to {} keV with step size {} keV\n",
-    GetBSGOpt(double, Spectrum.Begin),
-    GetBSGOpt(double, Spectrum.End) > 0 ? GetBSGOpt(double, Spectrum.End) : (W0-1.)*ELECTRON_MASS_KEV, GetBSGOpt(double, Spectrum.StepSize));
+    configOptions.spectrumCalcOptions.begin / keV,
+    configOptions.spectrumCalcOptions.end > 0 ? configOptions.spectrumCalcOptions.end / keV : (betaParams.W0-1.)* NHL::betaEnergy / keV,
+    configOptions.spectrumCalcOptions.stepSize / keV);
 
-    if (GetBSGOpt(bool, Spectrum.Neutrino))  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
+    if (configOptions.spectrumCalcOptions.includeNeutrino)  l->info("{:10}\t{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW", "dN_v/dW");
     else l->info("{:10}\t{:10}\t{:10}", "W [m_ec2]", "E [keV]", "dN_e/dW");
 
-    for (int i = 0; i < spectrum->size(); i++) {
-      if (GetBSGOpt(bool, Spectrum.Neutrino)) {
-        l->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)*ELECTRON_MASS_KEV, (*spectrum)[i][1], (*spectrum)[i][2]);
+    for (unsigned int i = 0; i < spectrum->size(); i++) {
+      if (configOptions.spectrumCalcOptions.includeNeutrino) {
+        l->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)* NHL::betaEnergy / keV, (*spectrum)[i][1], (*spectrum)[i][2]);
       } else {
-        l->info("{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)*ELECTRON_MASS_KEV, (*spectrum)[i][1]);
+        l->info("{:<10f}\t{:<10f}\t{:<10f}", (*spectrum)[i][0], ((*spectrum)[i][0]-1.)* NHL::betaEnergy / keV, (*spectrum)[i][1]);
       }
-    }*/
+    }
   }
 
   //Initialization/loading

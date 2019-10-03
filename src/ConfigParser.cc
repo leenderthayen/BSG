@@ -1,6 +1,8 @@
 #include "BSG/ConfigParser.h"
 #include "NHL/ParticleParser.h"
 
+#include <vector>
+
 namespace BSG {
 
   void parse(CLI::App& app, int argc = 0, const char** argv = nullptr) {
@@ -17,10 +19,12 @@ namespace BSG {
   }
 
   void SetTransitionOptions(CLI::App& app, TransitionOptions& transitionOptions) {
+    std::vector<std::pair<std::string, NHL::BetaType> > betaTypeMap{{"B+", NHL::BETA_PLUS}, {"B-", NHL::BETA_MINUS}};
+    std::vector<std::pair<std::string, NHL::BetaDecayType> > betaDecayTypeMap{{"FERMI", NHL::BetaDecayType::FERMI}, {"GAMOW-TELLER", NHL::BetaDecayType::GAMOWTELLER}};
     CLI::App* trans = app.add_subcommand("Transition", "This is the transition subcommand")->ignore_case();
-    trans->add_option("-b,--betatype", transitionOptions.betaType, "")->ignore_case();
-    trans->add_option("-d,--decaytype", transitionOptions.decayType, "")->ignore_case();
-    trans->add_option("-m,--mixing", transitionOptions.mixingRatio, "")->ignore_case();
+    trans->add_option("-b,--process", transitionOptions.betaType, "")->transform(CLI::CheckedTransformer(betaTypeMap, CLI::ignore_case));
+    trans->add_option("-d,--type", transitionOptions.decayType, "")->transform(CLI::CheckedTransformer(betaDecayTypeMap, CLI::ignore_case));
+    trans->add_option("-m,--mixingratio", transitionOptions.mixingRatio, "")->ignore_case();
     trans->add_option("-Q,--qvalue", transitionOptions.QValue, "")->ignore_case();
     trans->add_option("-a,--atomicenergydeficit", transitionOptions.atomicEnergyDeficit, "")->ignore_case();
     trans->add_option("-p,--partialhalflife", transitionOptions.partialHalflife, "")->ignore_case();
@@ -48,7 +52,7 @@ namespace BSG {
     correction->add_option("-Q,--coulombrecoil", correctionOptions.CoulombRecoil, "");
     correction->add_option("-r,--radiative", correctionOptions.radiative, "");
     correction->add_option("-n,--kinematicrecoil", correctionOptions.kinRecoil, "");
-    correction->add_option("-s,--screening", correctionOptions.atomicScreen, "");
+    correction->add_option("-s,--screening", correctionOptions.atomicScreening, "");
     correction->add_option("-x,--exchange", correctionOptions.atomicExchange, "");
     correction->add_option("-m,--atomicmismatch", correctionOptions.atomicMismatch, "");
   }
@@ -65,8 +69,9 @@ namespace BSG {
   void SetAdvancedOptions(CLI::App& app, AdvancedOptions& advancedOptions) {
     CLI::App* adv = app.add_subcommand("Advanced", "This is the advanced subcommand")->ignore_case();
     adv->add_option("-c,--connect", advancedOptions.connectSPS, "")->ignore_case();
-    adv->add_option("-e,--esshape", advancedOptions.ESShape, "")->ignore_case();
-    adv->add_option("-n,--nsshape", advancedOptions.NSShape, "")->ignore_case();
+    std::vector<std::pair<std::string, NHL::NuclearShapes> > map{{"Fermi", NHL::NuclearShapes::FERMI}, {"ModGauss", NHL::NuclearShapes::MODGAUSS}};
+    adv->add_option("-e,--esshape", advancedOptions.ESShape, "")->transform(CLI::CheckedTransformer(map, CLI::ignore_case));
+    adv->add_option("-n,--nsshape", advancedOptions.NSShape, "")->transform(CLI::CheckedTransformer(map, CLI::ignore_case));
     adv->add_option("-v,--vold", advancedOptions.vold, "");
     adv->add_option("-V,--vnew", advancedOptions.vnew, "");
   }

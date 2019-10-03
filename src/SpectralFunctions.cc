@@ -614,8 +614,8 @@ double BSG::SpectralFunctions::AtomicExchangeCorrection(double W, std::array<dou
 double BSG::SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int Z,
                                                    int A, int betaType) {
   double dBdZ2 = (44.200 * std::pow(Z - betaType, 0.41) +
-                  2.3196E-7 * std::pow(Z - betaType, 4.45)) /
-                 electron_mass_c2 / MeV;
+                  2.3196E-7 * std::pow(Z - betaType, 4.45)) * eV /
+                 electron_mass_c2;
 
   double K = -0.872 + 1.270 * std::pow(Z, 0.097) + 9.062E-11 * std::pow(Z, 4.5);
   double vp = std::sqrt(1 - 1 / W / W);
