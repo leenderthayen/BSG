@@ -5,9 +5,9 @@ Created on Fri Sep 3 18:24 2019
 
 @author: leendert
 """
-
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2 import QtGui
+from PyQt4 import QtCore, QtGui
+# from PySide2.QtWidgets import QApplication, QMainWindow
+# from PySide2 import QtGui
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
 
 class HelpManager:
@@ -22,15 +22,15 @@ class HelpManager:
 
     def visitENSDF(self):
         QtGui.QDesktopServices.openUrl('https://www.nndc.bnl.gov/ensarchivals/')
-    
+
     def visitFRDM2012(self):
         QtGui.QDesktopServices.openUrl('https://www.sciencedirect.com/science/article/pii/S0092640X1600005X')
-    
+
     def visitChargeRadii(self):
         QtGui.QDesktopServices.openUrl('https://journals.aps.org/prc/abstract/10.1103/PhysRevC.94.064315')
 
     def about(self):
         QtGui.QMessageBox.information(self, "About", "Beta spectrum Generator GUI v 1.0")
-    
+
     def submitFeedback(self):
         QtGui.QMessageBox.information(self, "Send feedback", "Send emails to leendert.hayen@gmail.com")
