@@ -1880,7 +1880,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="bsgMainTab">
      <attribute name="title">
@@ -2047,6 +2047,40 @@
       </property>
       <property name="text">
        <string>...</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="b_clearSpectra">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>30</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="cursor">
+       <cursorShape>OpenHandCursor</cursorShape>
+      </property>
+      <property name="toolTip">
+       <string>Run the spectrum shape generator</string>
+      </property>
+      <property name="statusTip">
+       <string>Run the spectrum shape generator</string>
+      </property>
+      <property name="text">
+       <string>Clear graphs</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -2603,7 +2637,7 @@
          <number>100000</number>
         </property>
         <property name="value">
-         <number>1000</number>
+         <number>0</number>
         </property>
        </widget>
        <widget class="QDoubleSpinBox" name="dsb_stepSize">
@@ -2998,7 +3032,7 @@
      <x>0</x>
      <y>0</y>
      <width>944</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

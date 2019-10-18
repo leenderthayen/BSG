@@ -51,8 +51,8 @@ find_package(spdlog REQUIRED)
 #---------------------------------------------------------------------------------------
 add_library(BSG SHARED src/Generator.cc src/ConfigParser.cc src/SpectralFunctions.cc)
 
-set(NHL_INCLUDE_DIRS "/home/leendert/git/NHL/include")
-set(PDS_INCLUDE_DIRS "/home/leendert/git/PDS/include")
+set(NHL_INCLUDE_DIRS "/mnt/ksf9/H2/user/u0111340/_WI/Spectrum_Shapes/NHL/include")
+set(PDS_INCLUDE_DIRS "/mnt/ksf9/H2/user/u0111340/_WI/Spectrum_Shapes/ParticleDataStructure/include")
 #set(NME_INCLUDE_DIRS "/home/leendert/git/NME/include")
 #set(NME_LIBRARIES "-L/home/leendert/git/NME/build -lNME")
 

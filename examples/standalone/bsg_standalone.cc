@@ -9,8 +9,9 @@ int main(int argc, const char** argv) {
 
   CLI::App app{"Beta Spectrum Generator standalone"};
   app.add_option("-i,--input", iniFilename, "INI input file for transition information");
-  app.add_option("-c,--config", configFilename, "INI config file for calculation information");
+  app.add_option("-k,--konfig", configFilename, "INI config file for calculation information");
   app.add_option("-o,--output", outputName, "Name for file output. No extensions.");
+  app.allow_extras(true);
 
   try {
     app.parse(argc, argv);

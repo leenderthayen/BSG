@@ -79,6 +79,7 @@ class BSG_UI(QtGui.QMainWindow):
 
         self.ui.a_new.triggered.connect(self.newDecay)
         self.ui.b_runBSG.clicked.connect(self.runBSG)
+        self.ui.b_clearSpectra.clicked.connect(self.clearSpectra)
 
 
         self.plotColors = ('r','g','b','w','y')
@@ -116,14 +117,10 @@ class BSG_UI(QtGui.QMainWindow):
             self.ui.dsb_MixingRatio.setEnabled(False)
 
     def enableAll(self):
-        for key in self.spectrumCheckBoxes:
-            if not key.isChecked():
-                key.toggle()
+        self.configMgr.enableAll()
 
     def disableAll(self):
-        for key in self.spectrumCheckBoxes:
-            if key.isChecked():
-                key.toggle()
+        self.configMgr.disableAll()
 
     def setTransitionLabel(self):
         Am = self.ui.sb_AM.value()
@@ -140,6 +137,9 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.l_transitionName.setText(s)
         self.ui.l_transitionName.setToolTip(s)
         self.ui.l_transitionName.setStatusTip(s)
+
+    def clearSpectra(self):
+        self.ui.gv_plotSpectrum.clear()
 
     def newDecay(self):
         self.inputMgr.checkUnsavedTransitionChanges()
@@ -207,22 +207,17 @@ class BSG_UI(QtGui.QMainWindow):
         if self.ui.rb_configFile.isChecked():
             command += " -c {}".format(self.configMgr.configName)
         else:
-            for key in self.configMgr.spectrumCheckBoxes:
-                command += " --Spectrum.{0}={1}".format(self.configMgr.spectrumCheckBoxes[key], key.isChecked())
-            for key in self.configMgr.spectrumComboBoxes:
-                command += " --Spectrum.{0}={1}".format(self.configMgr.spectrumComboBoxes[key], key.currentText())
-            for key in self.configMgr.spectrumDSB:
-                if key.isEnabled():
-                    command += " --Spectrum.{0}={1}".format(self.configMgr.spectrumDSB[key], key.value())
-            if self.ui.cb_enforceNME.isChecked():
-                for key in self.configMgr.spectrumNME:
-                    command += " --Spectrum.{0}={1}".format(self.configMgr.spectrumNME[key], key.value())
-            for key in self.configMgr.computationalComboBoxes:
-                command += ' --Computational.{0}={1}'.format(self.configMgr.computationalComboBoxes[key], key.currentText())
-            for key in self.configMgr.computationalCheckBoxes:
-                command += ' -- Computational.{0}={1}'.format(self.configMgr.computationalCheckBoxes[key], key.isChecked())
-            for key in self.configMgr.computationalDSB:
-                command += ' --Computational.{0}={1}'.format(self.configMgr.computationalDSB[key], key.value())
+            self.configMgr.updateConfigData()
+            for conf_key in self.configMgr.config_settings:
+                if self.configMgr.config_settings[conf_key]:
+                    command += " " + conf_key
+                    for key in self.configMgr.config_settings[conf_key]:
+                        t = self.configMgr.config_settings[conf_key][key]
+                        if isinstance(t[0],bool):
+                            newt = int(t[0])
+                        else:
+                            newt = t[0]
+                        command += " --" + key + " {}".format(newt)
 
         print("Executing command: %s" % command)
         try:

@@ -74,7 +74,7 @@ namespace BSG {
     } else if (transitionOptions.betaType == NHL::BETA_PLUS) {
       betaParams.W0 = (transitionOptions.QValue - transitionOptions.atomicEnergyDeficit
         + transitionOptions.initNucleus.GetExcitationEnergy()
-        - transitionOptions.finalNucleus.GetExcitationEnergy()) / NHL::betaEnergy - 1;
+        - transitionOptions.finalNucleus.GetExcitationEnergy()) * keV / NHL::betaEnergy - 1;
     }
     if (exchangeCoefficients.count(initNucleusDef->GetZ())) {
       betaParams.exPars = exchangeCoefficients[initNucleusDef->GetZ()];

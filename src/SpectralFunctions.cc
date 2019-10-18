@@ -205,7 +205,6 @@ double BSG::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
   double O3corr = std::pow(fine_structure_const, 3) * std::pow(Z, 2) *
                   (a * std::log(lambda / W) + b * f + 4. / pi / 3. * g2 -
                    0.649 * std::log(2 * W0));
-
   return (1 + O1corr) * (L + O2corr + O3corr);
 }
 

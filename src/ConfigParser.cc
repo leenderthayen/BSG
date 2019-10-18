@@ -22,8 +22,8 @@ namespace BSG {
     std::vector<std::pair<std::string, NHL::BetaType> > betaTypeMap{{"B+", NHL::BETA_PLUS}, {"B-", NHL::BETA_MINUS}};
     std::vector<std::pair<std::string, NHL::BetaDecayType> > betaDecayTypeMap{{"FERMI", NHL::BetaDecayType::FERMI}, {"GAMOW-TELLER", NHL::BetaDecayType::GAMOWTELLER}};
     CLI::App* trans = app.add_subcommand("Transition", "This is the transition subcommand")->ignore_case();
-    trans->add_option("-b,--process", transitionOptions.betaType, "")->transform(CLI::CheckedTransformer(betaTypeMap, CLI::ignore_case));
-    trans->add_option("-d,--type", transitionOptions.decayType, "")->transform(CLI::CheckedTransformer(betaDecayTypeMap, CLI::ignore_case));
+    trans->add_option("-b,--process", transitionOptions.betaType, "")->ignore_case()->transform(CLI::CheckedTransformer(betaTypeMap, CLI::ignore_case));
+    trans->add_option("-d,--type", transitionOptions.decayType, "")->ignore_case()->transform(CLI::CheckedTransformer(betaDecayTypeMap, CLI::ignore_case));
     trans->add_option("-m,--mixingratio", transitionOptions.mixingRatio, "")->ignore_case();
     trans->add_option("-Q,--qvalue", transitionOptions.QValue, "")->ignore_case();
     trans->add_option("-a,--atomicenergydeficit", transitionOptions.atomicEnergyDeficit, "")->ignore_case();
@@ -41,20 +41,20 @@ namespace BSG {
 
   void SetCorrectionOptions(CLI::App& app, CorrectionOptions& correctionOptions) {
     CLI::App* correction = app.add_subcommand("Spectrum", "This is the spectrum subcommand")->ignore_case();
-    correction->add_option("-p,--phasespace", correctionOptions.phaseSpace, "Vector correction constant.");
-    correction->add_option("-f,--fermi", correctionOptions.FermiFunction, "Axial vector correction constant.");
-    correction->add_option("-l,--esfinitesize", correctionOptions.ESFiniteSize, "Weak magnetism correction constant.");
-    correction->add_option("-C,--shapefactor", correctionOptions.shapeFactor, "");
-    correction->add_option("-I,--isovector", correctionOptions.isovector, "");
+    correction->add_option("-p,--phasespace", correctionOptions.phaseSpace, "Vector correction constant.")->ignore_case();
+    correction->add_option("-f,--fermi", correctionOptions.FermiFunction, "Axial vector correction constant.")->ignore_case();
+    correction->add_option("-l,--esfinitesize", correctionOptions.ESFiniteSize, "Weak magnetism correction constant.")->ignore_case();
+    correction->add_option("-C,--shapefactor", correctionOptions.shapeFactor, "")->ignore_case();
+    correction->add_option("-I,--isovector", correctionOptions.isovector, "")->ignore_case();
     correction->add_option("-R,--relativistic", correctionOptions.relativistic, "");
-    correction->add_option("-D,--esdeformation", correctionOptions.ESDeformation, "");
-    correction->add_option("-U,--esfermi", correctionOptions.ESFermi, "");
-    correction->add_option("-Q,--coulombrecoil", correctionOptions.CoulombRecoil, "");
+    correction->add_option("-D,--esdeformation", correctionOptions.ESDeformation, "")->ignore_case();
+    correction->add_option("-U,--esfermi", correctionOptions.ESFermi, "")->ignore_case();
+    correction->add_option("-Q,--coulombrecoil", correctionOptions.CoulombRecoil, "")->ignore_case();
     correction->add_option("-r,--radiative", correctionOptions.radiative, "");
-    correction->add_option("-n,--kinematicrecoil", correctionOptions.kinRecoil, "");
-    correction->add_option("-s,--screening", correctionOptions.atomicScreening, "");
-    correction->add_option("-x,--exchange", correctionOptions.atomicExchange, "");
-    correction->add_option("-m,--atomicmismatch", correctionOptions.atomicMismatch, "");
+    correction->add_option("-n,--kinematicrecoil", correctionOptions.kinRecoil, "")->ignore_case();
+    correction->add_option("-s,--screening", correctionOptions.atomicScreening, "")->ignore_case();
+    correction->add_option("-x,--exchange", correctionOptions.atomicExchange, "")->ignore_case();
+    correction->add_option("-m,--atomicmismatch", correctionOptions.atomicMismatch, "")->ignore_case();
   }
 
   void SetSpectrumCalculationOptions(CLI::App& app, SpectrumCalculationOptions& spectrumCalcOptions) {
@@ -85,7 +85,6 @@ namespace BSG {
 
   TransitionOptions ParseTransitionOptions(std::string filename, int argc, const char** argv) {
     TransitionOptions transitionOptions;
-
     transitionOptions.initNucleus = NHL::ParseNucleus(filename, "Mother");
     transitionOptions.finalNucleus = NHL::ParseNucleus(filename, "Daughter");
 

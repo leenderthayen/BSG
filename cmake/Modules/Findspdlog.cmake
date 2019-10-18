@@ -9,6 +9,7 @@ find_path(spdlog_INCLUDE_DIRS spdlog/spdlog.h
     /usr/local/include
     /usr/include
     ~/git/spdlog/include
+    /mnt/ksf9/H2/user/u0111340/_WI/Spectrum_Shapes/spdlog/include 
   ${PROJECT_SOURCE_DIR})
 if(${spdlog_INCLUDE_DIRS})
 	set(spdlog_FOUND "YES")
