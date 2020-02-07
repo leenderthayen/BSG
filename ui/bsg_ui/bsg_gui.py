@@ -11,8 +11,9 @@ from shell import Shell, CommandError
 import qdarkstyle
 import os
 
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2 import QtGui
+from PyQt4 import QtCore, QtGui
+# from PySide2.QtWidgets import QApplication, QMainWindow
+# from PySide2 import QtGui
 
 from ui.MainWindowGUI import Ui_MainWindow
 
@@ -75,7 +76,7 @@ class BSG_UI(QtGui.QMainWindow):
 
         self.ui.rb_stepSize.toggled.connect(self.ui.dsb_stepSize.setEnabled)
         self.ui.rb_steps.toggled.connect(self.ui.sb_steps.setEnabled)
-        
+
         self.ui.a_new.triggered.connect(self.newDecay)
         self.ui.b_runBSG.clicked.connect(self.runBSG)
 
@@ -142,7 +143,7 @@ class BSG_UI(QtGui.QMainWindow):
 
     def newDecay(self):
         self.inputMgr.checkUnsavedTransitionChanges()
-        
+
         isotope, ok = QtGui.QInputDialog.getText(self, 'Isotope', 'Enter the isotope name (e.g. 238U)')
         if not ok:
             return
@@ -150,12 +151,12 @@ class BSG_UI(QtGui.QMainWindow):
         A = int(re.findall(r'\d+', isotope)[0])
         name = isotope.replace(str(A), '').capitalize()
         Z = ut.atoms.index(name)
-        
+
         self.ui.sb_AM.setValue(A)
         self.ui.sb_ZM.setValue(Z)
-        
+
         button = QtGui.QMessageBox.question(self, 'ENSDF search', 'Search for transitions in ENSDF database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        
+
         if button == QtGui.QMessageBox.Yes:
             success = self.databaseMgr.loadESNDFBranches(Z, A)
             if not success:
@@ -165,19 +166,19 @@ class BSG_UI(QtGui.QMainWindow):
             self.ui.cb_process.setCurrentIndex(self.ui.cb_process.findText(process))
             self.ui.sb_AD.setValue(A)
             self.ui.sb_ZD.setValue(Z+1 if process == 'B-' else Z-1)
-            
+
         button = QtGui.QMessageBox.question(self, 'Deformation', 'Enter deformation info from the Moeller database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-                
+
         if button == QtGui.QMessageBox.Yes:
             self.databaseMgr.loadDeformation()
-                
+
         button = QtGui.QMessageBox.question(self, "Charge radii", 'Load charge radii from database?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
         if button == QtGui.QMessageBox.Yes:
             self.databaseMgr.loadRadii()
-            
+
         button = QtGui.QMessageBox.question(self, "Save as", 'Save transition in ini file?', QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            
+
         if button == QtGui.QMessageBox.Yes:
             self.inputMgr.writeIniFile()
 
@@ -190,10 +191,10 @@ class BSG_UI(QtGui.QMainWindow):
         if self.inputMgr.iniName == '':
             QtGui.QErrorMessage(self).showMessage("No ini file found.")
             return
-        if self.ui.rb_configFile.isChecked() and self.configName == '':
+        if self.ui.rb_configFile.isChecked() and self.configMgr.configName == '':
             QtGui.QErrorMessage(self).showMessage("No configuration file specified.")
             return
-        if self.ui.cb_exchange.isChecked() and self.exchangePath == '':
+        if self.ui.cb_exchange.isChecked() and self.databaseMgr.exchangePath == '':
             QtGui.QErrorMessage(self).showMessage("Choose the Exchange Data file, or turn off atomic exchange.")
             return
 
@@ -201,10 +202,10 @@ class BSG_UI(QtGui.QMainWindow):
         self.status("Calculating...")
         command = "{0} -i {1} -o {2}".format(self.databaseMgr.execPath, self.inputMgr.iniName, outputName)
         if self.ui.cb_exchange.isChecked():
-            command += " -e {}".format(self.exchangePath)
+            command += " -e {}".format(self.databaseMgr.exchangePath)
 
         if self.ui.rb_configFile.isChecked():
-            command += " -c {}".format(self.configName)
+            command += " -c {}".format(self.configMgr.configName)
         else:
             for key in self.configMgr.spectrumCheckBoxes:
                 command += " --Spectrum.{0}={1}".format(self.configMgr.spectrumCheckBoxes[key], key.isChecked())
@@ -242,7 +243,7 @@ if __name__ == '__main__':
     mw = BSG_UI()
 
     # setup stylesheet
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyside())
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
     mw.show()
     app.exec_()
 

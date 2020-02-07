@@ -5,9 +5,9 @@ Created on Fri Sep 3 18:24 2019
 
 @author: leendert
 """
-
-from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2 import QtGui
+from PyQt4 import QtCore, QtGui
+# from PySide2.QtWidgets import QApplication, QMainWindow
+# from PySide2 import QtGui
 import os
 import utils.utilities as ut
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
@@ -65,9 +65,9 @@ class DatabaseManager:
         for i in bbs:
             s = '{}: {}{} ([{}] {}) -> {}{} ([{}] {}); Endpoint: {} keV, t1/2: {:.3f} s'.format(i.process, A, ut.atoms[Z], i.motherLevel.Jpi, i.motherLevel.E,\
             A, ut.atoms[Z+1 if i.process == 'B-' else Z-1], i.daughterLevel.Jpi, i.daughterLevel.E, i.E, i.partialHalflife)
-                
+
             items.append(s)
-        
+
         if len(items):
             choice, ok  = QtGui.QInputDialog.getItem(self.bsg_ui, "Transition", "Choose the beta transition:", items, editable=False)
             if ok:
@@ -90,7 +90,7 @@ class DatabaseManager:
                 self.bsg_ui.ui.cb_PiD.setCurrentIndex(self.bsg_ui.ui.cb_PiD.findText(dJpi[-1]))
                 self.bsg_ui.ui.dsb_halflife.setValue(branch.partialHalflife)
                 self.bsg_ui.ui.dsb_logft.setValue(branch.logft)
-                
+
                 self.bsg_ui.setTransitionLabel()
                 return True
         else:
@@ -128,7 +128,7 @@ class DatabaseManager:
         if filename == '':
             return
         self.execPath = filename
-    
+
     def changeBSGExchange(self):
         filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose Exchange data file")[0]
         if filename == '':
