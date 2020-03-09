@@ -47,13 +47,13 @@ namespace BSG {
      */
     ~Generator() {};
 
-    bool Initialize(std::string, std::string, int argc = 0, const char** argv = nullptr);
-    bool InitializeTransitionFromFile(std::string, int argc = 0, const char** argv = nullptr);
-    void InitializeOptionsFromConfigFile(std::string, int argc = 0, const char** = nullptr);
+    bool Initialise(std::string, std::string, int argc = 0, const char** argv = nullptr);
+    bool InitialiseTransitionFromFile(std::string, int argc = 0, const char** argv = nullptr);
+    void InitialiseOptionsFromConfigFile(std::string, int argc = 0, const char** = nullptr);
 
-    inline void SetInitialState(PDS::core::Particle _p) { transitionOptions.initNucleus = _p; InitializeBetaParams(); }
-    inline void SetFinalState(PDS::core::Particle _p) { transitionOptions.finalNucleus = _p; InitializeBetaParams(); }
-    inline void SetQValue(double q) { transitionOptions.QValue = q; InitializeBetaParams(); }
+    inline void SetInitialState(PDS::core::Particle _p) { transitionOptions.initNucleus = _p; InitialiseBetaParams(); }
+    inline void SetFinalState(PDS::core::Particle _p) { transitionOptions.finalNucleus = _p; InitialiseBetaParams(); }
+    inline void SetQValue(double q) { transitionOptions.QValue = q; InitialiseBetaParams(); }
 
     //inline void SetNSM(NME::NuclearStructureManager* _nsm) { delete nsm; nsm = _nsm; }
 
@@ -93,7 +93,7 @@ namespace BSG {
 
     //NME::NuclearStructureManager* nsm; /**< pointer to the nuclear structure manager */
 
-    std::vector<std::vector<double> >* spectrum; /**< vector of vectors containing the calculated spectrum */
+    std::vector<std::vector<double> >* spectrum = nullptr; /**< vector of vectors containing the calculated spectrum */
 
     std::shared_ptr<spdlog::logger> consoleLogger;
     std::shared_ptr<spdlog::logger> debugFileLogger;
@@ -110,7 +110,7 @@ namespace BSG {
 
     double CalculateMeanEnergy();
 
-    void InitializeBetaParams();
+    void InitialiseBetaParams();
 
     bool TransitionSanityCheck(TransitionOptions&);
 
@@ -122,7 +122,7 @@ namespace BSG {
     /**
     * Initialize the hard-coded parameters aNeq and aPos for the Wilkinson L0 correction
     */
-    void InitializeL0Constants();
+    void InitialiseL0Constants();
     /**
     * Load the fit parameters of the atomic exchange correction from a file
     */
@@ -131,22 +131,22 @@ namespace BSG {
     /**
     * Initialize all constants such as Z, R, etc, taken from config files
     */
-    void InitializeConstants();
+    void InitialiseConstants();
 
     /**
     * Initialize all parameters related to the electrostatic shape
     */
-    void InitializeShapeParameters();
+    void InitialiseShapeParameters();
 
     /**
     * Initialize all loggers
     */
-    void InitializeLoggers();
+    void InitialiseLoggers();
 
     /**
     * Initialize all Nuclear structure manager-related stuff, like single particle states when C_I and NME are connected, and calculating the required matrix elements
     */
-    void InitializeNSMInfo();
+    void InitialiseNSMInfo();
   };
 
 }

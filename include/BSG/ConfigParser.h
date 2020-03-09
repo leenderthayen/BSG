@@ -17,9 +17,9 @@ namespace BSG {
     NHL::BetaType betaType = NHL::BETA_MINUS;
     NHL::BetaDecayType decayType = NHL::BetaDecayType::GAMOWTELLER;
     double mixingRatio = 0;
-    double QValue = 0.;
-    double atomicEnergyDeficit = 0.;
-    double partialHalflife = 0.;
+    double QValue = 0.0 * keV;
+    double atomicEnergyDeficit = 0.0 * keV;
+    double partialHalflife = 0.0 * s;
     double logft = 0.;
   };
 
@@ -36,7 +36,7 @@ namespace BSG {
     bool radiative = true;
     bool kinRecoil = true;
     bool atomicScreening = true;
-    bool atomicExchange = true;
+    bool atomicExchange = false;
     bool atomicMismatch = true;
   };
 

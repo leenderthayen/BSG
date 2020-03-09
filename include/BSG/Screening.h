@@ -1,8 +1,8 @@
-#ifndef SCREENING
-#define SCREENING
+#ifndef BSG_SCREENING_H
+#define BSG_SCREENING_H
 
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 #include "PDS/Units/GlobalPhysicalConstants.h"
 

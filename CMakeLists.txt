@@ -25,7 +25,7 @@ include(CMakeUninstallTarget)
 #---------------------------------------------------------------------------------------
 # compiler config
 #---------------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -45,14 +45,15 @@ option(BSG_INSTALL "Generate the install target." OFF)
 option(BSG_BUILD_EXAMPLES "Build examples" ON)
 
 find_package(spdlog REQUIRED)
+find_package(GSL REQUIRED)
 
 #---------------------------------------------------------------------------------------
 # BSG target
 #---------------------------------------------------------------------------------------
 add_library(BSG SHARED src/Generator.cc src/ConfigParser.cc src/SpectralFunctions.cc)
 
-set(NHL_INCLUDE_DIRS "/home/leendert/git/NHL/include")
-set(PDS_INCLUDE_DIRS "/home/leendert/git/PDS/include")
+set(NHL_INCLUDE_DIRS "/Users/leenderthayen/git/NHL/include")
+set(PDS_INCLUDE_DIRS "/Users/leenderthayen/git/PDS/include")
 #set(NME_INCLUDE_DIRS "/home/leendert/git/NME/include")
 #set(NME_LIBRARIES "-L/home/leendert/git/NME/build -lNME")
 
@@ -67,8 +68,11 @@ target_include_directories(BSG PUBLIC ${NHL_INCLUDE_DIRS})
 #target_include_directories(BSG PUBLIC ${NME_INCLUDE_DIRS})
 target_include_directories(BSG PUBLIC ${PDS_INCLUDE_DIRS})
 #target_link_libraries(BSG PUBLIC ${NME_LIBRARIES})
+target_include_directories(BSG PUBLIC ${GSL_INCLUDE_DIRS})
 
 set(HEADER_BASE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+target_link_libraries(BSG ${GSL_LIBRARIES})
 
 if(BSG_BUILD_TESTS)
     include(CTest)

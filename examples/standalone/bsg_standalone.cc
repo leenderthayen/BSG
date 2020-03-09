@@ -19,7 +19,7 @@ int main(int argc, const char** argv) {
   }
 
   BSG::Generator gen = BSG::Generator(outputName);
-  bool success = gen.Initialize(iniFilename, configFilename, argc, argv);
+  bool success = gen.Initialise(iniFilename, configFilename, argc, argv);
   if (success)
     gen.CalculateSpectrum();
 

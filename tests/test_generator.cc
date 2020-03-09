@@ -4,10 +4,10 @@
 #include "NHL/Containers.h"
 
 TEST_CASE("Basic construction") {
-  std::string iniFile = "/home/leendert/git/BSG/tests/45Ca.ini";
+  std::string iniFile = "/Users/leenderthayen/git/BSG/tests/45Ca.ini";
   BSG::Generator gen = BSG::Generator();
 
-  bool success = gen.InitializeTransitionFromFile(iniFile);
+  bool success = gen.InitialiseTransitionFromFile(iniFile);
 
   REQUIRE(success == true);
 
@@ -23,5 +23,9 @@ TEST_CASE("Basic construction") {
   REQUIRE(bp.aNeg[0] != 0.);
   REQUIRE(bp.W0 == Approx(1.5).epsilon(0.01));
 
-  gen.CalculateSpectrum();
+  std::vector< std::vector<double> >* spectrum = gen.CalculateSpectrum();
+
+  REQUIRE((*spectrum)[0][0] != 0);
+  REQUIRE((*spectrum)[0][1] != 0);
+  REQUIRE((*spectrum)[1][0] != 0);
 }
