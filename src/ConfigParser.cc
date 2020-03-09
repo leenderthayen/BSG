@@ -25,9 +25,9 @@ namespace BSG {
     trans->add_option("-b,--process", transitionOptions.betaType, "")->transform(CLI::CheckedTransformer(betaTypeMap, CLI::ignore_case));
     trans->add_option("-d,--type", transitionOptions.decayType, "")->transform(CLI::CheckedTransformer(betaDecayTypeMap, CLI::ignore_case));
     trans->add_option("-m,--mixingratio", transitionOptions.mixingRatio, "")->ignore_case();
-    trans->add_option("-Q,--qvalue", transitionOptions.QValue, "")->ignore_case();
-    trans->add_option("-a,--atomicenergydeficit", transitionOptions.atomicEnergyDeficit, "")->ignore_case();
-    trans->add_option("-p,--partialhalflife", transitionOptions.partialHalflife, "")->ignore_case();
+    trans->add_option("-Q,--qvalue", transitionOptions.QValue, "")->ignore_case()->transform(CLI::AsNumberWithUnit(NHL::energyMap));
+    trans->add_option("-a,--atomicenergydeficit", transitionOptions.atomicEnergyDeficit, "")->ignore_case()->transform(CLI::AsNumberWithUnit(NHL::energyMap));
+    trans->add_option("-p,--partialhalflife", transitionOptions.partialHalflife, "")->ignore_case()->transform(CLI::AsNumberWithUnit(NHL::timeMap));
     trans->add_option("-l,--logft", transitionOptions.logft, "")->ignore_case();
   }
 
@@ -59,9 +59,9 @@ namespace BSG {
 
   void SetSpectrumCalculationOptions(CLI::App& app, SpectrumCalculationOptions& spectrumCalcOptions) {
     CLI::App* calc = app.add_subcommand("Calculation", "This is the calculation subcommand")->ignore_case();
-    calc->add_option("-b,--begin", spectrumCalcOptions.begin, "")->ignore_case();
-    calc->add_option("-e,--end", spectrumCalcOptions.end, "")->ignore_case();
-    calc->add_option("-s,--stepsize", spectrumCalcOptions.stepSize, "")->ignore_case();
+    calc->add_option("-b,--begin", spectrumCalcOptions.begin, "")->ignore_case()->transform(CLI::AsNumberWithUnit(NHL::energyMap));
+    calc->add_option("-e,--end", spectrumCalcOptions.end, "")->ignore_case()->transform(CLI::AsNumberWithUnit(NHL::energyMap));
+    calc->add_option("-s,--stepsize", spectrumCalcOptions.stepSize, "")->ignore_case()->transform(CLI::AsNumberWithUnit(NHL::energyMap));
     calc->add_option("-n,--steps", spectrumCalcOptions.steps, "")->ignore_case();
     calc->add_option("-v,--neutrino", spectrumCalcOptions.includeNeutrino, "")->ignore_case();
   }
