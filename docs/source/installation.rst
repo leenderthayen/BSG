@@ -39,6 +39,15 @@ Additional notes
 
 - Installing spdlog through your package manager may install an outdated version. Please use the source code on github.
 
+On macOS, you can do that simply by using brew_:
+
+.. _brew: https://brew.sh/
+
+.. code-block:: bash
+
+   brew install root spdlog boost
+
+
 Dependencies - Python visualization
 -----------------------------------
 
@@ -115,5 +124,5 @@ Using the 63Ni beta decay as an example, executation could as simple as
 .. code-block:: bash
 
    ./bsg_exec -i 63Ni.ini -o 63Ni
-
-upon which 4 files will be created detailing the calculation. The file ending in .txt contains a general overview.
+                
+upon which 4 files will be created detailing the calculation. The file ending in .txt contains a general overview. Note, *you* have to create the file 63Ni.ini, we'll see how you do that later in the next sections.
