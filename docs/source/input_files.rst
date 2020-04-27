@@ -18,6 +18,8 @@ This file deals with the beta transition for which the quantities are to be calc
 .. literalinclude:: 19Ne.ini
    :language: ini
 
+Note, if you get a boost error you can either remove all the lines starting with ``;`` of replace the ``;`` with ``#``.
+      
 General configuration file
 --------------------------
 

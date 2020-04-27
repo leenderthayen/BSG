@@ -54,6 +54,7 @@ After completion of the calculations, three output files are generated. The firs
 .. literalinclude:: excerpt_output_67Cu.txt
 
 Plotting the resulting spectrum for two different settings of which corrections to include in the calculation one obtains
+.. PL It would be good to have an example how to use the graphial interface here, which command did you type to get that?
 
 .. image:: spectrum_67Cu.png
 
@@ -61,7 +62,8 @@ GUI Example
 -----------
 
 The graphical user interface connects to the ``BSG`` executable, and pulls information from several locally-stored databases. Chiefly among these is the ENSDF_ library, which allows the user to simply select the transition after which all known parameters are already included.
-
+.. PL Again, it would be good to have an example how to use the graphial interface here, which command did you type to get that?
+   
 .. _ENSDF: https://www.nndc.bnl.gov/ensdf/
 
 An example of the GUI is use for the 67Cu transition above is shown below
