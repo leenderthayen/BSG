@@ -1,0 +1,6 @@
+[submodule "ParticleDataStructure"]
+	path = ParticleDataStructure
+	url = https://github.com/leenderthayen/ParticleDataStructure.git
+[submodule "NHL"]
+	path = NHL
+	url = https://github.com/leenderthayen/NHL.git
