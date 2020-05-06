@@ -195,8 +195,8 @@ namespace BSG {
   std::vector<std::vector<double> >* Generator::CalculateSpectrum() {
     spectrum = new std::vector<std::vector<double> >();
     debugFileLogger->info("Calculating spectrum");
-    double beginEn = configOptions.spectrumCalcOptions.begin;
-    double endEn = configOptions.spectrumCalcOptions.end;
+    double beginEn = configOptions.spectrumCalcOptions.begin * keV;
+    double endEn = configOptions.spectrumCalcOptions.end * keV;
 
     double beginW = beginEn / NHL::betaEnergy + 1.;
     double endW = endEn / NHL::betaEnergy + 1.;
@@ -204,10 +204,12 @@ namespace BSG {
       endW = betaParams.W0;
     }
 
+    debugFileLogger->debug("Start E: {}", beginEn);
     debugFileLogger->debug("Start W: {}", beginW);
+    debugFileLogger->debug("End E: {}", endEn);
     debugFileLogger->debug("End W: {}", endW);
 
-    double stepW = configOptions.spectrumCalcOptions.stepSize / NHL::betaEnergy;
+    double stepW = configOptions.spectrumCalcOptions.stepSize * keV / NHL::betaEnergy;
     if (configOptions.spectrumCalcOptions.steps) {
       stepW = (endW-beginW)/configOptions.spectrumCalcOptions.steps;
     }

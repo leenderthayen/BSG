@@ -5,7 +5,7 @@ Created on Fri Sep 3 18:24 2019
 
 @author: leendert
 """
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 # from PySide2.QtWidgets import QApplication, QMainWindow
 # from PySide2 import QtGui
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
@@ -27,8 +27,8 @@ class InputManager:
         self.checkUnsavedTransitionChanges()
 
         if not filename:
-            filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose .ini file")
-        if filename == '':
+            filename,ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose .ini file")
+        if not ok:
             return
         try:
             config = configparser.ConfigParser()
@@ -64,13 +64,9 @@ class InputManager:
                 pass
             try:
                 self.setROBTDFile(config.get('Transition', 'ROBTDFile'))
-                print('test')
             except configparser.NoOptionError:
-                print('test')
                 pass
-            print('test')
             self.setCurrentIniFile(filename)
-            print('test')
             self.bsg_ui.setTransitionLabel()
             self.bsg_ui.log("Loaded Ini file: %s." % filename)
         except:
@@ -120,7 +116,7 @@ class InputManager:
 
         robtdFile = self.robtdFile if not self.robtdFile == '' else None
 
-        filename = QtGui.QFileDialog.getSaveFileName(self.bsg_ui, "Save .ini file")
+        filename,_ = QtGui.QFileDialog.getSaveFileName(self.bsg_ui, "Save .ini file")
         if filename == '':
             return
         print(filename)
@@ -218,8 +214,8 @@ class InputManager:
 
     def setROBTDFile(self, filename=None):
         if not filename:
-            filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose ROBTD data file")[0]
-            if filename == '':
+            filename,ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose ROBTD data file")
+            if not ok:
                 return
         self.robtdFile = filename
         self.bsg_ui.ui.b_chooseROBTDFile.setText(filename.split('/')[-1])

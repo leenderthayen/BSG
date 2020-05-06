@@ -5,7 +5,7 @@ Created on Fri Sep 3 18:24 2019
 
 @author: leendert
 """
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 # from PySide2.QtWidgets import QApplication, QMainWindow
 # from PySide2 import QtGui
 import os
@@ -99,9 +99,9 @@ class DatabaseManager:
 
     def loadDeformation(self):
         if not self.deformationFile:
-            self.deformationFile = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose the deformation file")[0]
-        if self.deformationFile == '':
-            return
+            self.deformationFile, ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose the deformation file")
+            if not ok:
+                return
         mDef = ut.loadDeformation(self.bsg_ui.ui.sb_ZM.value(), self.bsg_ui.ui.sb_AM.value(), self.deformationFile)
         dDef = ut.loadDeformation(self.bsg_ui.ui.sb_ZD.value(), self.bsg_ui.ui.sb_AD.value(), self.deformationFile)
 
@@ -114,9 +114,9 @@ class DatabaseManager:
 
     def loadRadii(self):
         if not self.radiiFile:
-            self.radiiFile = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose the radii file")[0]
-        if self.radiiFile == '':
-            return
+            self.radiiFile, ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose the radii file")
+            if not ok:
+                return
         mRad = ut.loadChargeRadius(self.bsg_ui.ui.sb_ZM.value(), self.bsg_ui.ui.sb_AM.value(), self.radiiFile)
         dRad = ut.loadChargeRadius(self.bsg_ui.ui.sb_ZD.value(), self.bsg_ui.ui.sb_AD.value(), self.radiiFile)
 
@@ -124,13 +124,13 @@ class DatabaseManager:
         self.bsg_ui.ui.dsb_RD.setValue(dRad)
 
     def changeBSGExec(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose BSG exec")[0]
-        if filename == '':
+        filename, ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose BSG exec")
+        if not ok:
             return
         self.execPath = filename
 
     def changeBSGExchange(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose Exchange data file")[0]
-        if filename == '':
+        filename, ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose Exchange data file")
+        if not ok:
             return
         self.exchangePath = filename

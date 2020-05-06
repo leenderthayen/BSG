@@ -85,6 +85,7 @@ double BSG::SpectralFunctions::UCorrection(double W, int Z, double R, int betaTy
                                       NHL::NuclearShapes ESShape,
                                       std::vector<double>& v,
                                       std::vector<double>& vp) {
+
   double result = 1.;
   if (ESShape == NHL::NuclearShapes::FERMI) {
     double a0 = -5.6E-5 - betaType * 4.94E-5 * Z + 6.23E-8 * std::pow(Z, 2);
@@ -252,7 +253,6 @@ std::tuple<double, double> BSG::SpectralFunctions::CCorrectionComponents(
     double F1221 = 57./70.;
     double F1222 = 233./210.;
     double F1211 = -3./70.;
-
     if (NSShape == NHL::NuclearShapes::MODGAUSS) {
       F1111 = 0.757 + 0.0069 * (1 - std::exp(-modGaussFit / 1.008));
       F1221 = 0.844 - 0.0182 * (1 - std::exp(-modGaussFit / 1.974));

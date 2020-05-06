@@ -5,7 +5,7 @@ Created on Fri Sep 3 18:24 2019
 
 @author: leendert
 """
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 # from PySide2.QtWidgets import QApplication, QMainWindow
 # from PySide2 import QtGui
 #from bsg_gui.ui.MainWindowGUI import Ui_MainWindow
@@ -61,8 +61,8 @@ class ConfigManager:
 
     def loadConfigFile(self, filename = None, nuclearStructure=True, spectrumShape=True):
         if not filename:
-            filename = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose config file")
-        if filename == '':
+            filename,ok = QtGui.QFileDialog.getOpenFileName(self.bsg_ui, "Choose config file")
+        if not ok:
             return
 
         config = configparser.ConfigParser()

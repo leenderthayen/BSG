@@ -69,9 +69,10 @@ namespace BSG {
   void SetAdvancedOptions(CLI::App& app, AdvancedOptions& advancedOptions) {
     CLI::App* adv = app.add_subcommand("Advanced", "This is the advanced subcommand")->ignore_case();
     adv->add_option("-c,--connect", advancedOptions.connectSPS, "")->ignore_case();
-    std::vector<std::pair<std::string, NHL::NuclearShapes> > map{{"Fermi", NHL::NuclearShapes::FERMI}, {"ModGauss", NHL::NuclearShapes::MODGAUSS}};
-    adv->add_option("-e,--esshape", advancedOptions.ESShape, "")->transform(CLI::CheckedTransformer(map, CLI::ignore_case));
-    adv->add_option("-n,--nsshape", advancedOptions.NSShape, "")->transform(CLI::CheckedTransformer(map, CLI::ignore_case));
+    std::vector<std::pair<std::string, NHL::NuclearShapes> > mapES{{"Fermi", NHL::NuclearShapes::FERMI}, {"ModGauss", NHL::NuclearShapes::MODGAUSS}};
+    std::vector<std::pair<std::string, NHL::NuclearShapes> > mapNS{{"UCS", NHL::NuclearShapes::FERMI}, {"ModGauss", NHL::NuclearShapes::MODGAUSS}};
+    adv->add_option("-e,--esshape", advancedOptions.ESShape, "")->ignore_case()->transform(CLI::CheckedTransformer(mapES, CLI::ignore_case));
+    adv->add_option("-n,--nsshape", advancedOptions.NSShape, "")->ignore_case()->transform(CLI::CheckedTransformer(mapNS, CLI::ignore_case));
     adv->add_option("-v,--vold", advancedOptions.vold, "");
     adv->add_option("-V,--vnew", advancedOptions.vnew, "");
   }

@@ -11,7 +11,8 @@ from shell import Shell, CommandError
 import qdarkstyle
 import os
 
-from PyQt4 import QtCore, QtGui
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5 import QtGui,QtCore
 # from PySide2.QtWidgets import QApplication, QMainWindow
 # from PySide2 import QtGui
 
@@ -32,10 +33,10 @@ def setCheckBoxState(cb, b):
     if (cb.isChecked() and not b) or (not cb.isChecked() and b):
         cb.toggle()
 
-class BSG_UI(QtGui.QMainWindow):
+class BSG_UI(QMainWindow):
 
     def __init__(self):
-        QtGui.QMainWindow.__init__(self, None)
+        QMainWindow.__init__(self, None)
         self.ui = Ui_MainWindow()
 
         self.ui.setupUi(self)
@@ -51,8 +52,8 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.b_enable_all.clicked.connect(self.enableAll)
         self.ui.b_disable_all.clicked.connect(self.disableAll)
 
-        self.ui.cb_shape.addItems(("Fermi", "Mod. Gauss."))
-        self.ui.cb_C_shape.addItems(("UCS", "Mod. Gauss."))
+        self.ui.cb_shape.addItems(("Fermi", "ModGauss"))
+        self.ui.cb_C_shape.addItems(("UCS", "ModGauss"))
 
         self.ui.cb_process.addItems(("B-", "B+", "EC"))
         self.ui.cb_type.addItems(("Fermi", "Gamow-Teller", "Mixed"))
@@ -75,6 +76,7 @@ class BSG_UI(QtGui.QMainWindow):
         self.ui.cb_nmeMethod.currentIndexChanged[str].connect(self.setESPVisibility)
 
         self.ui.rb_stepSize.toggled.connect(self.ui.dsb_stepSize.setEnabled)
+        self.ui.rb_stepSize.toggled.connect(self.resetSteps)
         self.ui.rb_steps.toggled.connect(self.ui.sb_steps.setEnabled)
 
         self.ui.a_new.triggered.connect(self.newDecay)
@@ -95,6 +97,9 @@ class BSG_UI(QtGui.QMainWindow):
 
     def status(self, message):
         self.statusBar().showMessage(message)
+
+    def resetSteps(self):
+        self.ui.sb_steps.setValue(0)
 
     def setESPVisibility(self, value):
         if value == 'ESP':
@@ -234,11 +239,11 @@ class BSG_UI(QtGui.QMainWindow):
         self.status("Ready!")
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     mw = BSG_UI()
 
     # setup stylesheet
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     mw.show()
     app.exec_()
 
