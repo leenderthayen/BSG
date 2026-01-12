@@ -311,10 +311,17 @@ double L0Integral(double r, void * p) {
   double aNeg[7] = {*(params->aNeg)};
   double gamma = std::sqrt(1. - std::pow(bsg::ALPHA * Z, 2.));
 
-  return std::pow(r, 3.) *
-   abs(bsg::ChargeDistributions::GetDerivDeformedChargeDist(r, a, b))
-   * bsg::SpectralFunctions::L0Correction(W, Z, r, betaType, aPos, aNeg)
-   * std::pow(r, 2. * (gamma - 1));
+  if (b>a){
+    return std::pow(r, 3.) *
+    abs(bsg::ChargeDistributions::GetDerivDeformedChargeDist(r, a, b))
+    * bsg::SpectralFunctions::L0Correction(W, Z, r, betaType, aPos, aNeg)
+    * std::pow(r, 2. * (gamma - 1));
+  } else {
+    return std::pow(r, 3.) *
+    abs(bsg::ChargeDistributions::GetDerivDeformedChargeDist(r, b, a))
+    * bsg::SpectralFunctions::L0Correction(W, Z, r, betaType, aPos, aNeg)
+    * std::pow(r, 2. * (gamma - 1));
+  } 
 }
 
 double bsg::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
@@ -337,6 +344,7 @@ double bsg::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
     V0d = 3. * ALPHA * Z / 2. / a / std::sqrt(1. - bOverA * bOverA) *
           asin(std::sqrt(1 - bOverA * bOverA));
   }
+
   double etaS =
       1. / 6. * (std::pow(W0 - W, 2.) + std::pow(W + betaType * V0s, 2.) - 1.);
   double etaD =
@@ -344,10 +352,10 @@ double bsg::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
   double DC0 = (1 - etaD * 3. / 5. * R * R) / (1 - etaS * 3. / 5. * R * R);
 
   double gamma = std::sqrt(1. - std::pow(ALPHA * Z, 2.));
-  double prefact = 4. / 3. * M_PI * std::pow(R, 2. * (1 - gamma));
+  double prefact = 4. / 3. * M_PI * std::pow(R, 2. * (1 - gamma)); //Eq. 39
 
   gsl_integration_workspace * w
-    = gsl_integration_workspace_alloc (1000);
+    = gsl_integration_workspace_alloc(1000);
 
   double result, error;
 
@@ -357,12 +365,17 @@ double bsg::SpectralFunctions::DeformationCorrection(double W, double W0, int Z,
   F.function = &L0Integral;
   F.params = &params;
 
-  gsl_integration_qags (&F, a, b, a, 1e-7, 1000,
-                        w, &result, &error);
+  if (b>a) {
+    gsl_integration_qags (&F, a, b, a, 1e-7, 1000,
+                          w, &result, &error);
+  } else {
+    gsl_integration_qags (&F, b, a, a, 1e-7, 1000,
+                          w, &result, &error);
+  }
 
   double DFS = prefact * result / L0Correction(W, Z, R, betaType, aPos, aNeg);
 
-  gsl_integration_workspace_free (w);
+  gsl_integration_workspace_free(w);
 
   return DC0 * DFS;
 }
