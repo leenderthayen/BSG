@@ -167,22 +167,27 @@ void bsg::Generator::InitializeShapeParameters() {
   vOld.resize(3);
   vNew.resize(3);
 
-  if (ESShape == "Modified_Gaussian") {
+  if (ESShape == "Modified_Gaussian" || ESShape == "ModGauss") {
     debugFileLogger->debug("Found Modified_Gaussian shape");
     vOld[0] = 3./2.;
     vOld[1] = -1./2.;
-    vNew[0] = std::sqrt(5./2.)*4.*(1.+hoFit)*std::sqrt(2.+5.*hoFit)/std::sqrt(M_PI)*std::pow(2.+3.*hoFit, 3./2.);
+    vNew[0] = std::sqrt(5./2.)*4.*(1.+hoFit)*std::sqrt(2.+5.*hoFit)/std::sqrt(M_PI)/std::pow(2.+3.*hoFit, 3./2.);
     vNew[1] = -4./3./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 3./2.);
-    vNew[2] = (2.-7.*hoFit)/5./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 5./3.);
+    vNew[2] = 2.*(1.-hoFit)/5./(3.*hoFit+2)/std::sqrt(M_PI)*std::pow(5.*(2.+5.*hoFit)/2./(2.+3.*hoFit), 5./2.);
   } else {
+    debugFileLogger->debug("Use ESShape different than Modified_Gaussian");
     if (BSGOptExists(Spectrum.vold) && BSGOptExists(Spectrum.vnew)) {
       debugFileLogger->debug("Found v and v'");
       vOld = GetBSGOpt(std::vector<double>, Spectrum.vold);
       vNew = GetBSGOpt(std::vector<double>, Spectrum.vnew);
-    } else if (BSGOptExists(vold) || BSGOptExists(vnew)) {
+    } else if (BSGOptExists(Spectrum.vold) || BSGOptExists(Spectrum.vnew)) {
       consoleLogger->error("ERROR: Both old and new potential expansions must be given.");
     }
   }
+
+  debugFileLogger->debug("vOld: ( {}, {}, {})", vOld[0], vOld[1], vOld[2]);
+  debugFileLogger->debug("vNew: ( {}, {}, {})", vNew[0], vNew[1], vNew[2]);
+
   debugFileLogger->debug("Leaving InitializeShapeParameters");
 }
 
