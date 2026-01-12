@@ -271,9 +271,8 @@ double QCorrection(double W, double W0, int Z, int A, int betaType,
  *\beta = \sqrt{W^2-1} \f$ and the Spence function is defined elsewhere.
  * @see Spence()
  */
-double RadiativeCorrection(double W, double W0, int A, int Z, double R, int betaType,
-                           double gA, double gM, 
-                           std::string ESShape, double hoFit);
+double RadiativeCorrection(double W, double W0, int Z, double R, int betaType,
+                           double gA, double gM);
 
 /**
  * Radiative correction to the neutrino spectrum by Sirlin and Marciano
