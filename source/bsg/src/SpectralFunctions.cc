@@ -55,13 +55,14 @@ double bsg::SpectralFunctions::FermiFunction(double W, int Z, double R,
 
 double bsg::SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
                                       double R, int betaType,
-                                      int decayType, double gA, double gP,
+                                      int decayType, double mixingRatio,
+                                      double gA, double gP,
                                       double fc1, double fb, double fd,
                                       double ratioM121, bool addCI,
                                       std::string NSShape, double hoFit) {
   double cShape, cNS;
   std::tie(cShape, cNS) =
-      CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, gA, gP,
+      CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, mixingRatio, gA, gP,
                             fc1, fb, fd, ratioM121, NSShape, hoFit);
   double result = 0.;
   if (addCI) {
@@ -72,16 +73,18 @@ double bsg::SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
   return result;
 }
 
-double bsg::SpectralFunctions::CCorrection(
-    double W, double W0, int Z, int A, double R, int betaType,
-    int decayType, double gA, double gP, double fc1, double fb, double fd,
-    double ratioM121, bool addCI, std::string NSShape, double hoFit,
-    nme::NuclearStructure::SingleParticleState& spsi,
-    nme::NuclearStructure::SingleParticleState& spsf) {
-
+double bsg::SpectralFunctions::CCorrection(double W, double W0, int Z, int A,
+                                    double R, int betaType,
+                                    int decayType, double mixingRatio, 
+                                    double gA, double gP, 
+                                    double fc1, double fb, double fd, double ratioM121, 
+                                    bool addCI, std::string NSShape, double hoFit,
+                                    nme::NuclearStructure::SingleParticleState& spsi,
+                                    nme::NuclearStructure::SingleParticleState& spsf) {
+  // std::cout << "Debug: Use CCorrection with SingleParticleStates" << std::endl;
   double cShape, cNS;
   std::tie(cShape, cNS) =
-      CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, gA, gP,
+      CCorrectionComponents(W, W0, Z, A, R, betaType, decayType, mixingRatio, gA, gP,
                             fc1, fb, fd, ratioM121, NSShape, hoFit);
   double result = 0.;
   if (addCI) {
@@ -93,7 +96,8 @@ double bsg::SpectralFunctions::CCorrection(
 }
 
 std::tuple<double, double> bsg::SpectralFunctions::CCorrectionComponents(
-    double W, double W0, int Z, int A, double R, int betaType, int decayType,
+    double W, double W0, int Z, int A, double R, int betaType, 
+    int decayType, double mixingRatio,
     double gA, double gP, double fc1, double fb, double fd,
     double ratioM121, std::string NSShape, double hoFit) {
   double AC0, AC1, ACm1, AC2;
@@ -136,24 +140,27 @@ std::tuple<double, double> bsg::SpectralFunctions::CCorrectionComponents(
   double cShape = 0.;
 
   if (decayType == FERMI) {
-    cShape = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W;
+    cShape = 1. + VC0 + VC1 * W + VCm1 / W + VC2 * W * W; 
   } else if (decayType == GAMOW_TELLER) {
     cShape = 1. + AC0 + AC1 * W + ACm1 / W + AC2 * W * W;
+  } else if (decayType == MIXED) {
+    cShape = 1. + 1 / ( 1 + std::pow(mixingRatio, 2.)) * ( VC0 + VC1 * W + VCm1 / W + VC2 * W * W ) 
+          + std::pow(mixingRatio, 2.) / ( 1 + std::pow(mixingRatio, 2.)) * (AC0 + AC1 * W + ACm1 / W + AC2 * W * W) ;
   }
 
   double cNS = 0;
-  if (decayType == GAMOW_TELLER) {
+  if (decayType == GAMOW_TELLER || decayType == MIXED) {
     double M = A * NUCLEON_MASS_KEV / ELECTRON_MASS_KEV;
 
     double Lambda = std::sqrt(2.)/3.*10.*ratioM121;
 
     double phi = gP/gA/sqr(2.*M*R/A);
 
-    double NSC0 = -1. / 45. * R * R * Lambda +
-                  1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) +
-                  betaType * 2. / 5. * ALPHA * Z / M / R / fc1 *
-                      (betaType * 2. * fb + fd) -
-                  betaType * 2. / 35. * ALPHA * Z * W0 * R * Lambda;
+    double NSC0 = -1. / 45. * R * R * Lambda
+                  + 1. / 3. * W0 / M / fc1 * (-betaType * 2. * fb + fd) 
+                  - betaType * 2. / 35. * ALPHA * Z * W0 * R * Lambda
+                  + betaType * 2. / 5. * ALPHA * Z / M / R / fc1 *
+                      (betaType * 2. * fb);
 
     double NSC1 = betaType * 4. / 3. * fb / M / fc1 -
                   2. / 45. * W0 * R * R * Lambda +
@@ -173,6 +180,10 @@ std::tuple<double, double> bsg::SpectralFunctions::CCorrectionComponents(
     cNS = NSC0 + NSC1 * W + NSCm1 / W + NSC2 * W * W;
 
     cNS += phi*(P0 + P1 * W + Pm1 / W);
+  }
+
+  if (decayType == MIXED) {
+    cNS = std::pow(mixingRatio, 2.) / (1 + std::pow(mixingRatio, 2.)) * cNS;
   }
 
   return std::make_tuple(cShape, cNS);
@@ -254,6 +265,7 @@ double bsg::SpectralFunctions::RelativisticCorrection(double W, double W0, int Z
                                                  int A, double R, int betaType,
                                                  int decayType) {
   if (decayType == FERMI) {
+    // See Table VIII on p45
     double Wb = W + betaType * 3 * ALPHA * Z / (2. * R);
     double pb = std::sqrt(Wb * Wb - 1.);
     double H2 = -std::pow(pb * R, 2.) / 6.;
@@ -425,6 +437,7 @@ double bsg::SpectralFunctions::UCorrection(double W, int Z, double R, int betaTy
 
   return result;
 }
+
 double bsg::SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
                                       int betaType, int decayType,
                                       double mixingRatio) {
@@ -434,7 +447,7 @@ double bsg::SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
     a = 1.;
   else if (decayType == GAMOW_TELLER)
     a = -1. / 3.;
-  else if (mixingRatio > 0.)
+  else //if (mixingRatio > 0.)
     a = (1. - std::pow(mixingRatio, 2.) / 3.) / (1. + std::pow(mixingRatio, 2));
 
   double M = A * (PROTON_MASS_KEV + NEUTRON_MASS_KEV) / 2. / ELECTRON_MASS_KEV;
@@ -539,15 +552,15 @@ double bsg::SpectralFunctions::RecoilCorrection(double W, double W0, int A,
     return 1 + Vr0 + Vr1 / W + Vr2 * W + Vr3 * W * W;
   } else if (decayType == GAMOW_TELLER) {
     return 1 + Ar0 + Ar1 / W + Ar2 * W + Ar3 * W * W;
-  } else if (mixingRatio > 0) {
+  } else { //if (mixingRatio > 0)
     return 1 +
            1. / (1 + std::pow(mixingRatio, 2)) *
                (Vr0 + Vr1 / W + Vr2 * W + Vr3 * W * W) +
-           1. / (1 + 1. / std::pow(mixingRatio, 2)) *
+           std::pow(mixingRatio, 2) / (1. + std::pow(mixingRatio, 2) ) *
                (Ar0 + Ar1 / W + Ar2 * W + Ar3 * W * W);
   }
-  cout << "Mixing ratio badly defined. Returning 1." << endl;
-  return 1;
+  // cout << "Mixing ratio badly defined. Returning 1." << endl;
+  // return 1;
 }
 
 double bsg::SpectralFunctions::AtomicScreeningCorrection(double W, int Z,

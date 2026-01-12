@@ -324,7 +324,7 @@ void bsg::Generator::InitializeNSMInfo() {
   debugFileLogger->debug("Entering InitializeNSMInfo");
   nsm = new NS::NuclearStructureManager();
 
-  if (BSGOptExists(connect)) {
+  if (GetBSGOpt(bool, Spectrum.Connect)) {
     int dKi, dKf;
     nsm->GetESPStates(spsi, spsf, dKi, dKf);
   }
@@ -402,29 +402,34 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   }
   // auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "PS microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.Fermi)) {
     result *= SF::FermiFunction(W, Z, R, betaType);
     neutrinoResult *= SF::FermiFunction(Wv, Z, R, betaType);
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "F microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.C)) {
-    if (BSGOptExists(connect)) {
-      result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
+    if (GetBSGOpt(bool, Spectrum.Connect)) {
+      // std::cout << "Debug: Use CCorrection with SingleParticleStates" << std::endl;
+      result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, mixingRatio, gA,
                                 gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit, spsi, spsf);
       neutrinoResult *=
-          SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
+          SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, mixingRatio, gA, gP,
                           fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit, spsi, spsf);
     } else {
-      result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, gA,
+      // std::cout << "Debug: Use CCorrection without SingleParticleStates" << std::endl;
+      result *= SF::CCorrection(W, W0, Z, A, R, betaType, decayType, mixingRatio, gA,
                                 gP, fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit);
       neutrinoResult *=
-          SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, gA, gP,
+          SF::CCorrection(Wv, W0, Z, A, R, betaType, decayType, mixingRatio, gA, gP,
                           fc1, fb, fd, ratioM121, GetBSGOpt(bool, Spectrum.Isovector), NSShape, hoFit);
     }
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "C microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.Relativistic)) {
     result *= SF::RelativisticCorrection(W, W0, Z, A, R, betaType, decayType);
     neutrinoResult *=
@@ -432,6 +437,7 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "Rel microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.ESDeformation)) {
     result *=
         SF::DeformationCorrection(W, W0, Z, R, daughterBeta2, betaType, aPos, aNeg);
@@ -440,43 +446,50 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "ESD microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.ESFiniteSize)) {
     result *= SF::L0Correction(W, Z, R, betaType, aPos, aNeg);
     neutrinoResult *= SF::L0Correction(Wv, Z, R, betaType, aPos, aNeg);
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "ESF microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.U)) {
     result *= SF::UCorrection(W, Z, R, betaType, ESShape, vOld, vNew);
     neutrinoResult *= SF::UCorrection(Wv, Z, R, betaType, ESShape, vOld, vNew);
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "U microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.CoulombRecoil)) {
     result *= SF::QCorrection(W, W0, Z, A, betaType, decayType, mixingRatio);
     neutrinoResult *=
         SF::QCorrection(Wv, W0, Z, A, betaType, decayType, mixingRatio);
   }
-  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
+  // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);\
   // std::cout << "CR microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.Radiative)) {
     result *= SF::RadiativeCorrection(W, W0, Z, R, betaType, gA, gM);
     neutrinoResult *= SF::NeutrinoRadiativeCorrection(Wv);
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "Rad microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.Recoil)) {
     result *= SF::RecoilCorrection(W, W0, A, decayType, mixingRatio);
     neutrinoResult *= SF::RecoilCorrection(Wv, W0, A, decayType, mixingRatio);
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "Rec microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.Screening)) {
     result *= SF::AtomicScreeningCorrection(W, Z, betaType);
     neutrinoResult *= SF::AtomicScreeningCorrection(Wv, Z, betaType);
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "S microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.Exchange)) {
     if (betaType == BETA_MINUS) {
       result *= SF::AtomicExchangeCorrection(W, exPars);
@@ -485,6 +498,7 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "Ex microseconds since start: " << elapsed.count() << "\n";
+
   if (GetBSGOpt(bool, Spectrum.AtomicMismatch)) {
     if (atomicEnergyDeficit == 0.) {
       result *= SF::AtomicMismatchCorrection(W, W0, Z, A, betaType);
@@ -493,11 +507,13 @@ std::tuple<double, double> bsg::Generator::CalculateDecayRate(double W) {
   }
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "AM microseconds since start: " << elapsed.count() << "\n";
+  
   result = std::max(0., result);
   neutrinoResult = std::max(0., neutrinoResult);
   rawSpectrumLogger->info("{:<10f}\t{:<10f}\t{:<10f}\t{:<10f}", W, (W-1.)*ELECTRON_MASS_KEV, result, neutrinoResult);
   // elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
   // std::cout << "File microseconds since start: " << elapsed.count() << "\n";
+
   return std::make_tuple(result, neutrinoResult);
 }
 
