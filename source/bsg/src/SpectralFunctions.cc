@@ -512,7 +512,7 @@ double bsg::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
        (EULER_MASCHERONI_CONSTANT - 1. + std::log(std::sqrt(10) / lambdaOverM) +
         M_PI / 4 / std::sqrt(10) * lambdaOverM);
 
-  double O2corr = ALPHA * ALPHA * Z * (d14 + d1f + d2 + d3);
+  double O2corr = -betaType * ALPHA * ALPHA * Z * (d14 + d1f + d2 + d3);
 
   // 3rd order
   double a = 0.5697;
