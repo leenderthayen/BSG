@@ -493,12 +493,16 @@ double bsg::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
 
   // 2nd order
   double d1f, d2, d3, d14;
-  double lambda = std::sqrt(10) / R;
+  double lambda = std::sqrt(10.) / R;
   double lambdaOverM =
       lambda / NUCLEON_MASS_KEV * ELECTRON_MASS_KEV;  // this is dimensionless
 
+  // ERA
   d14 = std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV) -
         5. / 3. * std::log(2 * W) + 43. / 18.;
+  // NRA
+  // d14 = std::log(PROTON_MASS_KEV / ELECTRON_MASS_KEV) -
+  //     2. / 3. * std::log(2 * W) + 35. / 9. + M_PI*M_PI / 6 - 6*std::log(2);
 
   d1f = std::log(lambdaOverM) - EULER_MASCHERONI_CONSTANT + 4. / 3. -
         std::log(std::sqrt(10.0)) -
