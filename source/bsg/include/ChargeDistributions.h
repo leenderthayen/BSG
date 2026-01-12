@@ -355,6 +355,8 @@ inline double GetDerivDeformedChargeDist(double r, double a, double b) {
   if (r >= a && r <= b) {
     result = rho0 * (b * std::sqrt((r * r - a * a) / (b * b - a * a)) / r / r -
                      b / std::sqrt((b * b - a * a) * (r * r - a * a)));
+  } else{
+    std::cout<<"(GetDerivDeformedChargeDist) Either r<a or r>b..." <<std::endl;
   }
   return result;
 }
