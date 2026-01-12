@@ -12,7 +12,7 @@ setup(
     install_requires=[
         "shell (>= 1.0.1)",
         "QDarkStyle (>= 2.6.4)",
-    	"PySide (>= 1.2.4)",
+    	"PySide2 (>= 1.2.4)",
     	"configparser (>= 3.5.0)",
     	"numpy"
         ],
