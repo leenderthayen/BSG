@@ -195,10 +195,12 @@ void bsg::Generator::LoadExchangeParameters() {
   if (paramStream.is_open()) {
     while (getline(paramStream, line)) {
       double z;
-      double a, b, c, d, e, f, g, h, i;
+      double a, b, c, d, e;
+      // double a, b, c, d, e, f, g, h, i;
 
       std::istringstream iss(line);
-      iss >> z >> a >> b >> c >> d >> e >> f >> g >> h >> i;
+      iss >> z >> a >> b >> c >> d >> e;
+      // iss >> z >> a >> b >> c >> d >> e >> f >> g >> h >> i;
 
       if (z == Z - betaType) {
         exPars[0] = a;
@@ -206,10 +208,10 @@ void bsg::Generator::LoadExchangeParameters() {
         exPars[2] = c;
         exPars[3] = d;
         exPars[4] = e;
-        exPars[5] = f;
-        exPars[6] = g;
-        exPars[7] = h;
-        exPars[8] = i;
+        // exPars[5] = f;
+        // exPars[6] = g;
+        // exPars[7] = h;
+        // exPars[8] = i;
       }
     }
   } else {

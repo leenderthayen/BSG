@@ -22,7 +22,8 @@ class Generator {
   enum DecayType { FERMI, GAMOW_TELLER, MIXED };
   double aNeg[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta- decay */
   double aPos[7]; /**< array containing Wilkinson's fit coefficients for the L0 correction for beta+ decay */
-  double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction */
+  double exPars[6]; /**< array for the fit coefficients of the atomic exchange correction - Simkovic et al. */
+  // double exPars[9]; /**< array for the fit coefficients of the atomic exchange correction - RMP*/
   double QValue; /**< Q value of the particular decay */
   double W0;  /**< the total electron energy in units of its rest mass */
   double R;   /**< the nuclear radius in natural units (HBAR=c=m_e=1) */

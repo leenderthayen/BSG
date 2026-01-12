@@ -612,13 +612,16 @@ double bsg::SpectralFunctions::AtomicScreeningCorrection(double W, int Z,
   return first * second * third * fourth * fifth;
 }
 
-double bsg::SpectralFunctions::AtomicExchangeCorrection(double W, double exPars[9]) {
-  double E = W - 1;
+double bsg::SpectralFunctions::AtomicExchangeCorrection(double W, double exPars[5]) {
+  // double E = W - 1;
 
-  return 1 + exPars[0] / E + exPars[1] / E / E +
-         exPars[2] * std::exp(-exPars[3] * E) +
-         exPars[4] * sin(std::pow(W - exPars[6], exPars[5]) + exPars[7]) /
-             std::pow(W, exPars[8]);
+  // return 1 + exPars[0] / E + exPars[1] / E / E +
+  //        exPars[2] * std::exp(-exPars[3] * E) +
+  //        exPars[4] * sin(std::pow(W - exPars[6], exPars[5]) + exPars[7]) /
+  //            std::pow(W, exPars[8]);
+  double x = (W-1)*ELECTRON_MASS_KEV;
+
+  return 1 + (exPars[0] + exPars[1]*std::pow(x, exPars[2])) * std::exp(- exPars[3] * std::pow(x, exPars[4]));
 }
 
 double bsg::SpectralFunctions::AtomicMismatchCorrection(double W, double W0, int Z,
