@@ -417,7 +417,7 @@ double bsg::SpectralFunctions::UCorrection(double W, int Z, double R, int betaTy
   double delta1 = 4. / 3. * (vp[0] - v[0]) + 17. / 30. * (vp[1] - v[1]) +
                   25. / 63. * (vp[2] - v[2]);
   double delta2 = 2. / 3. * (vp[0] - v[0]) + 7. / 12. * (vp[1] - v[1]) +
-                  11. / 6. * (vp[2] - v[2]);
+                  11. / 63. * (vp[2] - v[2]);
   double delta3 = 1. / 3. * (vp[0] * vp[0] - v[0] * v[0]) +
                   1. / 15. * (vp[1] * vp[1] - v[1] * v[1]) +
                   1. / 35. * (vp[2] * vp[2] - v[2] * v[2]) +
@@ -454,7 +454,7 @@ double bsg::SpectralFunctions::QCorrection(double W, double W0, int Z, int A,
 
   double p = std::sqrt(W * W - 1.);
 
-  return 1. - betaType * M_PI * ALPHA * Z / M / p * (1. + a * (W0 - W) / 3. / M);
+  return 1. - betaType * M_PI * ALPHA * Z / M / p * (1. + a * (W0 - W) / 3. / W);
 }
 
 double bsg::SpectralFunctions::RadiativeCorrection(double W, double W0, int Z,
