@@ -28,14 +28,14 @@ static const char* atoms[118] = {"H", "He", "Li", "Be", "B", "C", "N", "O", "F",
 "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh",
 "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er",
 "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa",
-"U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Uut", "Fl",
-"Uup", "Lv", "Uus", "Uuo"};
+"U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl",
+"Mc", "Lv", "Ts", "Og"};
 
 /**
  * Shell model occupations in the jj coupling scheme
  * each element consists of 4 numbers.
  * Example: 1d5/2 state becomes {1, 2, 1, 14}
- * Here the second number of the orbital angular momentum
+ * Here the second number is the orbital angular momentum
  * the third is +1 for the l+1/2 component and -1 otherwise
  * the last is the total occupation when all shells up to that one
  * is filled

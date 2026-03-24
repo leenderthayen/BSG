@@ -30,8 +30,9 @@ include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/source/nme/include")
 include_directories("${PROJECT_SOURCE_DIR}/source/bsg/include")
 
-set(EXTRA_COMPILE_FLAGS "-g -std=c++11")
-set(EXTRA_LINKING_FLAGS "-lstdc++")
+set(EXTRA_COMPILE_FLAGS "-g -std=c++17")
+# SV (11/11/2025): Added -lfmt flag
+set(EXTRA_LINKING_FLAGS "-lstdc++ -lfmt")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${EXTRA_LINKING_FLAGS}")

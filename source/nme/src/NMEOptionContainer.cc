@@ -36,17 +36,18 @@ nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv) {
       "Set the quadrupole deformation beta2 parameter for the mother nucleus.")(
       "Mother.Beta4", po::value<double>()->default_value(0.),
       "Set the hexadecupole deformation beta4 parameter for the mother "
-      "nucleus.")("Mother.Beta6", po::value<double>()->default_value(0.),
-                  "Set the hexadecupole deformation beta6 parameter for the "
-                  "mother nucleus.")("Daughter.Beta2",
-                                     po::value<double>()->default_value(0.),
-                                     "Set the quadrupole deformation beta2 "
-                                     "parameter for the daughter nucleus.")(
+      "nucleus.")(
+      "Mother.Beta6", po::value<double>()->default_value(0.),
+      "Set the hexadecupole deformation beta6 parameter for the "
+      "mother nucleus.")(
+      "Daughter.Beta2", po::value<double>()->default_value(0.),
+      "Set the quadrupole deformation beta2 "
+      "parameter for the daughter nucleus.")(
       "Daughter.Beta4", po::value<double>()->default_value(0.),
       "Set the hexadecupole deformation beta4 parameter for the daughter "
       "nucleus.")("Daughter.Beta6", po::value<double>()->default_value(0.),
-                  "Set the hexadecupole deformation beta6 parameter for the "
-                  "daughter nucleus.")(
+      "Set the hexadecupole deformation beta6 parameter for the "
+      "daughter nucleus.")(
       "Mother.SpinParity", po::value<int>(),
       "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")(
       "Daughter.SpinParity", po::value<int>(),
@@ -61,10 +62,10 @@ nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv) {
       "Set the excitation energy of the daughter nucleus in MeV")(
       "Mother.ForcedSPSpin", po::value<int>()->default_value(0),
       "Set the spin of the transforming nucleon when Computational.ForceSpin "
-      "is turned on.")("Daughter.ForcedSPSpin",
-                       po::value<int>()->default_value(0),
-                       "Set the spin of the transforming nucleon when "
-                       "Computational.ForceSpin is turned on.");
+      "is turned on.")(
+      "Daughter.ForcedSPSpin", po::value<int>()->default_value(0),
+      "Set the spin of the transforming nucleon when "
+      "Computational.ForceSpin is turned on.");
 
   configOptions.add_options()(
       "Computational.Method", po::value<std::string>()->default_value("ESP"),
@@ -78,15 +79,13 @@ nme::NMEOptionContainer::NMEOptionContainer(int argc, char** argv) {
       "Choose the spin state with the given spin within EnergyMargin")(
       "Computational.EnergyMargin", po::value<double>()->default_value(0.5),
       "Set the energy margin in choosing the correct spin state in the ESP "
-      "method.")("Computational.ReversedGhallagher",
-                 po::value<bool>()->default_value(false),
-                 "Reverse the Ghallagher coupling rules")(
-      "Computational.OverrideSPCoupling",
-      po::value<bool>()->default_value(false),
+      "method.")(
+      "Computational.ReversedGhallagher", po::value<bool>()->default_value(false),
+      "Reverse the Ghallagher coupling rules")(
+      "Computational.OverrideSPCoupling", po::value<bool>()->default_value(false),
       "Override the single particle coupling rules and set the coupled spin to "
       "the final state.")(
-      "Computational.SurfaceThickness",
-      po::value<double>()->default_value(0.650),
+      "Computational.SurfaceThickness", po::value<double>()->default_value(0.650),
       "Surface thickness of the Woods-Saxon potential in fm.")(
       "Computational.Vneutron", po::value<double>()->default_value(49.6),
       "Set the depth of the Woods-Saxon potential for neutrons in MeV.")(

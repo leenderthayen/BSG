@@ -51,17 +51,19 @@ bsg::BSGOptionContainer::BSGOptionContainer(int argc, char** argv) {
       "Set the quadrupole deformation beta2 parameter for the mother nucleus.")(
       "Mother.Beta4", po::value<double>()->default_value(0.),
       "Set the hexadecupole deformation beta4 parameter for the mother "
-      "nucleus.")("Mother.Beta6", po::value<double>()->default_value(0.),
-                  "Set the hexadecupole deformation beta6 parameter for the "
-                  "mother nucleus.")("Daughter.Beta2",
-                                     po::value<double>()->default_value(0.),
-                                     "Set the quadrupole deformation beta2 "
-                                     "parameter for the daughter nucleus.")(
+      "nucleus.")(
+      "Mother.Beta6", po::value<double>()->default_value(0.),
+      "Set the hexadecupole deformation beta6 parameter for the "
+      "mother nucleus.")(
+      "Daughter.Beta2", po::value<double>()->default_value(0.),
+      "Set the quadrupole deformation beta2 parameter for the "
+      "daughter nucleus.")(
       "Daughter.Beta4", po::value<double>()->default_value(0.),
       "Set the hexadecupole deformation beta4 parameter for the daughter "
-      "nucleus.")("Daughter.Beta6", po::value<double>()->default_value(0.),
-                  "Set the hexadecupole deformation beta6 parameter for the "
-                  "daughter nucleus.")(
+      "nucleus.")(
+      "Daughter.Beta6", po::value<double>()->default_value(0.),
+      "Set the hexadecupole deformation beta6 parameter for the "
+      "daughter nucleus.")(
       "Mother.SpinParity", po::value<int>(),
       "Set the spin times 2 and parity of the mother nucleus: [+/-]2Ji")(
       "Daughter.SpinParity", po::value<int>(),

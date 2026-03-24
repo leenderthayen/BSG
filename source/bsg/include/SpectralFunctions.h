@@ -71,7 +71,7 @@ double FermiFunction(double W, int Z, double R, int betaType);
    to the NME library has been made and actual single-particle wave functions will be used in C_I
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
-                   int decayType, double gA, double gP, double fc1, double fb,
+                   int decayType, double mixingRatio, double gA, double gP, double fc1, double fb,
                    double fd, double ratioM121, bool addCI, std::string NSShape,
                    double hoFit, nme::NuclearStructure::SingleParticleState& spsi, nme::NuclearStructure::SingleParticleState& spsf);
 
@@ -97,7 +97,7 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * The C correction describing effects of finite nuclear size and induced currents.
  */
 double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
-                   int decayType, double gA, double gP, double fc1, double fb,
+                   int decayType, double mixingRatio, double gA, double gP, double fc1, double fb,
                    double fd, double ratioM121, bool addCI, std::string NSShape,
                    double hoFit);
 /**
@@ -108,7 +108,6 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
  * @param A mass number
  * @param R nuclear radius in natural units
  * @param betaType the BetaType of the transition
- * @param hoFit the fitted A value for the Modified Gaussian distribution
  * @param decayType the DecayType of the transition
  * @param gA the axial vector coupling constant
  * @param gP the induced pseudoscalar coupling constant
@@ -124,8 +123,8 @@ double CCorrection(double W, double W0, int Z, int A, double R, int betaType,
    Return the shape and nuclear-sensitive parts separately in a tuple.
  */
 std::tuple<double, double> CCorrectionComponents(double W, double W0, int Z, int A, double R, int betaType,
-                   int decayType, double gA, double gP, double fc1, double fb, double fd, double ratioM121,
-                   std::string NSShape, double hoFit);
+                   int decayType, double mixingRatio, double gA, double gP, double fc1, double fb, double fd, 
+                   double ratioM121, std::string NSShape, double hoFit);
 
 /**
  * Isovector correction to the charge density-calculated C correction
@@ -239,8 +238,8 @@ double UCorrection(double W, int Z, double R, int betaType, std::vector<double>&
  * @param Z proton number
  * @param A mass number
  * @param betaType BetaType of the transition
- * @param decayType decsay type of the transition
- * @double mixingRatio mixing ratio of Fermi versus Gamow-Teller
+ * @param decayType decay type of the transition
+ * @param mixingRatio mixing ratio of Fermi versus Gamow-Teller
  */
 double QCorrection(double W, double W0, int Z, int A, int betaType,
                    int decayType, double mixingRatio);
@@ -255,6 +254,8 @@ double QCorrection(double W, double W0, int Z, int A, int betaType,
  * @param betaType BetaType of the transition
  * @param gA axial vector coupling constant @f$ g_A @f$
  * @param gM nucleon isovector moment @f$ g_M = 4.706 @f$
+ * @param ESShape string to change the charge distr. from UCS to Mod. Gauss.
+ * @param hoFit the fitted A value for the Modified Gaussian distribution
  *
  * The first order correction is \f$ \delta_1=\frac{\alpha}{2\pi}g(W_0,W) \f$,
  *where \f$ g \f$ is defined by Sirlin (1967).
@@ -286,8 +287,8 @@ double NeutrinoRadiativeCorrection(double Wv);
  * @param W electron total energy in units of its rest mass
  * @param W0 total endpoint energy in units of the electron rest mass
  * @param A mass number
- * @param decayType decsay type of the transition
- * @double mixingRatio mixing ratio of Fermi versus Gamow-Teller
+ * @param decayType decay type of the transition
+ * @param mixingRatio mixing ratio of Fermi versus Gamow-Teller
  */
 double RecoilCorrection(double W, double W0, int A, int decayType,
                         double mixingRatio);

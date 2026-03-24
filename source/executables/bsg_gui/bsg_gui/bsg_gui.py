@@ -11,7 +11,7 @@ from shell import Shell, CommandError
 import qdarkstyle
 import os
 
-from PySide import QtGui
+from PySide2 import QtGui
 
 from ui.MainWindowGUI import Ui_MainWindow
 
